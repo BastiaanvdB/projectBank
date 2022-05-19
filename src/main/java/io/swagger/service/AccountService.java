@@ -17,7 +17,15 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
+    public Account createAccount(Account account) {
+        return accountRepository.save(account);
+    }
+
     public Account getOneByIban(String iban) {
         return accountRepository.findAccountByIban(iban);
+    }
+
+    public Account getLastAccount() {
+        return accountRepository.findLastAccountEntry();
     }
 }

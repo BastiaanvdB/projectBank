@@ -31,6 +31,7 @@ import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
@@ -54,8 +55,50 @@ public class AccountsApiController implements AccountsApi {
     }
 
     public ResponseEntity<Void> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+        // Create model mapper and Random rnd variable
+        ModelMapper modelMapper = new ModelMapper();
+        Random rnd = new Random();
+
+        // Map dto body to account class
+        Account account = modelMapper.map(body, Account.class);
+
+        // Generate Iban
+        account.setIban(generateIban());
+
+        // Set employer id and activation
+        account.setEmployeeId(1);
+        account.setActivated(true);
+
+        // Create random 4 digit pin code and then add to db with service
+        account.setPin(Integer.valueOf(String.format("%04d", rnd.nextInt(10000))));
+        account = accountService.createAccount(account);
+
+        // ## adjust yaml, no return value specified
+        // AccountResponseDTO responseDTO = modelMapper.map(account, AccountResponseDTO.class);
+
+        return new ResponseEntity<Void>(HttpStatus.CREATED);
+    }
+
+    private String generateIban() {
+        // Get all iban
+        String lastIban = accountService.getLastAccount().getIban();
+
+        // Get prefix of this iban
+        String prefix = lastIban.substring(0, 9);
+
+        // Get the number of the iban and raise by one, count amount of digits
+        int number = Integer.parseInt(lastIban.substring(9)) + 1;
+        int amountOfDigits = String.valueOf(number).length();
+
+        // foreach leftover digit place, append a 0
+        for (int i = amountOfDigits; i < 9; i++) {
+            prefix += '0';
+        }
+
+        // Then return the new number and return
+        prefix += number;
+        return prefix;
     }
 
     public ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
