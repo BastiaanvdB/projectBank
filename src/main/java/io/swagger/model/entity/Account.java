@@ -1,18 +1,15 @@
 package io.swagger.model.entity;
 
 import io.swagger.model.ResponseDTO.AccountResponseDTO;
-import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 public class Account {
 
-    @Id @GeneratedValue(generator="system-uuid")
-    @GenericGenerator(name="system-uuid", strategy = "uuid")
+    @Id
     private String iban;
     private AccountResponseDTO.TypeEnum type;
     private Integer pin;
