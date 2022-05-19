@@ -10,7 +10,6 @@ import io.swagger.model.DTO.DepositDTO;
 import io.swagger.model.DTO.WithdrawDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.Account;
-import io.swagger.model.entity.User;
 import io.swagger.service.AccountService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -171,18 +170,42 @@ public class AccountsApiController implements AccountsApi {
     }
 
     public ResponseEntity<Void> setAccountLimit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+        // Get the account with iban
+        Account account = accountService.getOneByIban(iban);
+
+        // Set the limit with value from body and update the account
+        account.setAbsoluteLimit(body.getAbsoluteLimit());
+        accountService.updateLimit(account);
+
+        // Return http status 200
+        return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
     public ResponseEntity<Void> setAccountPin(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+        // Get the account with iban
+        Account account = accountService.getOneByIban(iban);
+
+        // Set the pin with value from body and update account
+        account.setPin(Integer.valueOf(body.getNewPincode()));
+        accountService.updatePin(account);
+
+        // return http status 200
+        return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
     public ResponseEntity<Void> setAccountStatus(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+        // Get the account with iban
+        Account account = accountService.getOneByIban(iban);
+
+        // Set the activation status with value from body and update account
+        account.setActivated(body.isActivated());
+        accountService.updateStatus(account);
+
+        // return http status 200
+        return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
 }
