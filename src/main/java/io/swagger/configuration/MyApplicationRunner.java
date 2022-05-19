@@ -30,6 +30,6 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         // Accounts
         accountRepository.save(new Account("NLxxINHO0000000000", AccountResponseDTO.TypeEnum.CURRENT, 1234, 1, 2, new BigDecimal(20), new BigDecimal(20), true));
-        accountRepository.save(new Account("NLxxINHO0000000001", AccountResponseDTO.TypeEnum.CURRENT, 1255, 1, 2, new BigDecimal(20), new BigDecimal(20), true));
+        accountRepository.save(new Account("NLxxINHO0000011129", AccountResponseDTO.TypeEnum.CURRENT, 1255, 1, 2, new BigDecimal(20), new BigDecimal(20), true));
     }
 }

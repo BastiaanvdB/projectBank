@@ -8,4 +8,7 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     @Query(value = "SELECT * FROM Account a WHERE a.iban = ?1", nativeQuery = true)
     public Account findAccountByIban(String iban);
+
+    @Query(value = "SELECT * from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
+    public Account findLastAccountEntry();
 }
