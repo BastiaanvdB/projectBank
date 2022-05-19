@@ -11,6 +11,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Component
 public class MyApplicationRunner implements ApplicationRunner {
@@ -23,7 +24,12 @@ public class MyApplicationRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+
+        // Users
         userRepository.save(new User(1, "Bram", "Terlouw", "Address", "Alkmaar", "postalcode", "email", 1, "phonenumber", new BigDecimal(200), new BigDecimal(100), true));
-        accountRepository.save(new Account("iban", AccountResponseDTO.TypeEnum.CURRENT, 1234, 1, 2, new BigDecimal(20), new BigDecimal(20), true));
+
+        // Accounts
+        accountRepository.save(new Account("NLxxINHO0000000000", AccountResponseDTO.TypeEnum.CURRENT, 1234, 1, 2, new BigDecimal(20), new BigDecimal(20), true));
+        accountRepository.save(new Account("NLxxINHO0000000001", AccountResponseDTO.TypeEnum.CURRENT, 1255, 1, 2, new BigDecimal(20), new BigDecimal(20), true));
     }
 }

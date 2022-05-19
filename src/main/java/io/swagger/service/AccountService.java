@@ -16,4 +16,8 @@ public class AccountService {
     public List<Account> getAll() {
         return accountRepository.findAll();
     }
+
+    public Account getOneByIban(String iban) {
+        return accountRepository.findAccountByIban(iban);
+    }
 }
