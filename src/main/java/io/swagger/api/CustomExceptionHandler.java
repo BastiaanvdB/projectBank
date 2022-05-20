@@ -12,9 +12,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(value = { NullPointerException.class})
-    protected ResponseEntity<Object> handleNullPointerException(NullPointerException ex, WebRequest request) {
-        ExceptionResponseDTO dto = new ExceptionResponseDTO("Ey joh dus null man!");
+    @ExceptionHandler(value = { IllegalArgumentException.class})
+    protected ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO("Illegal input argument, follow input requirements.");
         return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.NOT_ACCEPTABLE, request);
     }
 

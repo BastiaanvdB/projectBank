@@ -25,13 +25,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.constraints.*;
-import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
@@ -81,28 +84,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
 
-    private String generateIban() {
-        // Get all iban
-        String lastIban = accountService.getLastAccount().getIban();
-
-        // Get prefix of this iban
-        String prefix = lastIban.substring(0, 9);
-
-        // Get the number of the iban and raise by one, count amount of digits
-        int number = Integer.parseInt(lastIban.substring(9)) + 1;
-        int amountOfDigits = String.valueOf(number).length();
-
-        // foreach leftover digit place, append a 0
-        for (int i = amountOfDigits; i < 9; i++) {
-            prefix += '0';
-        }
-
-        // Then return the new number and return
-        prefix += number;
-        return prefix;
-    }
-
-    public ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
+    public ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
@@ -130,12 +112,10 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<AccountResponseDTO> getAccountByIban(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
+    public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
-        // When length is not 18, throw illegal argument exception
-        if (iban.length() != 18) {
-            throw new IllegalArgumentException();
-        }
+        // Call validation method to validate the iban given as parameter
+        isValidIban(iban);
 
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
@@ -179,7 +159,10 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<BigDecimal> setAccountLimit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
+    public ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
+
+        // Call validation method to validate the iban given as parameter
+        isValidIban(iban);
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
@@ -192,7 +175,10 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<BigDecimal>(account.getAbsoluteLimit(), HttpStatus.OK);
     }
 
-    public ResponseEntity<Integer> setAccountPin(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
+    public ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
+
+        // Call validation method to validate the iban given as parameter
+        isValidIban(iban);
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
@@ -205,7 +191,10 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<Integer>(account.getPin(), HttpStatus.OK);
     }
 
-    public ResponseEntity<Boolean> setAccountStatus(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
+    public ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
+
+        // Call validation method to validate the iban given as parameter
+        isValidIban(iban);
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
@@ -218,4 +207,44 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<Boolean>(account.getActivated(), HttpStatus.OK);
     }
 
+    private String generateIban() {
+        // Get all iban
+        String lastIban = accountService.getLastAccount().getIban();
+
+        // Get prefix of this iban
+        String prefix = lastIban.substring(0, 9);
+
+        // Get the number of the iban and raise by one, count amount of digits
+        int number = Integer.parseInt(lastIban.substring(9)) + 1;
+        int amountOfDigits = String.valueOf(number).length();
+
+        // foreach leftover digit place, append a 0
+        for (int i = amountOfDigits; i < 9; i++) {
+            prefix += '0';
+        }
+
+        // Then return the new number and return
+        prefix += number;
+        return prefix;
+    }
+
+    private void isValidIban(String iban) {
+
+        // When length is not 18, throw illegal argument exception
+        if (iban.length() != 18) {
+            throw new IllegalArgumentException();
+        }
+
+        // When iban prefix is incorrect, throw illegal argument exception
+        if (!Objects.equals(new String(iban.substring(0, 9)), "NLxxINHO0")) {
+            throw new IllegalArgumentException();
+        }
+
+        // When number section of iban contains letters, throw illegal argument exception
+        Pattern pattern = Pattern.compile(".*[a-zA-Z].*");
+        Matcher matcher = pattern.matcher(iban.substring(10, 18));
+        if (matcher.matches()) {
+            throw new IllegalArgumentException();
+        }
+    }
 }
