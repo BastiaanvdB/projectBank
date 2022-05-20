@@ -241,9 +241,9 @@ public class AccountsApiController implements AccountsApi {
         }
 
         // When number section of iban contains letters, throw illegal argument exception
-        Pattern pattern = Pattern.compile(".*[a-zA-Z].*");
+        Pattern pattern = Pattern.compile("[0-9]+");
         Matcher matcher = pattern.matcher(iban.substring(10, 18));
-        if (matcher.matches()) {
+        if (!matcher.matches()) {
             throw new IllegalArgumentException();
         }
     }
