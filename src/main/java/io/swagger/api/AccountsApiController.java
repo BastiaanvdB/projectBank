@@ -45,6 +45,8 @@ public class AccountsApiController implements AccountsApi {
 
     private final HttpServletRequest request;
 
+    private final ModelMapper modelMapper;
+
     @Autowired
     private AccountService accountService;
 
@@ -52,16 +54,16 @@ public class AccountsApiController implements AccountsApi {
     public AccountsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
+        this.modelMapper = new ModelMapper();
     }
 
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
-        // Create model mapper and Random rnd variable
-        ModelMapper modelMapper = new ModelMapper();
+        // Create Random rnd variable
         Random rnd = new Random();
 
         // Map dto body to account class
-        Account account = modelMapper.map(body, Account.class);
+        Account account = this.modelMapper.map(body, Account.class);
 
         // Generate Iban
         account.setIban(generateIban());
@@ -75,7 +77,7 @@ public class AccountsApiController implements AccountsApi {
         account = accountService.createAccount(account);
 
         // Map newly created account to response data transfer object and return with http status 201
-        AccountResponseDTO responseDTO = modelMapper.map(account, AccountResponseDTO.class);
+        AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
 
@@ -130,12 +132,21 @@ public class AccountsApiController implements AccountsApi {
 
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
+        // When length is not 18, throw illegal argument exception
+        if (iban.length() != 18) {
+            throw new IllegalArgumentException();
+        }
+
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
-        ModelMapper modelMapper = new ModelMapper();
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
         // Use mapper to map account to account response data transfer object
-        AccountResponseDTO responseDTO = modelMapper.map(account, AccountResponseDTO.class);
+        AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
 
         // Return the account dto and http 200
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
@@ -143,12 +154,11 @@ public class AccountsApiController implements AccountsApi {
 
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
-        // Get all accounts from service, create model mapper
+        // Get all accounts from service
         List<Account> accounts = accountService.getAll();
-        ModelMapper modelMapper = new ModelMapper();
 
         // use mapper to map all accounts to user response data transfer object
-        List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> modelMapper.map(account, AccountResponseDTO.class))
+        List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
 
         // return all response dto's and http 200
