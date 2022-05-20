@@ -29,6 +29,7 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -53,7 +54,7 @@ public class AccountsApiController implements AccountsApi {
         this.request = request;
     }
 
-    public ResponseEntity<Void> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
+    public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
         // Create model mapper and Random rnd variable
         ModelMapper modelMapper = new ModelMapper();
@@ -73,10 +74,9 @@ public class AccountsApiController implements AccountsApi {
         account.setPin(Integer.valueOf(String.format("%04d", rnd.nextInt(10000))));
         account = accountService.createAccount(account);
 
-        // ## adjust yaml, no return value specified
-        // AccountResponseDTO responseDTO = modelMapper.map(account, AccountResponseDTO.class);
-
-        return new ResponseEntity<Void>(HttpStatus.CREATED);
+        // Map newly created account to response data transfer object and return with http status 201
+        AccountResponseDTO responseDTO = modelMapper.map(account, AccountResponseDTO.class);
+        return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
 
     private String generateIban() {
@@ -169,7 +169,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> setAccountLimit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
+    public ResponseEntity<BigDecimal> setAccountLimit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
@@ -179,10 +179,10 @@ public class AccountsApiController implements AccountsApi {
         accountService.updateLimit(account);
 
         // Return http status 200
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<BigDecimal>(account.getAbsoluteLimit(), HttpStatus.OK);
     }
 
-    public ResponseEntity<Void> setAccountPin(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
+    public ResponseEntity<Integer> setAccountPin(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
@@ -192,10 +192,10 @@ public class AccountsApiController implements AccountsApi {
         accountService.updatePin(account);
 
         // return http status 200
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<Integer>(account.getPin(), HttpStatus.OK);
     }
 
-    public ResponseEntity<Void> setAccountStatus(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
+    public ResponseEntity<Boolean> setAccountStatus(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
@@ -205,7 +205,7 @@ public class AccountsApiController implements AccountsApi {
         accountService.updateStatus(account);
 
         // return http status 200
-        return new ResponseEntity<Void>(HttpStatus.OK);
+        return new ResponseEntity<Boolean>(account.getActivated(), HttpStatus.OK);
     }
 
 }
