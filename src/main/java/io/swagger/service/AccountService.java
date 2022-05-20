@@ -13,12 +13,10 @@ public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
 
+
+    // Get queries
     public List<Account> getAll() {
         return accountRepository.findAll();
-    }
-
-    public Account createAccount(Account account) {
-        return accountRepository.save(account);
     }
 
     public Account getOneByIban(String iban) {
@@ -27,5 +25,31 @@ public class AccountService {
 
     public Account getLastAccount() {
         return accountRepository.findLastAccountEntry();
+    }
+
+
+
+    // Post queries
+    public Account createAccount(Account account) {
+        return accountRepository.save(account);
+    }
+
+
+
+    // Put queries
+    public void updateLimit(Account account) {
+        accountRepository.updateLimit(account.getAbsoluteLimit(), account.getIban());
+    }
+
+    public void updatePin(Account account) {
+        accountRepository.updatePin(account.getPin(), account.getIban());
+    }
+
+    public void updateStatus(Account account) {
+        if (account.getActivated()) {
+            accountRepository.updateStatus(false, account.getIban());
+        } else {
+            accountRepository.updateStatus(account.getActivated(), account.getIban());
+        }
     }
 }
