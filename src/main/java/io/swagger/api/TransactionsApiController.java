@@ -1,6 +1,8 @@
 package io.swagger.api;
 
 import io.swagger.annotations.Api;
+import io.swagger.service.TransactionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.threeten.bp.LocalDate;
 import io.swagger.model.DTO.TransactionDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
@@ -31,6 +33,9 @@ public class TransactionsApiController implements TransactionsApi {
     private final ObjectMapper objectMapper;
 
     private final HttpServletRequest request;
+
+    @Autowired
+    private TransactionService transactionService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public TransactionsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
