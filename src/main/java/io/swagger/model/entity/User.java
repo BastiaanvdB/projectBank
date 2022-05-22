@@ -1,9 +1,11 @@
 package io.swagger.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.model.enumeration.Role;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 public class User {
@@ -17,17 +19,21 @@ public class User {
     private String city;
     private String postalCode;
     private String email;
-    private Integer role;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<Role> roles;
+
     private String phone;
     private BigDecimal transactionLimit;
     private BigDecimal dayLimit;
     private Boolean activated;
+    private String password;
 
     public User() {
 
     }
 
-    public User(Integer id, String firstname, String lastname, String address, String city, String postalCode, String email, Integer role, String phone, BigDecimal transactionLimit, BigDecimal dayLimit, Boolean activated) {
+    public User(Integer id, String firstname, String lastname, String address, String city, String postalCode, String email, List<Role> roles, String phone, BigDecimal transactionLimit, BigDecimal dayLimit, Boolean activated, String password) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -35,11 +41,12 @@ public class User {
         this.city = city;
         this.postalCode = postalCode;
         this.email = email;
-        this.role = role;
+        this.roles = roles;
         this.phone = phone;
         this.transactionLimit = transactionLimit;
         this.dayLimit = dayLimit;
         this.activated = activated;
+        this.password = password;
     }
 
     public Integer getId() {
@@ -98,14 +105,6 @@ public class User {
         this.email = email;
     }
 
-    public Integer getRole() {
-        return role;
-    }
-
-    public void setRole(Integer role) {
-        this.role = role;
-    }
-
     public String getPhone() {
         return phone;
     }
@@ -136,5 +135,21 @@ public class User {
 
     public void setActivated(Boolean activated) {
         this.activated = activated;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 }

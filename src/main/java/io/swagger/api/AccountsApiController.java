@@ -60,6 +60,7 @@ public class AccountsApiController implements AccountsApi {
         this.modelMapper = new ModelMapper();
     }
 
+    //@PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
         // Create Random rnd variable
@@ -112,6 +113,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
+    //@PreAuthorize("hasRole({'USER', 'EMPLOYEE'})")
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
         // Call validation method to validate the iban given as parameter
@@ -132,6 +134,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
+    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         // Get all accounts from service
@@ -159,6 +162,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
+    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -175,6 +179,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<BigDecimal>(account.getAbsoluteLimit(), HttpStatus.OK);
     }
 
+    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -191,6 +196,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<Integer>(account.getPin(), HttpStatus.OK);
     }
 
+    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Call validation method to validate the iban given as parameter
