@@ -12,6 +12,7 @@ import io.swagger.model.DTO.UserDTO;
 import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.DTO.UserRoleDTO;
+import io.swagger.model.UserCreateDTO;
 import io.swagger.model.UsersLoginBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,17 +39,17 @@ import java.util.List;
 @Validated
 public interface UsersApi {
 
-    @Operation(summary = "Creating a new user", description = "", security = {
-        @SecurityRequirement(name = "bearerAuth")    }, tags={ "Users" })
-    @ApiResponses(value = { 
-        @ApiResponse(responseCode = "201", description = "User <<user_Id>> created."),
-        
-        @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint") })
-    @RequestMapping(value = "/users",
-        consumes = { "application/json" }, 
-        method = RequestMethod.POST)
-    ResponseEntity<Void> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserDTO body);
+    @Operation(summary = "Creating a new user", description = "", tags={ "Users" })
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User has been created.", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponseDTO.class)))),
 
+//            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")
+    })
+    @RequestMapping(value = "/users",
+            produces = { "application/json" },
+            consumes = { "application/json" },
+            method = RequestMethod.POST)
+    ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserCreateDTO body);
 
     @Operation(summary = "Get all accounts of specific user", description = "Get all the accounts of the user with the id given as parameter", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Users" })

@@ -8,6 +8,7 @@ import io.swagger.model.DTO.UserDTO;
 import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.DTO.UserRoleDTO;
+import io.swagger.model.UserCreateDTO;
 import io.swagger.model.UsersLoginBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.User;
@@ -22,10 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.*;
 import javax.validation.Valid;
@@ -54,9 +52,17 @@ public class UsersApiController implements UsersApi {
         this.request = request;
     }
 
-    public ResponseEntity<Void> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+    public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserCreateDTO body) {
+        ModelMapper modelMapper = new ModelMapper();
+        User user = modelMapper.map(body, User.class);
+
+        user = userService.add(user);
+
+        UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+
+
+        return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
     public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"

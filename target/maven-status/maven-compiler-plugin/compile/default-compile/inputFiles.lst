@@ -23,6 +23,7 @@ C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\securit
 C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\configuration\HomeController.java
 C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\model\ResponseDTO\AuthorizationResponse.java
 C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\configuration\MyApplicationRunner.java
+C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\model\DTO\UserCreateDTO.java
 C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\security\JwtTokenProvider.java
 C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\api\UsersApi.java
 C:\Users\basti\Desktop\Project Bank\projectBank\src\main\java\io\swagger\model\DTO\DepositDTO.java

@@ -34,6 +34,7 @@ io\swagger\configuration\CustomInstantDeserializer$5.class
 io\swagger\configuration\CustomInstantDeserializer$FromIntegerArguments.class
 io\swagger\model\DTO\AccountDTO.class
 io\swagger\api\ApiException.class
+io\swagger\model\UserCreateDTO.class
 io\swagger\configuration\CustomInstantDeserializer$2.class
 io\swagger\model\entity\Deposit.class
 io\swagger\model\enumeration\Role.class
