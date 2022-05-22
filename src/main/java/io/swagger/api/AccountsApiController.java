@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -113,7 +114,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    //@PreAuthorize("hasRole({'USER', 'EMPLOYEE'})")
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
         // Call validation method to validate the iban given as parameter
@@ -134,7 +135,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    //@PreAuthorize("hasRole('USER')")
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         // Get all accounts from service
@@ -162,7 +163,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    //@PreAuthorize("hasRole('USER')")
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -179,7 +180,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<BigDecimal>(account.getAbsoluteLimit(), HttpStatus.OK);
     }
 
-    //@PreAuthorize("hasRole('USER')")
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -196,7 +197,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<Integer>(account.getPin(), HttpStatus.OK);
     }
 
-    //@PreAuthorize("hasRole('USER')")
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Call validation method to validate the iban given as parameter
