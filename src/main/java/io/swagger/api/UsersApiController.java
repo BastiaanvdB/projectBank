@@ -90,6 +90,10 @@ public class UsersApiController implements UsersApi {
 
     public ResponseEntity<UserResponseDTO> getOneUser(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
 )) @PathVariable("userid") Integer userid) {
+
+        //nog doen
+
+
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
@@ -105,14 +109,24 @@ public class UsersApiController implements UsersApi {
 
     public ResponseEntity<Void> setUserPassword(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
 )) @PathVariable("userid") Integer userid,@Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserPasswordDTO body) {
+
+        //nog doen
+
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+
     }
 
     public ResponseEntity<Void> setUserRole(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
 )) @PathVariable("userid") Integer userid,@Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserRoleDTO body) {
+
+        //nog doen
+
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+
     }
 
     public ResponseEntity<Void> setUserStatus(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
