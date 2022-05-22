@@ -114,7 +114,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
         // Call validation method to validate the iban given as parameter

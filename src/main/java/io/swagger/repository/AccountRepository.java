@@ -1,22 +1,22 @@
 package io.swagger.repository;
 
 import io.swagger.model.entity.Account;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface AccountRepository extends JpaRepository<Account, String> {
 
     // Get queries
     @Query(value = "SELECT * FROM Account a WHERE a.iban = ?1", nativeQuery = true)
     public Account findAccountByIban(String iban);
-
     @Query(value = "SELECT * from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
     public Account findLastAccountEntry();
-
 
     // Update queries
     @Transactional
