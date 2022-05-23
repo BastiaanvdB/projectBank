@@ -13,11 +13,14 @@ public class Account {
     private String iban;
     private AccountResponseDTO.TypeEnum type;
     private Integer pin;
-    private Integer userId;
+    //private Integer userId;
     private Integer employeeId;
     private BigDecimal balance;
     private BigDecimal absoluteLimit;
     private Boolean activated;
+
+    @ManyToOne
+    private User user;
 
     public Account() {
     }
@@ -26,7 +29,7 @@ public class Account {
         this.iban = iban;
         this.type = type;
         this.pin = pin;
-        this.userId = userId;
+        //this.userId = userId;
         this.employeeId = employeeId;
         this.balance = balance;
         this.absoluteLimit = absoluteLimit;
@@ -57,13 +60,13 @@ public class Account {
         this.pin = pin;
     }
 
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
+//    public Integer getUserId() {
+//        return userId;
+//    }
+//
+//    public void setUserId(Integer userId) {
+//        this.userId = userId;
+//    }
 
     public Integer getEmployeeId() {
         return employeeId;

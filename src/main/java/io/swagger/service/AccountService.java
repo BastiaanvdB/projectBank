@@ -3,6 +3,8 @@ package io.swagger.service;
 import io.swagger.model.entity.Account;
 import io.swagger.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,14 +17,19 @@ public class AccountService {
 
 
     // Get queries
-    public List<Account> getAll() {
-        return (List<Account>) accountRepository.findAll();
+    public List<Account> getAll(int offset, int limit) {
+        Page<Account> result = accountRepository.findAll(PageRequest.of(offset, limit));
+        return result.getContent();
     }
-
+    public List<Account> getAllByFirstname(String firstname, int offset, int limit) {
+        return accountRepository.findAllByFirstname(PageRequest.of(offset, limit), firstname);
+    }
+    public List<Account> getAllByLastname(String lastname, int offset, int limit) {
+        return accountRepository.findAllByLastname(PageRequest.of(offset, limit), lastname);
+    }
     public Account getOneByIban(String iban) {
         return accountRepository.findAccountByIban(iban);
     }
-
     public Account getLastAccount() {
         return accountRepository.findLastAccountEntry();
     }
