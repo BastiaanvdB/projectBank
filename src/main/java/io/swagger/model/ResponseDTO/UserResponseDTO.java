@@ -1,7 +1,10 @@
 package io.swagger.model.ResponseDTO;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.model.enumeration.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +41,7 @@ public class UserResponseDTO   {
   private String email = null;
 
   @JsonProperty("role")
-  private Integer role = null;
+  private List<Integer> role = new ArrayList<>();
 
   @JsonProperty("phone")
   private String phone = null;
@@ -191,25 +194,25 @@ public class UserResponseDTO   {
     this.email = email;
   }
 
-  public UserResponseDTO role(Integer role) {
+
+  public List<Integer> getRole() {
+    return role;
+  }
+
+  public void setRole(List<Integer> role) {
     this.role = role;
-    return this;
+  }
+
+  public Boolean getActivated() {
+    return activated;
   }
 
   /**
    * Get role
    * @return role
    **/
-  @Schema(example = "0", required = true, description = "")
-      @NotNull
 
-    public Integer getRole() {
-    return role;
-  }
 
-  public void setRole(Integer role) {
-    this.role = role;
-  }
 
   public UserResponseDTO phone(String phone) {
     this.phone = phone;

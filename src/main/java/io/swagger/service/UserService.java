@@ -55,10 +55,10 @@ public class UserService {
     }
 
     public User add(User user) {
-        try {
+
         if(user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2)
         {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Enter all user details!");
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
         }
 
         if(!EmailValidator.getInstance().isValid(user.getEmail()))
@@ -75,7 +75,7 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Password doesnt meet security requirements!");
         }
 
-
+        try {
             user.setTransactionLimit(new BigDecimal(1000));
             user.setDayLimit(new BigDecimal(200));
             user.setRoles(new ArrayList<>(Arrays.asList(Role.ROLE_USER)));
@@ -84,7 +84,7 @@ public class UserService {
             userRepository.save(user);
 
         } catch (Exception  ex) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Enter all user details!");
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
         }
 
         return user;
