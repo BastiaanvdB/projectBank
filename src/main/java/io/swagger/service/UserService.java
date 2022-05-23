@@ -37,6 +37,10 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public User getOne(int id) {
+        return userRepository.findById(id);
+    }
+
     public String login(String email, String password) {
         String token = "";
 

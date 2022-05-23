@@ -10,7 +10,9 @@ import io.swagger.model.DTO.DepositDTO;
 import io.swagger.model.DTO.WithdrawDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.Account;
+import io.swagger.model.entity.User;
 import io.swagger.service.AccountService;
+import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,9 +32,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -51,8 +50,15 @@ public class AccountsApiController implements AccountsApi {
 
     private final ModelMapper modelMapper;
 
+    private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
+    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTELIMIT = new BigDecimal(20);
+    private static final Boolean DEFAULT_ACCOUNT_ACTIVATION = true;
+
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private UserService userService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public AccountsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -70,19 +76,25 @@ public class AccountsApiController implements AccountsApi {
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
 
-        // Generate Iban
-        account.setIban(generateIban());
-
-        // Set employer id and activation
+        // Set all default values for new account
         account.setEmployeeId(1);
-        account.setActivated(true);
+        account.setIban(generateIban());
+        account.setBalance(DEFAULT_ACCOUNT_BALANCE);
+        account.setActivated(DEFAULT_ACCOUNT_ACTIVATION);
+        account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTELIMIT);
 
         // Create random 4 digit pin code and then add to db with service
         account.setPin(Integer.valueOf(String.format("%04d", rnd.nextInt(10000))));
         account = accountService.createAccount(account);
 
+        // Search user, add account to account list and save account
+        User user = userService.getOne(body.getUserId());
+        user.setAccounts(new HashSet<Account>(Arrays.asList(account)));
+        userService.add(user);
+
         // Map newly created account to response data transfer object and return with http status 201
         AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
+        responseDTO.setUserId(body.getUserId());
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
 
@@ -130,6 +142,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Use mapper to map account to account response data transfer object
         AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
+        responseDTO.setUserId(account.getUser().getId());
 
         // Return the account dto and http 200
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
@@ -139,6 +152,7 @@ public class AccountsApiController implements AccountsApi {
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
         List<Account> accounts = null;
 
+        // when parameter for first or lastname is givem, call method for that
         if (firstname != null) {
             accounts = accountService.getAllByFirstname(firstname, offset, limit);
         } else if (lastname != null) {
@@ -146,9 +160,15 @@ public class AccountsApiController implements AccountsApi {
         } else {
             accounts = accountService.getAll(offset, limit);
         }
+
         // use mapper to map all accounts to user response data transfer object
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
+
+        // add all user_ids to response as they are saved in user as property
+        for (int i = 0; i < responseDTOS.size(); i++) {
+            responseDTOS.get(i).setUserId(accounts.get(i).getUser().getId());
+        }
 
         // return all response dto's and http 200
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
