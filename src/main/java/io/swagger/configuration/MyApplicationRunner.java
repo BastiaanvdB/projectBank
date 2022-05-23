@@ -30,8 +30,8 @@ public class MyApplicationRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
 
         // Users
-        User user = new User(1, "Bram", "Terlouw", "Address", "Alkmaar", "postalcode", "user", new ArrayList<>(Arrays.asList(Role.ROLE_USER)), "phonenumber", new BigDecimal(200), new BigDecimal(100), true, "test");
-        User employee = new User(2, "Mark", "Haantje", "Address", "Alkmaar", "postalcode", "employee", new ArrayList<>(Arrays.asList(Role.ROLE_EMPLOYEE)), "phonenumber", new BigDecimal(200), new BigDecimal(100), true, "test");
+        User user = new User(1, "Bram", "Terlouw", "Bijdorplaan 15", "Haarlem", "2015CE", "bram@live.nl", new ArrayList<>(Arrays.asList(Role.ROLE_USER)), "0235412412", new BigDecimal(200), new BigDecimal(100), true, "BramTest");
+        User employee = new User(2, "Mark", "Haantje", "Bijdorplaan 15", "Haarlem", "2015CE", "mark@live.nl", new ArrayList<>(Arrays.asList(Role.ROLE_EMPLOYEE)), "0235412412", new BigDecimal(200), new BigDecimal(100), true, "MarkTest");
 
 
         // Accounts

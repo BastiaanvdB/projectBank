@@ -22,20 +22,32 @@ public class User {
     @Id
     @GeneratedValue
     private Integer id;
+    @Column(nullable = false)
     private String firstname;
+    @Column(nullable = false)
     private String lastname;
+    @Column(nullable = false)
     private String address;
+    @Column(nullable = false)
     private String city;
+    @Column(nullable = false)
     private String postalCode;
+    @Column(nullable = false, unique=true)
     private String email;
 
+    @Column(nullable = false)
     @ElementCollection(fetch = FetchType.EAGER)
     private List<Role> roles;
 
+    @Column(nullable = false)
     private String phone;
+    @Column(nullable = false)
     private BigDecimal transactionLimit;
+    @Column(nullable = false)
     private BigDecimal dayLimit;
+    @Column(nullable = false)
     private Boolean activated;
+    @Column(nullable = false)
     private String password;
 
     @OneToMany()

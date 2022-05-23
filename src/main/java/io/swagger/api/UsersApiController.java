@@ -27,6 +27,8 @@ import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -51,19 +53,11 @@ public class UsersApiController implements UsersApi {
     }
 
     public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
+
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
-
-        user.setTransactionLimit(new BigDecimal(1000));
-        user.setDayLimit(new BigDecimal(200));
-//        user.setRoles(new Role.ROLE_USER);
-        user.setActivated(true);
-
         user = userService.add(user);
-
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
-
-
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
