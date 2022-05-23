@@ -60,7 +60,7 @@ public class UserRoleDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class UserRoleDTO {\n");
-    
+
     sb.append("    role: ").append(toIndentedString(role)).append("\n");
     sb.append("}");
     return sb.toString();

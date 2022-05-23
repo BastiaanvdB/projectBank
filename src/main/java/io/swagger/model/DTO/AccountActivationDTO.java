@@ -60,7 +60,7 @@ public class AccountActivationDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class AccountActivationDTO {\n");
-    
+
     sb.append("    activated: ").append(toIndentedString(activated)).append("\n");
     sb.append("}");
     return sb.toString();

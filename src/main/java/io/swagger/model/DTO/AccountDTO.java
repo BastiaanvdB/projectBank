@@ -23,7 +23,7 @@ public class AccountDTO   {
    */
   public enum TypeEnum {
     CURRENT("Current"),
-    
+
     SAVINGS("Savings");
 
     private String value;
@@ -167,7 +167,7 @@ public class AccountDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class AccountDTO {\n");
-    
+
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("    userId: ").append(toIndentedString(userId)).append("\n");
     sb.append("    balance: ").append(toIndentedString(balance)).append("\n");

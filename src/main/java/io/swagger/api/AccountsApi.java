@@ -43,122 +43,122 @@ public interface AccountsApi {
 
     @Operation(summary = "Creating a new account", description = "", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Newly created account with iban NLxx ABNAxxxxxxxxxxx"),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint") })
     @RequestMapping(value = "/accounts",
-        consumes = { "application/json" }, 
+        consumes = { "application/json" },
         method = RequestMethod.POST)
     ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body);
 
 
     @Operation(summary = "Do a deposit on account", description = "", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "The newly made deposit", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = DepositResponseDTO.class)))),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint") })
     @RequestMapping(value = "/accounts/{IBAN}/deposit",
-        produces = { "application/json" }, 
-        consumes = { "application/json" }, 
+        produces = { "application/json" },
+        consumes = { "application/json" },
         method = RequestMethod.POST)
     ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body);
 
 
     @Operation(summary = "Do a withdraw of account", description = "", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "The newly made withdraw", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = WithdrawResponseDTO.class)))),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint") })
     @RequestMapping(value = "/accounts/{IBAN}/withdraw",
-        produces = { "application/json" }, 
-        consumes = { "application/json" }, 
+        produces = { "application/json" },
+        consumes = { "application/json" },
         method = RequestMethod.POST)
     ResponseEntity<List<WithdrawResponseDTO>> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body);
 
 
     @Operation(summary = "Get one specific account", description = "Get one account with a specific iban given as parameter", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "One user account", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountResponseDTO.class))),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-        
+
         @ApiResponse(responseCode = "404", description = "Account with this iban could not be found") })
     @RequestMapping(value = "/accounts/{iban}",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         method = RequestMethod.GET)
     ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban);
 
 
     @Operation(summary = "Get all available accounts", description = "This endpoint will provide all available accounts when logged as an employee, otherwise it will return only the logged customer data.", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "All user accounts", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccountResponseDTO.class)))),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-        
+
         @ApiResponse(responseCode = "404", description = "Accounts could not be found") })
     @RequestMapping(value = "/accounts",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         method = RequestMethod.GET)
     ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status);
 
 
     @Operation(summary = "Get all from account", description = "Get all the transactions from a account with given parameter", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Transactions" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "All transactions", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-        
+
         @ApiResponse(responseCode = "404", description = "Account with this iban could not be found") })
     @RequestMapping(value = "/accounts/{iban}/transactions",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         method = RequestMethod.GET)
     ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance);
 
 
     @Operation(summary = "Update Absolute Limit of specific account", description = "", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Absolute Limit is updated"),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-        
+
         @ApiResponse(responseCode = "404", description = "account not found with given iban") })
     @RequestMapping(value = "/accounts/{iban}",
-        consumes = { "application/json" }, 
+        consumes = { "application/json" },
         method = RequestMethod.PUT)
     ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body);
 
 
     @Operation(summary = "Update pincode of specific account", description = "", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "account pincode is updated"),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-        
+
         @ApiResponse(responseCode = "404", description = "account not found with given iban") })
     @RequestMapping(value = "/accounts/{iban}/pincode",
-        consumes = { "application/json" }, 
+        consumes = { "application/json" },
         method = RequestMethod.PUT)
     ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body);
 
 
     @Operation(summary = "Update activation of specific account", description = "", security = {
         @SecurityRequirement(name = "bearerAuth")    }, tags={ "Accounts" })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Account activation is updated"),
-        
+
         @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-        
+
         @ApiResponse(responseCode = "404", description = "Account not found with given iban") })
     @RequestMapping(value = "/accounts/{iban}/activation",
-        consumes = { "application/json" }, 
+        consumes = { "application/json" },
         method = RequestMethod.PUT)
     ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body);
 

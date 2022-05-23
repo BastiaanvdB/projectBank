@@ -62,7 +62,7 @@ public class AccountAbsoluteLimitDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class AccountAbsoluteLimitDTO {\n");
-    
+
     sb.append("    absoluteLimit: ").append(toIndentedString(absoluteLimit)).append("\n");
     sb.append("}");
     return sb.toString();

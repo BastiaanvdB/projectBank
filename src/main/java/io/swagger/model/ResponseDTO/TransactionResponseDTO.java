@@ -158,7 +158,7 @@ public class TransactionResponseDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class TransactionResponseDTO {\n");
-    
+
     sb.append("    ibanFrom: ").append(toIndentedString(ibanFrom)).append("\n");
     sb.append("    ibanTo: ").append(toIndentedString(ibanTo)).append("\n");
     sb.append("    issuedBy: ").append(toIndentedString(issuedBy)).append("\n");

@@ -84,7 +84,7 @@ public class AccountPincodeDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class AccountPincodeDTO {\n");
-    
+
     sb.append("    oldPincode: ").append(toIndentedString(oldPincode)).append("\n");
     sb.append("    newPincode: ").append(toIndentedString(newPincode)).append("\n");
     sb.append("}");

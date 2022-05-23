@@ -26,7 +26,7 @@ public class AccountResponseDTO   {
    */
   public enum TypeEnum {
     CURRENT("Current"),
-    
+
     SAVINGS("Savings");
 
     private String value;
@@ -122,7 +122,7 @@ public class AccountResponseDTO   {
    * @return pin
    **/
   @Schema(example = "1234", description = "")
-  
+
     public Integer getPin() {
     return pin;
   }
@@ -262,7 +262,7 @@ public class AccountResponseDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class AccountResponseDTO {\n");
-    
+
     sb.append("    iban: ").append(toIndentedString(iban)).append("\n");
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("    pin: ").append(toIndentedString(pin)).append("\n");

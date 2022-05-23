@@ -135,7 +135,7 @@ public class WithdrawResponseDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class WithdrawResponseDTO {\n");
-    
+
     sb.append("    iban: ").append(toIndentedString(iban)).append("\n");
     sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
     sb.append("    location: ").append(toIndentedString(location)).append("\n");

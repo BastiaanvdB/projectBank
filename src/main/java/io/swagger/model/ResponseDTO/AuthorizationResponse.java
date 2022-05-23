@@ -84,7 +84,7 @@ public class AuthorizationResponse   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class AuthorizationResponse {\n");
-    
+
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    token: ").append(toIndentedString(token)).append("\n");
     sb.append("}");

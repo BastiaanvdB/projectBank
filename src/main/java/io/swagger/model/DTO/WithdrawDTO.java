@@ -86,7 +86,7 @@ public class WithdrawDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class WithdrawDTO {\n");
-    
+
     sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
     sb.append("    location: ").append(toIndentedString(location)).append("\n");
     sb.append("}");

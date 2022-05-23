@@ -54,10 +54,13 @@ public class UsersApiController implements UsersApi {
 
     public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
 
+
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
         user = userService.add(user);
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+
+
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 

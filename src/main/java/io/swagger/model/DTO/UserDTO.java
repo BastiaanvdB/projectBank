@@ -248,7 +248,7 @@ public class UserDTO   {
    * @return dayLimit
    **/
   @Schema(example = "5000", description = "")
-  
+
     @Valid
     public BigDecimal getDayLimit() {
     return dayLimit;
@@ -289,7 +289,7 @@ public class UserDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class UserDTO {\n");
-    
+
     sb.append("    firstname: ").append(toIndentedString(firstname)).append("\n");
     sb.append("    lastname: ").append(toIndentedString(lastname)).append("\n");
     sb.append("    address: ").append(toIndentedString(address)).append("\n");

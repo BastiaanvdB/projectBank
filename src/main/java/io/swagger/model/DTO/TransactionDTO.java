@@ -110,7 +110,7 @@ public class TransactionDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class TransactionDTO {\n");
-    
+
     sb.append("    ibanFrom: ").append(toIndentedString(ibanFrom)).append("\n");
     sb.append("    ibanTo: ").append(toIndentedString(ibanTo)).append("\n");
     sb.append("    amount: ").append(toIndentedString(amount)).append("\n");

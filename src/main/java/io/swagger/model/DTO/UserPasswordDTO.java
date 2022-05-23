@@ -84,7 +84,7 @@ public class UserPasswordDTO   {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class UserPasswordDTO {\n");
-    
+
     sb.append("    oldPassword: ").append(toIndentedString(oldPassword)).append("\n");
     sb.append("    newPassword: ").append(toIndentedString(newPassword)).append("\n");
     sb.append("}");
