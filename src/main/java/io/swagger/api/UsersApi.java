@@ -5,14 +5,10 @@
  */
 package io.swagger.api;
 
+import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
-import io.swagger.model.DTO.UserActivationDTO;
-import io.swagger.model.DTO.UserDTO;
-import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
-import io.swagger.model.DTO.UserRoleDTO;
-import io.swagger.model.UserCreateDTO;
 import io.swagger.model.UsersLoginBody;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,17 +1,14 @@
 package io.swagger.api;
 
 import io.swagger.annotations.Api;
+import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
-import io.swagger.model.DTO.UserActivationDTO;
-import io.swagger.model.DTO.UserDTO;
-import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
-import io.swagger.model.DTO.UserRoleDTO;
-import io.swagger.model.UserCreateDTO;
 import io.swagger.model.UsersLoginBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.User;
+import io.swagger.model.enumeration.Role;
 import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -29,6 +26,7 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,10 +50,14 @@ public class UsersApiController implements UsersApi {
         this.request = request;
     }
 
-
-    public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserCreateDTO body) {
+    public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
+
+        user.setTransactionLimit(new BigDecimal(1000));
+        user.setDayLimit(new BigDecimal(200));
+//        user.setRoles(new Role.ROLE_USER);
+        user.setActivated(true);
 
         user = userService.add(user);
 
@@ -65,8 +67,8 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
-    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
-)) @PathVariable("userid") Integer userid) {
+    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid) {
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
@@ -80,7 +82,7 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         // Get all users from service, create model mapper
         List<User> users = userService.getAll();
@@ -94,8 +96,8 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<List<UserResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
-    public ResponseEntity<UserResponseDTO> getOneUser(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
-)) @PathVariable("userid") Integer userid) {
+    public ResponseEntity<UserResponseDTO> getOneUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid) {
 
         //nog doen
 
@@ -113,8 +115,8 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> setUserPassword(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
-)) @PathVariable("userid") Integer userid,@Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserPasswordDTO body) {
+    public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
 
         //nog doen
 
@@ -124,8 +126,8 @@ public class UsersApiController implements UsersApi {
 
     }
 
-    public ResponseEntity<Void> setUserRole(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
-)) @PathVariable("userid") Integer userid,@Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserRoleDTO body) {
+    public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
 
         //nog doen
 
@@ -135,19 +137,19 @@ public class UsersApiController implements UsersApi {
 
     }
 
-    public ResponseEntity<Void> setUserStatus(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
-)) @PathVariable("userid") Integer userid,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserActivationDTO body) {
+    public ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) {
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<Void> updateUser(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
-)) @PathVariable("userid") Integer userid,@Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserDTO body) {
+    public ResponseEntity<Void> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) {
         String accept = request.getHeader("Accept");
         return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema=@Schema()) @Valid @RequestBody UsersLoginBody body) {
+    public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {
 
         // Get token with data from POST body
         String token = userService.login(body.getEmail(), body.getPassword());
