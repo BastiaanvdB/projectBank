@@ -35,12 +35,10 @@ public class AccountService {
     }
 
 
-
     // Post queries
     public Account createAccount(Account account) {
         return accountRepository.save(account);
     }
-
 
 
     // Put queries
