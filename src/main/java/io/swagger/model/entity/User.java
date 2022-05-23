@@ -8,8 +8,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -36,6 +37,10 @@ public class User {
     private BigDecimal dayLimit;
     private Boolean activated;
     private String password;
+
+    @OneToMany()
+    @JoinColumn(name = "user_id")
+    private Set<Account> accounts = new HashSet<>();
 
     public User() {
 
@@ -159,5 +164,13 @@ public class User {
 
     public void setRoles(List<Role> roles) {
         this.roles = roles;
+    }
+
+    public Set<Account> getAccounts() {
+        return accounts;
+    }
+
+    public void setAccounts(Set<Account> accounts) {
+        this.accounts = accounts;
     }
 }

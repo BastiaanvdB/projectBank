@@ -137,10 +137,15 @@ public class AccountsApiController implements AccountsApi {
 
     //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
+        List<Account> accounts = null;
 
-        // Get all accounts from service
-        List<Account> accounts = accountService.getAll();
-
+        if (firstname != null) {
+            accounts = accountService.getAllByFirstname(firstname, offset, limit);
+        } else if (lastname != null) {
+            accounts = accountService.getAllByLastname(lastname, offset, limit);
+        } else {
+            accounts = accountService.getAll(offset, limit);
+        }
         // use mapper to map all accounts to user response data transfer object
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
