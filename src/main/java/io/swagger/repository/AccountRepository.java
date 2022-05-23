@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.TypedQuery;
@@ -20,10 +21,10 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     @Query(value = "SELECT * from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
     public Account findLastAccountEntry();
 
-    @Query(value = "SELECT * FROM Account a JOIN a.userId u WHERE u.firstname = ?1", nativeQuery = true)
-    List<Account> findAllByFirstname(PageRequest of, String firstname);
-    @Query(value = "SELECT * FROM Account a JOIN a.userId u WHERE u.lastname = ?1", nativeQuery = true)
-    public List<Account> findAllByLastname(PageRequest of, String lastname);
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME = ?#{#firstname}", nativeQuery = true)
+    List<Account> findAllByFirstname(PageRequest of, @Param("firstname") String firstname);
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME = ?#{#lastname}", nativeQuery = true)
+    public List<Account> findAllByLastname(PageRequest of, @Param("lastname") String lastname);
 
     // Update queries
     @Transactional

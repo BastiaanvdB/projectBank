@@ -39,7 +39,7 @@ public class User {
     private String password;
 
     @OneToMany()
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "USER_ID")
     private Set<Account> accounts = new HashSet<>();
 
     public User() {
