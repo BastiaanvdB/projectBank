@@ -10,7 +10,9 @@ import io.swagger.model.DTO.DepositDTO;
 import io.swagger.model.DTO.WithdrawDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.Account;
+import io.swagger.model.entity.User;
 import io.swagger.service.AccountService;
+import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,9 +32,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,8 +50,15 @@ public class AccountsApiController implements AccountsApi {
 
     private final ModelMapper modelMapper;
 
+    private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
+    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTELIMIT = new BigDecimal(20);
+    private static final Boolean DEFAULT_ACCOUNT_ACTIVATION = true;
+
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private UserService userService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public AccountsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -60,6 +67,7 @@ public class AccountsApiController implements AccountsApi {
         this.modelMapper = new ModelMapper();
     }
 
+    //@PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
         // Create Random rnd variable
@@ -68,50 +76,30 @@ public class AccountsApiController implements AccountsApi {
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
 
-        // Generate Iban
-        account.setIban(generateIban());
-
-        // Set employer id and activation
+        // Set all default values for new account
         account.setEmployeeId(1);
-        account.setActivated(true);
+        account.setIban(generateIban());
+        account.setBalance(DEFAULT_ACCOUNT_BALANCE);
+        account.setActivated(DEFAULT_ACCOUNT_ACTIVATION);
+        account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTELIMIT);
 
         // Create random 4 digit pin code and then add to db with service
         account.setPin(Integer.valueOf(String.format("%04d", rnd.nextInt(10000))));
         account = accountService.createAccount(account);
 
+        // Search user, add account to account list and save account
+        User user = userService.getOne(body.getUserId());
+        user.setAccounts(new HashSet<Account>(Arrays.asList(account)));
+        userService.add(user);
+
         // Map newly created account to response data transfer object and return with http status 201
         AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
+        responseDTO.setUserId(body.getUserId());
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
 
-    public ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<List<DepositResponseDTO>>(objectMapper.readValue("[ {\n  \"amount\" : 150,\n  \"iban\" : \"NLxxABNAxxxxxxxxxx\",\n  \"location\" : \"ATM Haarlem\",\n  \"iat\" : 1650466380\n}, {\n  \"amount\" : 150,\n  \"iban\" : \"NLxxABNAxxxxxxxxxx\",\n  \"location\" : \"ATM Haarlem\",\n  \"iat\" : 1650466380\n} ]", List.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<List<DepositResponseDTO>>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
 
-        return new ResponseEntity<List<DepositResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    public ResponseEntity<List<WithdrawResponseDTO>> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<List<WithdrawResponseDTO>>(objectMapper.readValue("[ {\n  \"amount\" : 150,\n  \"iban\" : \"NLxxABNAxxxxxxxxxx\",\n  \"location\" : \"ATM Haarlem\",\n  \"iat\" : 1650466380\n}, {\n  \"amount\" : 150,\n  \"iban\" : \"NLxxABNAxxxxxxxxxx\",\n  \"location\" : \"ATM Haarlem\",\n  \"iat\" : 1650466380\n} ]", List.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-
-        return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
         // Call validation method to validate the iban given as parameter
@@ -127,38 +115,41 @@ public class AccountsApiController implements AccountsApi {
 
         // Use mapper to map account to account response data transfer object
         AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
+        responseDTO.setUserId(account.getUser().getId());
 
         // Return the account dto and http 200
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
-        // Get all accounts from service
-        List<Account> accounts = accountService.getAll();
+        List<Account> accounts = null;
+
+        // when parameter for first or lastname is givem, call method for that
+        if (firstname != null) {
+            accounts = accountService.getAllByFirstname(firstname, offset, limit);
+        } else if (lastname != null) {
+            accounts = accountService.getAllByLastname(lastname, offset, limit);
+        } else {
+            accounts = accountService.getAll(offset, limit);
+        }
 
         // use mapper to map all accounts to user response data transfer object
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
 
+        // add all user_ids to response as they are saved in user as property
+        for (int i = 0; i < responseDTOS.size(); i++) {
+            responseDTOS.get(i).setUserId(accounts.get(i).getUser().getId());
+        }
+
         // return all response dto's and http 200
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<List<TransactionResponseDTO>>(objectMapper.readValue("[ {\n  \"amount\" : 0.8008281904610115,\n  \"ibanFrom\" : \"NLxxINHO0xxxxxxxxx\",\n  \"issuedBy\" : 1,\n  \"iat\" : 1650466380,\n  \"ibanTo\" : \"NLxxINHO0xxxxxxxxx\"\n}, {\n  \"amount\" : 0.8008281904610115,\n  \"ibanFrom\" : \"NLxxINHO0xxxxxxxxx\",\n  \"issuedBy\" : 1,\n  \"iat\" : 1650466380,\n  \"ibanTo\" : \"NLxxINHO0xxxxxxxxx\"\n} ]", List.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
 
-        return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -175,6 +166,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<BigDecimal>(account.getAbsoluteLimit(), HttpStatus.OK);
     }
 
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -191,6 +183,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<Integer>(account.getPin(), HttpStatus.OK);
     }
 
+    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -207,7 +200,20 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<Boolean>(account.getActivated(), HttpStatus.OK);
     }
 
+    // **** VOOR MISTER GRIBNAU
+    public ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
+        return new ResponseEntity<List<DepositResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
+    }
+    public ResponseEntity<List<WithdrawResponseDTO>> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body) {
+        return new ResponseEntity<List<WithdrawResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
+    }
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
+        return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    // **** HELPER METHODS
     private String generateIban() {
+
         // Get all iban
         String lastIban = accountService.getLastAccount().getIban();
 
