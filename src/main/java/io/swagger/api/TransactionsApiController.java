@@ -5,6 +5,7 @@ import io.swagger.model.entity.Transaction;
 import io.swagger.service.TransactionService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.threeten.bp.LocalDate;
 import io.swagger.model.DTO.TransactionDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,27 +70,63 @@ public class TransactionsApiController implements TransactionsApi {
         return new ResponseEntity<TransactionResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
         //todo: is the user the owner of the account? or is the user of type employee.
         //todo: parameters implement
 
+        List<Transaction> transactions;
+
+        String query = "";
+
+        //if (query != "") query += " AND";
+        // parameter options and make 1 query string
         if (offset != null) {
+            offset = 0;
         }
         if (limit != null) {
+            limit = 50;
         }
-        if (startDate != null) {
+        if (ibANFrom != null) {
+            if (query != "") query += " AND";
+            query += (" ibanFrom = " + ibANFrom);
         }
-        if (endDate != null) {
+        if (ibANTo != null) {
+            if (query != "") query += " AND";
+            query += (" ibanTo = " + ibANTo);
         }
         if (balance != null) {
+            if (balanceOperator == null) {
+                balanceOperator = ("=");
+            }
+            if (query != "") query += " AND";
+            query += (" amount" + balanceOperator + " " + balance);
+        }
+        if (startDate != null && endDate != null) {
+            Timestamp tsS = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
+            Timestamp tsE = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
+            if (query != "") query += " AND";
+            query += (" iat BETWEEN" + tsS + " AND " + tsE);
+        } else if (startDate != null) {
+            Timestamp ts = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
+            if (query != "") query += " AND";
+            query += (" iat >= " + ts);
+        } else if (endDate != null) {
+            Timestamp ts = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
+            if (query != "") query += " AND";
+            query += (" iat <= " + ts);
         }
 
-        // get all the transactions
-        List<Transaction> transactions = transactionService.getAll();
+        // if there's no query just get them all with limit and offset 
+        if (query != "") {
+            transactions = transactionService.getAll(offset, limit);
+        } else {
+            // get all the transactions with query
+            transactions = transactionService.getAll(query, offset, limit);
+        }
 
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
-
 
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
