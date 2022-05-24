@@ -65,36 +65,19 @@ public class UserService {
         return token;
     }
 
-    
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    public User add (User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return user;
-    }
-    
-    public User findByEmail(String email){
+    public User getUserOnEmail(String email) {
         return userRepository.findByEmail(email);
-    }
-
-    public User getUserOnEmail(String email){
-        return userRepository.findByEmail(email);
-    }
-
-    public User add (User user){
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return user;
     }
 
     public void changePassword(User user, String newPassword, String oldPassword, boolean force) {
         try {
 
             // bypasses if admin wants to change password from different user
-            if(!force) {
+            if (!force) {
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), oldPassword));
             }
 
@@ -106,7 +89,7 @@ public class UserService {
         }
     }
 
-    public void changeRole(User user){
+    public void changeRole(User user) {
 
         userRepository.save(user);
 
