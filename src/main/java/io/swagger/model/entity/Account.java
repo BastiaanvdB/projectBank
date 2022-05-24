@@ -12,7 +12,7 @@ public class Account {
     @Id
     private String iban;
     private AccountType type;
-    private Integer pin;
+    private String pin;
     private Integer employeeId;
     private BigDecimal balance;
     private BigDecimal absoluteLimit;
@@ -24,7 +24,7 @@ public class Account {
     public Account() {
     }
 
-    public Account(String iban, AccountType type, Integer pin, Integer employeeId, BigDecimal balance, BigDecimal absoluteLimit, Boolean activated) {
+    public Account(String iban, AccountType type, String pin, Integer employeeId, BigDecimal balance, BigDecimal absoluteLimit, Boolean activated) {
         this.iban = iban;
         this.type = type;
         this.pin = pin;
@@ -50,11 +50,11 @@ public class Account {
         this.type = type;
     }
 
-    public Integer getPin() {
+    public String getPin() {
         return pin;
     }
 
-    public void setPin(Integer pin) {
+    public void setPin(String pin) {
         this.pin = pin;
     }
 

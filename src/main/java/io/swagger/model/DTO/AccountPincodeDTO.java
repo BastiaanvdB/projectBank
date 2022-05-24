@@ -16,12 +16,12 @@ import javax.validation.constraints.*;
 
 public class AccountPincodeDTO   {
   @JsonProperty("oldPincode")
-  private Integer oldPincode = null;
+  private String oldPincode = null;
 
   @JsonProperty("newPincode")
-  private Integer newPincode = null;
+  private String newPincode = null;
 
-  public AccountPincodeDTO oldPincode(Integer oldPincode) {
+  public AccountPincodeDTO oldPincode(String oldPincode) {
     this.oldPincode = oldPincode;
     return this;
   }
@@ -33,15 +33,15 @@ public class AccountPincodeDTO   {
   @Schema(example = "1234", required = true, description = "")
       @NotNull
 
-    public Integer getOldPincode() {
+    public String getOldPincode() {
     return oldPincode;
   }
 
-  public void setOldPincode(Integer oldPincode) {
+  public void setOldPincode(String oldPincode) {
     this.oldPincode = oldPincode;
   }
 
-  public AccountPincodeDTO newPincode(Integer newPincode) {
+  public AccountPincodeDTO newPincode(String newPincode) {
     this.newPincode = newPincode;
     return this;
   }
@@ -53,11 +53,11 @@ public class AccountPincodeDTO   {
   @Schema(example = "4321", required = true, description = "")
       @NotNull
 
-    public Integer getNewPincode() {
+    public String getNewPincode() {
     return newPincode;
   }
 
-  public void setNewPincode(Integer newPincode) {
+  public void setNewPincode(String newPincode) {
     this.newPincode = newPincode;
   }
 

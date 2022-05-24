@@ -35,7 +35,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -75,12 +74,17 @@ public class AccountsApiController implements AccountsApi {
         this.modelMapper = new ModelMapper();
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+//    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
         User employee = userService.findByEmail(getUsernameFromBearer());
+        User user = userService.getOne(body.getUserId());
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
 
         // Set all default values for new account
         account.setEmployeeId(employee.getId());
@@ -93,8 +97,6 @@ public class AccountsApiController implements AccountsApi {
         account.setPin(generatePincode());
         account = accountService.createAccount(account);
 
-        // Search user, add account to account list and save account
-        User user = userService.getOne(body.getUserId());
         user.setAccounts(new HashSet<Account>(Arrays.asList(account)));
         userService.add(user);
 
@@ -105,7 +107,7 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+//    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
 
         // Call validation method to validate the iban given as parameter
@@ -128,15 +130,19 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+//    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         List<Account> accounts = null;
 
-        // when parameter for first or lastname is givem, call method for that
-        if (firstname != null) {
+        if (offset == null || limit == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset and limit must be included in request.");
+        }
+
+        // when parameter for first or lastname is given, call method for that
+        if (firstname != null && firstname.length() > 0) {
             accounts = accountService.getAllByFirstname(firstname, offset, limit);
-        } else if (lastname != null) {
+        } else if (lastname != null && lastname.length() > 0) {
             accounts = accountService.getAllByLastname(lastname, offset, limit);
         } else {
             accounts = accountService.getAll(offset, limit);
@@ -156,7 +162,7 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+//    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -176,7 +182,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<AccountAbsoluteLimitResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+//    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountPincodeResponseDTO> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -191,7 +197,7 @@ public class AccountsApiController implements AccountsApi {
         }
 
         // Set the pin with value from body and update account
-        account.setPin(body.getNewPincode());
+        account.setPin(String.valueOf(body.getNewPincode()));
         accountService.updatePin(account);
 
         // Map new value to response dto
@@ -201,7 +207,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<AccountPincodeResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    //@PreAuthorize("hasRole('EMPLOYEE')")
+//    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountActivationResponseDTO> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Call validation method to validate the iban given as parameter
@@ -255,11 +261,11 @@ public class AccountsApiController implements AccountsApi {
         return prefix;
     }
 
-    private Integer generatePincode() {
+    private String generatePincode() {
 
         // Create random pin with 4 digits
         Random rnd = new Random();
-        return Integer.valueOf(String.format("%04d", rnd.nextInt(10000)));
+        return String.format("%04d", rnd.nextInt(10000));
     }
 
     private void isValidIban(String iban) {

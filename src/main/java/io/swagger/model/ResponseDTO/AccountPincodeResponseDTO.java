@@ -12,13 +12,13 @@ import org.springframework.validation.annotation.Validated;
 
 public class AccountPincodeResponseDTO   {
     @JsonProperty("newPincode")
-    private Integer newPincode = null;
+    private String newPincode = null;
 
-    public Integer getNewPincode() {
+    public String getNewPincode() {
         return newPincode;
     }
 
-    public void setNewPincode(Integer newPincode) {
+    public void setNewPincode(String newPincode) {
         this.newPincode = newPincode;
     }
 }

@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -38,7 +39,12 @@ public class UserService {
     }
 
     public User getOne(int id) {
-        return userRepository.findById(id);
+        Optional userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            return (User) userOptional.get();
+        } else {
+            return null;
+        }
     }
 
     public String login(String email, String password) {

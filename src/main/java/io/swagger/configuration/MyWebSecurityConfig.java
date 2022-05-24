@@ -31,7 +31,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
             ".webjars/**",
             "/api-docs/**",
             "/swagger-ui/**",
-//            "/**/**/**"
+            "/**/**/**"
     };
 
     @Override
