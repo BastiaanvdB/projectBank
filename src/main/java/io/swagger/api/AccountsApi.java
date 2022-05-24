@@ -9,12 +9,9 @@ import io.swagger.model.DTO.AccountAbsoluteLimitDTO;
 import io.swagger.model.DTO.AccountActivationDTO;
 import io.swagger.model.DTO.AccountDTO;
 import io.swagger.model.DTO.AccountPincodeDTO;
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
+import io.swagger.model.ResponseDTO.*;
 import io.swagger.model.DTO.DepositDTO;
-import io.swagger.model.ResponseDTO.DepositResponseDTO;
-import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.model.DTO.WithdrawDTO;
-import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -132,7 +129,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}",
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body);
+    ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body);
 
 
     @Operation(summary = "Update pincode of specific account", description = "", security = {
@@ -146,7 +143,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}/pincode",
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body);
+    ResponseEntity<AccountPincodeResponseDTO> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body);
 
 
     @Operation(summary = "Update activation of specific account", description = "", security = {
@@ -160,7 +157,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}/activation",
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body);
+    ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body);
 
 }
 

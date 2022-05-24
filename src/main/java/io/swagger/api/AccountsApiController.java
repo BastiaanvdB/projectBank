@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -70,9 +71,6 @@ public class AccountsApiController implements AccountsApi {
     //@PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
-        // Create Random rnd variable
-        Random rnd = new Random();
-
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
 
@@ -84,7 +82,7 @@ public class AccountsApiController implements AccountsApi {
         account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTELIMIT);
 
         // Create random 4 digit pin code and then add to db with service
-        account.setPin(Integer.valueOf(String.format("%04d", rnd.nextInt(10000))));
+        account.setPin(generatePincode());
         account = accountService.createAccount(account);
 
         // Search user, add account to account list and save account
@@ -150,7 +148,7 @@ public class AccountsApiController implements AccountsApi {
 
 
     //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<BigDecimal> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
+    public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -162,12 +160,15 @@ public class AccountsApiController implements AccountsApi {
         account.setAbsoluteLimit(body.getAbsoluteLimit());
         accountService.updateLimit(account);
 
+        // Map new value to response dto
+        AccountAbsoluteLimitResponseDTO responseDTO = this.modelMapper.map(body, AccountAbsoluteLimitResponseDTO.class);
+
         // Return http status 200
-        return new ResponseEntity<BigDecimal>(account.getAbsoluteLimit(), HttpStatus.OK);
+        return new ResponseEntity<AccountAbsoluteLimitResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
     //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<Integer> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
+    public ResponseEntity<AccountPincodeResponseDTO> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -175,16 +176,24 @@ public class AccountsApiController implements AccountsApi {
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
 
+        // Check if old pincode matches the pincode of the account for validation
+        if (!account.getPin().equals(body.getOldPincode())) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong pincode!");
+        }
+
         // Set the pin with value from body and update account
-        account.setPin(Integer.valueOf(body.getNewPincode()));
+        account.setPin(body.getNewPincode());
         accountService.updatePin(account);
 
+        // Map new value to response dto
+        AccountPincodeResponseDTO responseDTO = this.modelMapper.map(body, AccountPincodeResponseDTO.class);
+
         // return http status 200
-        return new ResponseEntity<Integer>(account.getPin(), HttpStatus.OK);
+        return new ResponseEntity<AccountPincodeResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<Boolean> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
+    //@PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<AccountActivationResponseDTO> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -196,8 +205,11 @@ public class AccountsApiController implements AccountsApi {
         account.setActivated(body.isActivated());
         accountService.updateStatus(account);
 
+        // Map new value to response dto
+        AccountActivationResponseDTO responseDTO = this.modelMapper.map(body, AccountActivationResponseDTO.class);
+
         // return http status 200
-        return new ResponseEntity<Boolean>(account.getActivated(), HttpStatus.OK);
+        return new ResponseEntity<AccountActivationResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
     // **** VOOR MISTER GRIBNAU
@@ -232,6 +244,13 @@ public class AccountsApiController implements AccountsApi {
         // Then return the new number and return
         prefix += number;
         return prefix;
+    }
+
+    private Integer generatePincode() {
+
+        // Create random pin with 4 digits
+        Random rnd = new Random();
+        return Integer.valueOf(String.format("%04d", rnd.nextInt(10000)));
     }
 
     private void isValidIban(String iban) {
