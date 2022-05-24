@@ -34,7 +34,7 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     @Transactional
     @Modifying
     @Query(value = "UPDATE Account a SET a.pin = ?1 WHERE a.iban = ?2")
-    public void updatePin(int pin, String iban);
+    public void updatePin(String pin, String iban);
 
     @Transactional
     @Modifying
