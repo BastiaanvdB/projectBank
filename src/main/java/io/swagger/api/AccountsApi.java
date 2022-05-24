@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
-import java.math.BigDecimal;
 import java.util.List;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
@@ -60,7 +59,7 @@ public interface AccountsApi {
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    ResponseEntity<List<DepositResponseDTO>> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body);
+    ResponseEntity<DepositResponseDTO> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body);
 
 
     @Operation(summary = "Do a withdraw of account", description = "", security = {
@@ -73,7 +72,7 @@ public interface AccountsApi {
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    ResponseEntity<List<WithdrawResponseDTO>> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body);
+    ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body);
 
 
     @Operation(summary = "Get one specific account", description = "Get one account with a specific iban given as parameter", security = {
