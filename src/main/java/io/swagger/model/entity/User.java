@@ -183,6 +183,6 @@ public class User {
     }
 
     public void setAccounts(Set<Account> accounts) {
-        this.accounts = accounts;
+        this.accounts.addAll(accounts);
     }
 }

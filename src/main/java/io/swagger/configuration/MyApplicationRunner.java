@@ -3,6 +3,7 @@ package io.swagger.configuration;
 import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
+import io.swagger.model.enumeration.AccountType;
 import io.swagger.model.enumeration.Role;
 import io.swagger.repository.AccountRepository;
 import io.swagger.service.UserService;
@@ -35,8 +36,8 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 
         // Accounts
-        Account curr = new Account("NLxxINHO0000000000", AccountResponseDTO.TypeEnum.CURRENT, 1234, 1, 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account sav = new Account("NLxxINHO0000011129", AccountResponseDTO.TypeEnum.SAVINGS, 1255, 1, 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account curr = new Account("NLxxINHO0000000000", AccountType.CURRENT, 1234, 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account sav = new Account("NLxxINHO0000011129", AccountType.SAVINGS, 1255, 2, new BigDecimal(20), new BigDecimal(20), true);
 
         accountRepository.save(curr);
         accountRepository.save(sav);

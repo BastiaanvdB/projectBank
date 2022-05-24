@@ -1,14 +1,10 @@
 package io.swagger.model.entity;
 
 import io.swagger.model.ResponseDTO.AccountResponseDTO;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import io.swagger.model.enumeration.AccountType;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,9 +14,8 @@ public class Account {
 
     @Id
     private String iban;
-    private AccountResponseDTO.TypeEnum type;
+    private AccountType type;
     private Integer pin;
-    //private Integer userId;
     private Integer employeeId;
     private BigDecimal balance;
     private BigDecimal absoluteLimit;
@@ -32,11 +27,10 @@ public class Account {
     public Account() {
     }
 
-    public Account(String iban, AccountResponseDTO.TypeEnum type, Integer pin, Integer userId, Integer employeeId, BigDecimal balance, BigDecimal absoluteLimit, Boolean activated) {
+    public Account(String iban, AccountType type, Integer pin, Integer employeeId, BigDecimal balance, BigDecimal absoluteLimit, Boolean activated) {
         this.iban = iban;
         this.type = type;
         this.pin = pin;
-        //this.userId = userId;
         this.employeeId = employeeId;
         this.balance = balance;
         this.absoluteLimit = absoluteLimit;
@@ -51,11 +45,11 @@ public class Account {
         this.iban = iban;
     }
 
-    public AccountResponseDTO.TypeEnum getType() {
+    public AccountType getType() {
         return type;
     }
 
-    public void setType(AccountResponseDTO.TypeEnum type) {
+    public void setType(AccountType type) {
         this.type = type;
     }
 
@@ -66,14 +60,6 @@ public class Account {
     public void setPin(Integer pin) {
         this.pin = pin;
     }
-
-//    public Integer getUserId() {
-//        return userId;
-//    }
-//
-//    public void setUserId(Integer userId) {
-//        this.userId = userId;
-//    }
 
     public Integer getEmployeeId() {
         return employeeId;
@@ -105,5 +91,13 @@ public class Account {
 
     public void setActivated(Boolean activated) {
         this.activated = activated;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

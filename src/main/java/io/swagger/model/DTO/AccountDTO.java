@@ -4,6 +4,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.swagger.model.enumeration.AccountType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import org.springframework.validation.annotation.Validated;
@@ -18,49 +19,14 @@ import javax.validation.constraints.*;
 
 
 public class AccountDTO   {
-  /**
-   * Gets or Sets type
-   */
-  public enum TypeEnum {
-    CURRENT("Current"),
 
-    SAVINGS("Savings");
-
-    private String value;
-
-    TypeEnum(String value) {
-      this.value = value;
-    }
-
-    @Override
-    @JsonValue
-    public String toString() {
-      return String.valueOf(value);
-    }
-
-    @JsonCreator
-    public static TypeEnum fromValue(String text) {
-      for (TypeEnum b : TypeEnum.values()) {
-        if (String.valueOf(b.value).equals(text)) {
-          return b;
-        }
-      }
-      return null;
-    }
-  }
   @JsonProperty("type")
-  private TypeEnum type = null;
+  private AccountType type = null;
 
   @JsonProperty("user_Id")
   private Integer userId = null;
 
-  @JsonProperty("balance")
-  private BigDecimal balance = null;
-
-  @JsonProperty("absolute_Limit")
-  private BigDecimal absoluteLimit = null;
-
-  public AccountDTO type(TypeEnum type) {
+  public AccountDTO type(AccountType type) {
     this.type = type;
     return this;
   }
@@ -72,11 +38,11 @@ public class AccountDTO   {
   @Schema(example = "Current", required = true, description = "")
       @NotNull
 
-    public TypeEnum getType() {
+    public AccountType getType() {
     return type;
   }
 
-  public void setType(TypeEnum type) {
+  public void setType(AccountType type) {
     this.type = type;
   }
 
@@ -100,49 +66,6 @@ public class AccountDTO   {
     this.userId = userId;
   }
 
-  public AccountDTO balance(BigDecimal balance) {
-    this.balance = balance;
-    return this;
-  }
-
-  /**
-   * Get balance
-   * @return balance
-   **/
-  @Schema(example = "0", required = true, description = "")
-      @NotNull
-
-    @Valid
-    public BigDecimal getBalance() {
-    return balance;
-  }
-
-  public void setBalance(BigDecimal balance) {
-    this.balance = balance;
-  }
-
-  public AccountDTO absoluteLimit(BigDecimal absoluteLimit) {
-    this.absoluteLimit = absoluteLimit;
-    return this;
-  }
-
-  /**
-   * Get absoluteLimit
-   * @return absoluteLimit
-   **/
-  @Schema(example = "10", required = true, description = "")
-      @NotNull
-
-    @Valid
-    public BigDecimal getAbsoluteLimit() {
-    return absoluteLimit;
-  }
-
-  public void setAbsoluteLimit(BigDecimal absoluteLimit) {
-    this.absoluteLimit = absoluteLimit;
-  }
-
-
   @Override
   public boolean equals(java.lang.Object o) {
     if (this == o) {
@@ -153,14 +76,12 @@ public class AccountDTO   {
     }
     AccountDTO accountDTO = (AccountDTO) o;
     return Objects.equals(this.type, accountDTO.type) &&
-        Objects.equals(this.userId, accountDTO.userId) &&
-        Objects.equals(this.balance, accountDTO.balance) &&
-        Objects.equals(this.absoluteLimit, accountDTO.absoluteLimit);
+        Objects.equals(this.userId, accountDTO.userId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(type, userId, balance, absoluteLimit);
+    return Objects.hash(type, userId);
   }
 
   @Override
@@ -170,8 +91,6 @@ public class AccountDTO   {
 
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("    userId: ").append(toIndentedString(userId)).append("\n");
-    sb.append("    balance: ").append(toIndentedString(balance)).append("\n");
-    sb.append("    absoluteLimit: ").append(toIndentedString(absoluteLimit)).append("\n");
     sb.append("}");
     return sb.toString();
   }
