@@ -39,6 +39,7 @@ public class TransactionsApiController implements TransactionsApi {
 
     @Autowired
     private TransactionService transactionService;
+    private ModelMapper modelMapper;
 
     @org.springframework.beans.factory.annotation.Autowired
     public TransactionsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -46,27 +47,47 @@ public class TransactionsApiController implements TransactionsApi {
         this.request = request;
     }
 
-    public ResponseEntity<List<TransactionResponseDTO>> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody TransactionDTO body) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<List<TransactionResponseDTO>>(objectMapper.readValue("[ {\n  \"amount\" : 0.8008281904610115,\n  \"ibanFrom\" : \"NLxxINHO0xxxxxxxxx\",\n  \"issuedBy\" : 1,\n  \"iat\" : 1650466380,\n  \"ibanTo\" : \"NLxxINHO0xxxxxxxxx\"\n}, {\n  \"amount\" : 0.8008281904610115,\n  \"ibanFrom\" : \"NLxxINHO0xxxxxxxxx\",\n  \"issuedBy\" : 1,\n  \"iat\" : 1650466380,\n  \"ibanTo\" : \"NLxxINHO0xxxxxxxxx\"\n} ]", List.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
+    public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
+        //TODO: Check for savings account
+        //todo: If savings account, is it from the same user?
+        //TODO: Is ATM? <- special case
+        //todo: within absolute limit?
+        //todo: within day limit?
+        //todo: within transaction limit?
+        //todo: is the account from the bank?
+        //todo: is account from the same user? then day/transaction limit is no issue
 
-        return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
+
+        // Convert request to a Transaction
+        Transaction transaction = this.modelMapper.map(body, Transaction.class);
+
+        // Do Transaction and map it to a response DTO
+        TransactionResponseDTO responseDTO = this.modelMapper.map(transactionService.createTransaction(transaction), TransactionResponseDTO.class);
+
+        // Return the responseDTO with status OK
+        return new ResponseEntity<TransactionResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. " ,schema=@Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,@Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. " ,schema=@Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
+        //todo: is the user the owner of the account? or is the user of type employee.
+        //todo: parameters implement
+
+        if (offset != null) {
+        }
+        if (limit != null) {
+        }
+        if (startDate != null) {
+        }
+        if (endDate != null) {
+        }
+        if (balance != null) {
+        }
+
         // get all the transactions
         List<Transaction> transactions = transactionService.getAll();
-        ModelMapper modelMapper = new ModelMapper();
 
         // map the transactions to responseDTO
-        List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
+        List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
 
 
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);

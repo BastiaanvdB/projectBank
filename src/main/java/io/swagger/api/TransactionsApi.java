@@ -43,7 +43,7 @@ public interface TransactionsApi {
         produces = { "application/json" }, 
         consumes = { "application/json" }, 
         method = RequestMethod.POST)
-    ResponseEntity<List<TransactionResponseDTO>> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody TransactionDTO body);
+    ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody TransactionDTO body);
 
 
     @Operation(summary = "Get all transactions", description = "Only the employee gets all transactions of every account", security = {
