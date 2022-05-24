@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -42,7 +43,12 @@ public class UserService {
     }
 
     public User getOne(int id) {
-        return userRepository.findById(id);
+        Optional userOptional = userRepository.findById(id);
+        if (userOptional.isPresent()) {
+            return (User) userOptional.get();
+        } else {
+            return null;
+        }
     }
 
     public String login(String email, String password) {
@@ -50,7 +56,7 @@ public class UserService {
 
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-            User user = userRepository.findByEmail(email);
+            User user = findByEmail(email);
             token = jwtTokenProvider.createToken(email, user.getRoles());
         } catch (AuthenticationException ex) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid user credentials.");
@@ -59,11 +65,30 @@ public class UserService {
         return token;
     }
 
+    
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public User add (User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+        return user;
+    }
+    
+    public User findByEmail(String email){
+        return userRepository.findByEmail(email);
+    }
+
     public User getUserOnEmail(String email){
         return userRepository.findByEmail(email);
     }
 
-
+    public User add (User user){
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+        return user;
+    }
 
     public void changePassword(User user, String newPassword, String oldPassword, boolean force) {
         try {

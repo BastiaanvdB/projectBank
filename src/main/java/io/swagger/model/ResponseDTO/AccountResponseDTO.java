@@ -26,7 +26,7 @@ public class AccountResponseDTO   {
   private AccountType type = null;
 
   @JsonProperty("pin")
-  private Integer pin = null;
+  private String pin = null;
 
   @JsonProperty("user_Id")
   private Integer userId = null;
@@ -83,7 +83,7 @@ public class AccountResponseDTO   {
     this.type = type;
   }
 
-  public AccountResponseDTO pin(Integer pin) {
+  public AccountResponseDTO pin(String pin) {
     this.pin = pin;
     return this;
   }
@@ -93,12 +93,12 @@ public class AccountResponseDTO   {
    * @return pin
    **/
   @Schema(example = "1234", description = "")
-
-    public Integer getPin() {
+  
+    public String getPin() {
     return pin;
   }
 
-  public void setPin(Integer pin) {
+  public void setPin(String pin) {
     this.pin = pin;
   }
 

@@ -7,17 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findByEmail(String email);
 
-//    @Transactional
-//    @Modifying
-//    @Query(value = "UPDATE User a SET a.password = ?1 WHERE a.email = ?2")
-//    public void changePassword(String password, String email);
+    Optional findById(int id);
 
-    User findById(int id);
 }

@@ -113,6 +113,7 @@ hs_err_pid*
 
 
 ### Maven template
+target
 target/
 pom.xml.tag
 pom.xml.releaseBackup
