@@ -3,6 +3,7 @@ package io.swagger.service;
 import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
+import io.swagger.models.auth.In;
 import io.swagger.repository.UserRepository;
 import io.swagger.security.JwtTokenProvider;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -58,20 +59,51 @@ public class UserService {
         return token;
     }
 
-    public boolean changePassword(UserPasswordDTO newPassword, User user) {
+    public User getUserOnEmail(String email){
+        return userRepository.findByEmail(email);
+    }
 
-        if (newPassword.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || newPassword.getNewPassword().length() < 6) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New password doesnt meet security requirements!");
-        }
 
+
+    public void changePassword(User user, String newPassword, String oldPassword, boolean force) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), newPassword.getOldPassword()));
-            userRepository.changePassword(passwordEncoder.encode(newPassword.getNewPassword()), user.getEmail());
+
+            // bypasses if admin wants to change password from different user
+            if(!force) {
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), oldPassword));
+            }
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
 
         } catch (AuthenticationException ex) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Current password is invalid!");
         }
-        return true;
+    }
+
+    public void changeRole(List<Integer> IntRoles, Integer userid){
+
+
+
+
+
+        List<Role> roles = new ArrayList<>();
+        for (Integer r: IntRoles)
+        {
+            roles.add(Role.values()[r]);
+        }
+
+
+
+
+
+
+        try {
+
+
+        } catch (AuthenticationException ex) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Current password is invalid!");
+        }
     }
 
     public User add(User user) {

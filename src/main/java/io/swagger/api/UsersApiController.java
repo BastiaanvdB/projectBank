@@ -20,16 +20,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +46,9 @@ public class UsersApiController implements UsersApi {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @org.springframework.beans.factory.annotation.Autowired
     public UsersApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
@@ -55,11 +57,11 @@ public class UsersApiController implements UsersApi {
 
     public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
 
-
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
         user = userService.add(user);
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
@@ -115,26 +117,53 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
 
-        // jwt nog toevoegen
+        boolean force = false;
 
-        User user = new User();
-        user.setEmail("bas@bank.nl");
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        String userEmail = jwtTokenProvider.getUsername(token);
 
-        ModelMapper modelMapper = new ModelMapper();
-        UserPasswordDTO password = modelMapper.map(body, UserPasswordDTO.class);
-        userService.changePassword(password, user);
+        // gets user throughs jwt that makes the request
+        User user = userService.getUserOnEmail(userEmail);
+
+        if(userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to change password for user");
+        }
+
+        if (body.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || body.getNewPassword().length() < 6) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New password doesnt meet security requirements!");
+        }
+
+        if(user.getRoles().contains(Role.ROLE_EMPLOYEE))
+        {
+            user = userService.getOne(userid);
+            force = true;
+        }
+        userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
+
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
 
-        //nog doen
-
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
 
 
+        userService.changeRole(body.getRoles(), userid);
+
+
+
+        // tijdelijk
+//        User user = new User();
+//        user.setEmail("bas@bank.nl");
+//
+//
+//        ModelMapper modelMapper = new ModelMapper();
+//        UserRoleDTO roles = modelMapper.map(body, UserRoleDTO.class);
+//        userService.changePassword(roles, user);
+        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
     public ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
