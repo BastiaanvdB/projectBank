@@ -81,29 +81,10 @@ public class UserService {
         }
     }
 
-    public void changeRole(List<Integer> IntRoles, Integer userid){
+    public void changeRole(User user){
 
+        userRepository.save(user);
 
-
-
-
-        List<Role> roles = new ArrayList<>();
-        for (Integer r: IntRoles)
-        {
-            roles.add(Role.values()[r]);
-        }
-
-
-
-
-
-
-        try {
-
-
-        } catch (AuthenticationException ex) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Current password is invalid!");
-        }
     }
 
     public User add(User user) {

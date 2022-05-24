@@ -1,12 +1,10 @@
 package io.swagger.model.DTO;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * UserRoleDTO
@@ -17,10 +15,12 @@ import javax.validation.constraints.*;
 
 public class UserRoleDTO   {
   @JsonProperty("roles")
-  private List<Integer> roles = null;
+  private List<Integer> roles = new ArrayList<>();
 
-  public UserRoleDTO(List<Integer> roles) {
+
+  public UserRoleDTO roles(List<Integer> roles) {
     this.roles = roles;
+    return this;
   }
 
   public List<Integer> getRoles() {

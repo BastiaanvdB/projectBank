@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -146,23 +148,33 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
+//    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
 
+        // checks if atleast one rola has been given
+        if(body.getRoles().size() == 0 || body.getRoles() == null)
+        {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No role provided for user!");
+        }
 
+        List<Role> roles = new ArrayList<>();
+        for (Integer r: body.getRoles())
+        {
+            roles.add(Role.values()[r]);
+        }
 
-        userService.changeRole(body.getRoles(), userid);
+        User user = userService.getOne(userid);
 
+        //checks if user by userid exists
+        if(user == null)
+        {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+        }
 
+        user.setRoles(roles);
+        userService.changeRole(user);
 
-        // tijdelijk
-//        User user = new User();
-//        user.setEmail("bas@bank.nl");
-//
-//
-//        ModelMapper modelMapper = new ModelMapper();
-//        UserRoleDTO roles = modelMapper.map(body, UserRoleDTO.class);
-//        userService.changePassword(roles, user);
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
