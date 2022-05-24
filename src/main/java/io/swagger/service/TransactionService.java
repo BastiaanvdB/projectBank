@@ -10,16 +10,16 @@ import java.util.List;
 
 @Service
 public class TransactionService {
-    @Autowired
-    TransactionRepository transactionRepository;
-
-    public List<Transaction> getAll(Integer offset, Integer limit) { return transactionRepository.findAll(PageRequest.of(offset, limit)).getContent(); }
-
-    public Transaction createTransaction(Transaction transaction) {
-        return transactionRepository.save(transaction);
-    }
-
-    public List<Transaction> getAll(String query, Integer offset, Integer limit) {
-        return transactionRepository.getAll(query, PageRequest.of(offset, limit));
-    }
+//    @Autowired
+//    TransactionRepository transactionRepository;
+//
+//    public List<Transaction> getAll(Integer offset, Integer limit) { return transactionRepository.findAll(PageRequest.of(offset, limit)).getContent(); }
+//
+//    public Transaction createTransaction(Transaction transaction) {
+//        return transactionRepository.save(transaction);
+//    }
+//
+//    public List<Transaction> getAll(String query, Integer offset, Integer limit) {
+//        return transactionRepository.getAll(query, PageRequest.of(offset, limit));
+//    }
 }
