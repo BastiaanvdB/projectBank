@@ -9,6 +9,7 @@ import io.swagger.model.UsersLoginBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
+import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -59,8 +60,6 @@ public class UsersApiController implements UsersApi {
         User user = modelMapper.map(body, User.class);
         user = userService.add(user);
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
-
-
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
@@ -112,15 +111,19 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
     }
 
+//    @PreAuthorize("hasRole('EMPLOYEE', 'USER')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
 
-        //nog doen
+        // jwt nog toevoegen
 
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+        User user = new User();
+        user.setEmail("bas@bank.nl");
 
-
+        ModelMapper modelMapper = new ModelMapper();
+        UserPasswordDTO password = modelMapper.map(body, UserPasswordDTO.class);
+        userService.changePassword(password, user);
+        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"

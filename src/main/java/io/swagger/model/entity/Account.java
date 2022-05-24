@@ -7,9 +7,7 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
+
 public class Account {
 
     @Id

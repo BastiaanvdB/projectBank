@@ -1,5 +1,6 @@
 package io.swagger.service;
 
+import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
 import io.swagger.repository.UserRepository;
@@ -57,15 +58,29 @@ public class UserService {
         return token;
     }
 
+    public boolean changePassword(UserPasswordDTO newPassword, User user) {
+
+        if (newPassword.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || newPassword.getNewPassword().length() < 6) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New password doesnt meet security requirements!");
+        }
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), newPassword.getOldPassword()));
+            userRepository.changePassword(passwordEncoder.encode(newPassword.getNewPassword()), user.getEmail());
+
+        } catch (AuthenticationException ex) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Current password is invalid!");
+        }
+        return true;
+    }
+
     public User add(User user) {
 
-        if(user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2)
-        {
+        if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
         }
 
-        if(!EmailValidator.getInstance().isValid(user.getEmail()))
-        {
+        if (!EmailValidator.getInstance().isValid(user.getEmail())) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Enter a correct email!");
         }
 
@@ -73,8 +88,7 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
         }
 
-        if(user.getPassword().chars().filter((s)->Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6)
-        {
+        if (user.getPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Password doesnt meet security requirements!");
         }
 
@@ -86,7 +100,7 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);
 
-        } catch (Exception  ex) {
+        } catch (Exception ex) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
         }
 
