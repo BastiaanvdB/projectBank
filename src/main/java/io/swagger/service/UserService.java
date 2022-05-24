@@ -89,13 +89,11 @@ public class UserService {
         }
     }
 
-    public void changeRole(User user) {
-
+    public void add(User user){
         userRepository.save(user);
-
     }
 
-    public User add(User user) {
+    public User signup(User user) {
 
         if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");

@@ -61,7 +61,7 @@ public class UsersApiController implements UsersApi {
 
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
-        user = userService.add(user);
+        user = userService.signup(user);
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
 
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
@@ -173,15 +173,29 @@ public class UsersApiController implements UsersApi {
         }
 
         user.setRoles(roles);
-        userService.changeRole(user);
+        userService.add(user);
 
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
+    //    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+
+        User user = userService.getOne(userid);
+
+        //checks if user by userid exists
+        if(user == null)
+        {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+        }
+
+        user.setActivated(body.isActivated());
+
+        userService.add(user);
+
+        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
     public ResponseEntity<Void> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
