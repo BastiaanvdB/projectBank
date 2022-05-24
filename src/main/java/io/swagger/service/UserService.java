@@ -46,13 +46,17 @@ public class UserService {
 
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-            User user = userRepository.findByEmail(email);
+            User user = findByEmail(email);
             token = jwtTokenProvider.createToken(email, user.getRoles());
         } catch(AuthenticationException ex) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid user credentials.");
         }
 
         return token;
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public User add (User user) {

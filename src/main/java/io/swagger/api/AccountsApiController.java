@@ -11,6 +11,7 @@ import io.swagger.model.DTO.WithdrawDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
+import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,10 +23,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +65,9 @@ public class AccountsApiController implements AccountsApi {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @org.springframework.beans.factory.annotation.Autowired
     public AccountsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
@@ -68,14 +75,15 @@ public class AccountsApiController implements AccountsApi {
         this.modelMapper = new ModelMapper();
     }
 
-    //@PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
 
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
+        User employee = userService.findByEmail(getUsernameFromBearer());
 
         // Set all default values for new account
-        account.setEmployeeId(1);
+        account.setEmployeeId(employee.getId());
         account.setIban(generateIban());
         account.setBalance(DEFAULT_ACCOUNT_BALANCE);
         account.setActivated(DEFAULT_ACCOUNT_ACTIVATION);
@@ -118,6 +126,7 @@ public class AccountsApiController implements AccountsApi {
         // Return the account dto and http 200
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
     }
+
 
     //@PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
@@ -271,5 +280,15 @@ public class AccountsApiController implements AccountsApi {
         if (!matcher.matches()) {
             throw new IllegalArgumentException();
         }
+    }
+
+    private String getUsernameFromBearer() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        return jwtTokenProvider.getUsername(token);
     }
 }
