@@ -130,5 +130,4 @@ public class TransactionsApiController implements TransactionsApi {
 
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
-
 }
