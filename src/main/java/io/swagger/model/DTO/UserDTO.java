@@ -34,20 +34,8 @@ public class UserDTO   {
   @JsonProperty("email")
   private String email = null;
 
-  @JsonProperty("password")
-  private String password = null;
-
-  @JsonProperty("role")
-  private Integer role = null;
-
   @JsonProperty("phone")
   private String phone = null;
-
-  @JsonProperty("transaction_Limit")
-  private BigDecimal transactionLimit = null;
-
-  @JsonProperty("day_limit")
-  private BigDecimal dayLimit = null;
 
   public UserDTO firstname(String firstname) {
     this.firstname = firstname;
@@ -169,18 +157,6 @@ public class UserDTO   {
     this.email = email;
   }
 
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public UserDTO role(Integer role) {
-    this.role = role;
-    return this;
-  }
 
   /**
    * Get role
@@ -189,13 +165,6 @@ public class UserDTO   {
   @Schema(example = "0", required = true, description = "")
       @NotNull
 
-    public Integer getRole() {
-    return role;
-  }
-
-  public void setRole(Integer role) {
-    this.role = role;
-  }
 
   public UserDTO phone(String phone) {
     this.phone = phone;
@@ -217,47 +186,6 @@ public class UserDTO   {
     this.phone = phone;
   }
 
-  public UserDTO transactionLimit(BigDecimal transactionLimit) {
-    this.transactionLimit = transactionLimit;
-    return this;
-  }
-
-  /**
-   * Get transactionLimit
-   * @return transactionLimit
-   **/
-  @Schema(example = "2000", required = true, description = "")
-      @NotNull
-
-    @Valid
-    public BigDecimal getTransactionLimit() {
-    return transactionLimit;
-  }
-
-  public void setTransactionLimit(BigDecimal transactionLimit) {
-    this.transactionLimit = transactionLimit;
-  }
-
-  public UserDTO dayLimit(BigDecimal dayLimit) {
-    this.dayLimit = dayLimit;
-    return this;
-  }
-
-  /**
-   * Get dayLimit
-   * @return dayLimit
-   **/
-  @Schema(example = "5000", description = "")
-
-    @Valid
-    public BigDecimal getDayLimit() {
-    return dayLimit;
-  }
-
-  public void setDayLimit(BigDecimal dayLimit) {
-    this.dayLimit = dayLimit;
-  }
-
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -274,15 +202,12 @@ public class UserDTO   {
         Objects.equals(this.city, userDTO.city) &&
         Objects.equals(this.postalCode, userDTO.postalCode) &&
         Objects.equals(this.email, userDTO.email) &&
-        Objects.equals(this.role, userDTO.role) &&
-        Objects.equals(this.phone, userDTO.phone) &&
-        Objects.equals(this.transactionLimit, userDTO.transactionLimit) &&
-        Objects.equals(this.dayLimit, userDTO.dayLimit);
+        Objects.equals(this.phone, userDTO.phone);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(firstname, lastname, address, city, postalCode, email, role, phone, transactionLimit, dayLimit);
+    return Objects.hash(firstname, lastname, address, city, postalCode, email, phone);
   }
 
   @Override
@@ -296,10 +221,7 @@ public class UserDTO   {
     sb.append("    city: ").append(toIndentedString(city)).append("\n");
     sb.append("    postalCode: ").append(toIndentedString(postalCode)).append("\n");
     sb.append("    email: ").append(toIndentedString(email)).append("\n");
-    sb.append("    role: ").append(toIndentedString(role)).append("\n");
     sb.append("    phone: ").append(toIndentedString(phone)).append("\n");
-    sb.append("    transactionLimit: ").append(toIndentedString(transactionLimit)).append("\n");
-    sb.append("    dayLimit: ").append(toIndentedString(dayLimit)).append("\n");
     sb.append("}");
     return sb.toString();
   }

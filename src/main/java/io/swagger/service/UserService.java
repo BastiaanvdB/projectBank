@@ -65,13 +65,19 @@ public class UserService {
         return token;
     }
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public String editUser(User user){
+        userRepository.save(user);
+        return jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     }
 
-    public User getUserOnEmail(String email) {
-        return userRepository.findByEmail(email);
+    public User findByEmail(String email) {
+        try {
+            return userRepository.findByEmail(email);
+        }catch (Exception ex){
+            return null;
+        }
     }
+
 
     public void changePassword(User user, String newPassword, String oldPassword, boolean force) {
         try {
@@ -89,13 +95,11 @@ public class UserService {
         }
     }
 
-    public void changeRole(User user) {
-
+    public void add(User user){
         userRepository.save(user);
-
     }
 
-    public User add(User user) {
+    public User signup(User user) {
 
         if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
