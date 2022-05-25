@@ -81,7 +81,7 @@ public class TransactionsApiController implements TransactionsApi {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No acces to this account");
             }
 
-            if ((accFrom.getBalance().subtract(BigDecimal.valueOf((Double) transaction.getAmount()))).compareTo(accFrom.getAbsoluteLimit()) < 0) {
+            if ((accFrom.getBalance().subtract(transaction.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0) {
                 // Not enough funds
                 throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
             } else {
@@ -93,7 +93,7 @@ public class TransactionsApiController implements TransactionsApi {
             if (accFrom.getType() == AccountType.SAVINGS || accTo.getType() == AccountType.SAVINGS) {
                 if (accFrom.getUser() == accTo.getUser() || accTo.getUser() == accFrom.getUser()) {
                     // Go Further with Savings transaction
-                    if ((accFrom.getBalance().subtract(BigDecimal.valueOf((Double) transaction.getAmount()))).compareTo(accFrom.getAbsoluteLimit()) < 0) {
+                    if ((accFrom.getBalance().subtract(transaction.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0) {
                         // Not enough funds
                         throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
                     } else {
@@ -106,7 +106,7 @@ public class TransactionsApiController implements TransactionsApi {
             } else {
                 // Do normal transaction
                 //Check if the balance will not exeed the absolute limit with this transaction
-                if ((accFrom.getBalance().subtract(BigDecimal.valueOf((Double) transaction.getAmount()))).compareTo(accFrom.getAbsoluteLimit()) < 0) {
+                if ((accFrom.getBalance().subtract(transaction.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0) {
                     // Not enough funds
                     throw new ResponseStatusException(HttpStatus.resolve(400), "You have not enough money on this account");
                 } else {
@@ -117,9 +117,9 @@ public class TransactionsApiController implements TransactionsApi {
                     for (Transaction trans : allTransactionsFromToday) {
                         daySpendings += trans.getAmount().doubleValue();
                     }
-                    if (accFrom.getUser().getDayLimit().compareTo(BigDecimal.valueOf((Double) transaction.getAmount() + daySpendings)) > 0) {
+                    if (accFrom.getUser().getDayLimit().compareTo(transaction.getAmount().add(BigDecimal.valueOf(daySpendings))) > 0) {
                         // Check if the transaction is not exeeding the transaction limit
-                        if (accFrom.getUser().getTransactionLimit().compareTo(BigDecimal.valueOf((Double) transaction.getAmount())) > 0) {
+                        if (accFrom.getUser().getTransactionLimit().compareTo(transaction.getAmount()) > 0) {
                             // Do Transaction and return response DTO
                             return this.doTransaction(transaction, user);
                         }
