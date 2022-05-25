@@ -10,6 +10,6 @@ import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
 
-    @Query(value = "SELECT t FROM Transaction t WHERE :query")
-    List<Transaction> getAll(@Param("query") String query, PageRequest of);
+//    @Query(value = "SELECT t FROM Transaction t WHERE :query")
+//    List<Transaction> getAll(@Param("query") String query, PageRequest of);
 }

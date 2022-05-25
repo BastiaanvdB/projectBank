@@ -19,7 +19,7 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-    public List<Transaction> getAll(String query, Integer offset, Integer limit) {
-        return transactionRepository.getAll(query, PageRequest.of(offset, limit));
-    }
+//    public List<Transaction> getAll(String query, Integer offset, Integer limit) {
+//        return transactionRepository.getAll(query, PageRequest.of(offset, limit));
+//    }
 }

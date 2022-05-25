@@ -118,12 +118,12 @@ public class TransactionsApiController implements TransactionsApi {
             transactions = transactionService.getAll(offset, limit);
         } else {
             // get all the transactions with query
-            transactions = transactionService.getAll(query, offset, limit);
+            //transactions = transactionService.getAll(query, offset, limit);
         }
 
         // map the transactions to responseDTO
-        List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
-
+        //List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
+        List<TransactionResponseDTO> responseDTOS = null;
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 }
