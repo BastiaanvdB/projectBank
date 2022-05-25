@@ -51,6 +51,6 @@ public class MyApplicationRunner implements ApplicationRunner {
         employee.setAccounts(accountsEmployee);
 
         userService.add(user);
-        userService.add(employee);
+        userService.addEmployeeFromSeeder(employee);
     }
 }
