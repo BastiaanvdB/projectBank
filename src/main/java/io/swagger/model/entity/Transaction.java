@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.sql.Timestamp;
 
 @Entity
 @Getter
@@ -24,5 +25,5 @@ public class Transaction {
     private Number amount;
     private Integer issuedBy;
     @CreationTimestamp
-    private Integer iat;
+    private Timestamp iat;
 }
