@@ -129,7 +129,7 @@ public class UsersApiController implements UsersApi {
         String userEmail = jwtTokenProvider.getUsername(token);
 
         // gets user throughs jwt that makes the request
-        User user = userService.getUserOnEmail(userEmail);
+        User user = userService.findByEmail(userEmail);
 
         if(userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)){
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to change password for user");
@@ -199,9 +199,10 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
-    public ResponseEntity<Void> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    public ResponseEntity<InlineResponse200> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) {
 
+        boolean admin = false;
         ModelMapper modelMapper = new ModelMapper();
         User newUserDetails = modelMapper.map(body, User.class);
 
@@ -213,7 +214,7 @@ public class UsersApiController implements UsersApi {
         String userEmail = jwtTokenProvider.getUsername(token);
 
         // gets user throughs jwt that makes the request
-        User user = userService.getUserOnEmail(userEmail);
+        User user = userService.findByEmail(userEmail);
 
         if(userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)){
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to update userdetails for requested user");
@@ -221,6 +222,7 @@ public class UsersApiController implements UsersApi {
 
         if(user.getRoles().contains(Role.ROLE_EMPLOYEE))
         {
+            admin = true;
             user = userService.getOne(userid);
         }
 
@@ -233,13 +235,16 @@ public class UsersApiController implements UsersApi {
         }
 
 
-        System.out.println(newUserDetails.getEmail());
-        System.out.println(user.getEmail());
+        //check if new email already has been taken
+        User checkUser = userService.findByEmail(newUserDetails.getEmail());
 
-        if ((userService.findByEmail(newUserDetails.getEmail()) != null && (newUserDetails.getEmail() != user.getEmail())) || (newUserDetails.getEmail() == user.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
+        //check if its not the same user
+        if(checkUser != null) {
+            if (checkUser.getId() != user.getId()) {
+                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
+            }
         }
-
+        
         user.setFirstname(newUserDetails.getFirstname());
         user.setLastname(newUserDetails.getLastname());
         user.setEmail(newUserDetails.getEmail());
@@ -249,8 +254,16 @@ public class UsersApiController implements UsersApi {
         user.setCity(newUserDetails.getCity());
 
         userService.add(user);
+        token = userService.editUser(user);
 
-        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
+        if(!admin) {
+            InlineResponse200 res = new InlineResponse200();
+            res.setToken(token);
+            // Return new token with http status 200
+            return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
+        }else {
+            return new ResponseEntity<InlineResponse200>(HttpStatus.OK);
+        }
     }
 
     public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {

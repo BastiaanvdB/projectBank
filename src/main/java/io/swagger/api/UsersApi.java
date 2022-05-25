@@ -147,7 +147,7 @@ public interface UsersApi {
     @RequestMapping(value = "/users/{userid}",
         consumes = { "application/json" }, 
         method = RequestMethod.PUT)
-    ResponseEntity<Void> updateUser(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
+    ResponseEntity<InlineResponse200> updateUser(@Min(1)@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema(allowableValues={  }, minimum="1"
 )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody UserDTO body);
 
 

@@ -65,13 +65,19 @@ public class UserService {
         return token;
     }
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public String editUser(User user){
+        userRepository.save(user);
+        return jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     }
 
-    public User getUserOnEmail(String email) {
-        return userRepository.findByEmail(email);
+    public User findByEmail(String email) {
+        try {
+            return userRepository.findByEmail(email);
+        }catch (Exception ex){
+            return null;
+        }
     }
+
 
     public void changePassword(User user, String newPassword, String oldPassword, boolean force) {
         try {
