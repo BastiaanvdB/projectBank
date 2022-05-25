@@ -195,6 +195,9 @@ public class AccountsApiController implements AccountsApi {
         if (!account.getPin().equals(body.getOldPincode())) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong pincode!");
         }
+        if (!body.getNewPincode().matches("[0-9]+") || body.getNewPincode().length() != 4) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Pincode must only contain 4 digits");
+        }
 
         // Set the pin with value from body and update account
         account.setPin(String.valueOf(body.getNewPincode()));
