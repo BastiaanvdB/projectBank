@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.sql.Timestamp;
 
 @Entity
 @Getter
@@ -22,5 +24,6 @@ public class Transaction {
     private String ibanTo;
     private Number amount;
     private Integer issuedBy;
-    private Integer iat;
+    @CreationTimestamp
+    private Timestamp iat;
 }

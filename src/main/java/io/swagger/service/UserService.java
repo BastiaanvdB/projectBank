@@ -131,4 +131,22 @@ public class UserService {
 
         return user;
     }
+
+    public User addEmployeeFromSeeder(User user) {
+        try {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepository.save(user);
+
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
+        }
+        return user;
+    }
+
+
+    // Replace the old row with new row
+    public User put(User user) {
+        userRepository.save(user);
+        return user;
+    }
 }
