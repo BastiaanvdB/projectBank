@@ -21,9 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -100,23 +97,32 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<UserResponseDTO> getOneUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid) {
 
-        //nog doen
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        String userEmail = jwtTokenProvider.getUsername(token);
+        User user = userService.findByEmail(userEmail);
 
-
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<UserResponseDTO>(objectMapper.readValue("{\n  \"firstname\" : \"Henk\",\n  \"address\" : \"Bijdorplaan 15\",\n  \"role\" : 0,\n  \"city\" : \"Haarlem\",\n  \"phone\" : \"0623445321\",\n  \"transaction_Limit\" : 2000,\n  \"postalCode\" : \"2015CE\",\n  \"day_limit\" : 5000,\n  \"id\" : 1,\n  \"email\" : \"henkbakker@test.nl\",\n  \"lastname\" : \"Bakker\",\n  \"activated\" : true\n}", UserResponseDTO.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<UserResponseDTO>(HttpStatus.INTERNAL_SERVER_ERROR);
+        if (user.getId() != userid || !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+            if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not allowed to get user!");
             }
         }
 
-        return new ResponseEntity<UserResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
+        User requestedUser = userService.getOne(userid);
+
+        if (requestedUser == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+        }
+
+        ModelMapper modelMapper = new ModelMapper();
+        UserResponseDTO response = modelMapper.map(requestedUser, UserResponseDTO.class);
+
+        return new ResponseEntity<UserResponseDTO>(response, HttpStatus.OK);
     }
 
-//    @PreAuthorize("hasRole('EMPLOYEE', 'USER')")
+    //    @PreAuthorize("hasRole('EMPLOYEE', 'USER')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
 
@@ -131,7 +137,7 @@ public class UsersApiController implements UsersApi {
         // gets user throughs jwt that makes the request
         User user = userService.findByEmail(userEmail);
 
-        if(userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)){
+        if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to change password for user");
         }
 
@@ -139,8 +145,7 @@ public class UsersApiController implements UsersApi {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New password doesnt meet security requirements!");
         }
 
-        if(user.getRoles().contains(Role.ROLE_EMPLOYEE))
-        {
+        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             user = userService.getOne(userid);
             force = true;
         }
@@ -149,27 +154,24 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
-//    @PreAuthorize("hasRole('EMPLOYEE')")
+    //    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
 
         // checks if atleast one rola has been given
-        if(body.getRoles().size() == 0 || body.getRoles() == null)
-        {
+        if (body.getRoles().size() == 0 || body.getRoles() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No role provided for user!");
         }
 
         List<Role> roles = new ArrayList<>();
-        for (Integer r: body.getRoles())
-        {
+        for (Integer r : body.getRoles()) {
             roles.add(Role.values()[r]);
         }
 
         User user = userService.getOne(userid);
 
         //checks if user by userid exists
-        if(user == null)
-        {
+        if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
         }
 
@@ -187,8 +189,7 @@ public class UsersApiController implements UsersApi {
         User user = userService.getOne(userid);
 
         //checks if user by userid exists
-        if(user == null)
-        {
+        if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
         }
 
@@ -216,12 +217,11 @@ public class UsersApiController implements UsersApi {
         // gets user throughs jwt that makes the request
         User user = userService.findByEmail(userEmail);
 
-        if(userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)){
+        if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to update userdetails for requested user");
         }
 
-        if(user.getRoles().contains(Role.ROLE_EMPLOYEE))
-        {
+        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             admin = true;
             user = userService.getOne(userid);
         }
@@ -239,12 +239,12 @@ public class UsersApiController implements UsersApi {
         User checkUser = userService.findByEmail(newUserDetails.getEmail());
 
         //check if its not the same user
-        if(checkUser != null) {
+        if (checkUser != null) {
             if (checkUser.getId() != user.getId()) {
                 throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
             }
         }
-        
+
         user.setFirstname(newUserDetails.getFirstname());
         user.setLastname(newUserDetails.getLastname());
         user.setEmail(newUserDetails.getEmail());
@@ -256,12 +256,12 @@ public class UsersApiController implements UsersApi {
         userService.add(user);
         token = userService.editUser(user);
 
-        if(!admin) {
+        if (!admin) {
             InlineResponse200 res = new InlineResponse200();
             res.setToken(token);
             // Return new token with http status 200
             return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
-        }else {
+        } else {
             return new ResponseEntity<InlineResponse200>(HttpStatus.OK);
         }
     }
