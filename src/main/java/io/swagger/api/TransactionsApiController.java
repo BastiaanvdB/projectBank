@@ -71,7 +71,7 @@ public class TransactionsApiController implements TransactionsApi {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
         }
         String username = tokenProvider.getUsername(token);
-        User user = userService.getUserOnEmail(username);
+        User user = userService.findByEmail(username);
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             //todo: action for employee
