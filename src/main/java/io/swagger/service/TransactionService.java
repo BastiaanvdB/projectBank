@@ -4,8 +4,11 @@ import io.swagger.model.entity.Transaction;
 import io.swagger.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -19,7 +22,12 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
-//    public List<Transaction> getAll(String query, Integer offset, Integer limit) {
-//        return transactionRepository.getAll(query, PageRequest.of(offset, limit));
-//    }
+    public List<Transaction> getAll(String query, Integer offset, Integer limit) {
+        return transactionRepository.getAll(PageRequest.of(offset, limit), query);
+    }
+
+    public List<Transaction> getAllFromToday(String iban) {
+//        Timestamp today = new Timestamp(new Date().getTime());
+        return transactionRepository.getAllFromToday(iban);
+    }
 }

@@ -1,7 +1,10 @@
 package io.swagger.api;
 
 import io.swagger.annotations.Api;
+import io.swagger.model.entity.Account;
 import io.swagger.model.entity.Transaction;
+import io.swagger.model.enumeration.AccountType;
+import io.swagger.service.AccountService;
 import io.swagger.service.TransactionService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +46,7 @@ public class TransactionsApiController implements TransactionsApi {
     @Autowired
     private TransactionService transactionService;
     private ModelMapper modelMapper;
+    private AccountService accountService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public TransactionsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -50,15 +55,39 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
-        //TODO: Check for savings account
-        //todo: If savings account, is it from the same user?
-        //TODO: Is ATM? <- special case
-        //todo: within absolute limit?
         //todo: within day limit?
         //todo: within transaction limit?
         //todo: is the account from the bank?
         //todo: is account from the same user? then day/transaction limit is no issue
 
+        // get accounts for checks
+        Account accFrom = accountService.getOneByIban(body.getIbanFrom());
+        Account accTo = accountService.getOneByIban(body.getIbanTo());
+
+        if (accFrom.getType() == AccountType.SAVINGS || accTo.getType() == AccountType.SAVINGS) {
+            if (accFrom.getUser() == accTo.getUser() || accTo.getUser() == accFrom.getUser()) {
+                //Go Further with Savings transaction
+            }
+            else {
+                //Not authorized
+            }
+        }
+        else {
+            // Do normal transaction
+            //Check if the balance will not exeed the absolute limit with this transaction
+            if ((accFrom.getBalance().subtract(body.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0 ){
+                // Not enough funds
+            }
+            else {
+                //Continue
+                //Check for day limit is not getting exeeded
+                List<Transaction> allTransactionsFromToday = transactionService.getAllFromToday(accFrom.getIban());
+
+                if (accFrom.getUser().getDayLimit().compareTo(BigDecimal.ONE) > 0){
+
+                }
+            }
+        }
 
         // Convert request to a Transaction
         Transaction transaction = this.modelMapper.map(body, Transaction.class);
@@ -70,7 +99,7 @@ public class TransactionsApiController implements TransactionsApi {
         return new ResponseEntity<TransactionResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    //@PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
 
         List<Transaction> transactions;
@@ -118,7 +147,7 @@ public class TransactionsApiController implements TransactionsApi {
             transactions = transactionService.getAll(offset, limit);
         } else {
             // get all the transactions with query
-            //transactions = transactionService.getAll(query, offset, limit);
+            transactions = transactionService.getAll(query, offset, limit);
         }
 
         // map the transactions to responseDTO
@@ -126,4 +155,6 @@ public class TransactionsApiController implements TransactionsApi {
         List<TransactionResponseDTO> responseDTOS = null;
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
+
+    //TODO: Is ATM? <- special case
 }

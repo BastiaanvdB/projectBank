@@ -2,14 +2,19 @@ package io.swagger.repository;
 
 import io.swagger.model.entity.Transaction;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
 
-//    @Query(value = "SELECT t FROM Transaction t WHERE :query")
-//    List<Transaction> getAll(@Param("query") String query, PageRequest of);
+    @Query(value = "SELECT t FROM Transaction t WHERE ?#{#query}", nativeQuery = true)
+    List<Transaction> getAll(PageRequest of, @Param("query") String query);
+
+    @Query(value = "SELECT t FROM Transaction t WHERE t.ibanFrom = :iban AND DATE('t.iat') = NOW()", nativeQuery = true)
+    List<Transaction> getAllFromToday(@Param("iban") String iban);
 }
