@@ -14,6 +14,7 @@ import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,8 +201,56 @@ public class UsersApiController implements UsersApi {
 
     public ResponseEntity<Void> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) {
-        String accept = request.getHeader("Accept");
-        return new ResponseEntity<Void>(HttpStatus.NOT_IMPLEMENTED);
+
+        ModelMapper modelMapper = new ModelMapper();
+        User newUserDetails = modelMapper.map(body, User.class);
+
+
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        String userEmail = jwtTokenProvider.getUsername(token);
+
+        // gets user throughs jwt that makes the request
+        User user = userService.getUserOnEmail(userEmail);
+
+        if(userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)){
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to update userdetails for requested user");
+        }
+
+        if(user.getRoles().contains(Role.ROLE_EMPLOYEE))
+        {
+            user = userService.getOne(userid);
+        }
+
+        if (newUserDetails.getFirstname().length() < 2 || newUserDetails.getLastname().length() < 2 || newUserDetails.getPhone().length() < 10 || newUserDetails.getPostalCode().length() < 6 || newUserDetails.getCity().length() < 2 || newUserDetails.getAddress().length() < 2) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
+        }
+
+        if (!EmailValidator.getInstance().isValid(newUserDetails.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Enter a correct email!");
+        }
+
+
+        System.out.println(newUserDetails.getEmail());
+        System.out.println(user.getEmail());
+
+        if ((userService.findByEmail(newUserDetails.getEmail()) != null && (newUserDetails.getEmail() != user.getEmail())) || (newUserDetails.getEmail() == user.getEmail())) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
+        }
+
+        user.setFirstname(newUserDetails.getFirstname());
+        user.setLastname(newUserDetails.getLastname());
+        user.setEmail(newUserDetails.getEmail());
+        user.setPhone(newUserDetails.getPhone());
+        user.setAddress(newUserDetails.getAddress());
+        user.setPostalCode(newUserDetails.getPostalCode());
+        user.setCity(newUserDetails.getCity());
+
+        userService.add(user);
+
+        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
 
     public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {
