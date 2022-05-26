@@ -43,6 +43,7 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         // Accounts
         Account curr = new Account("NLxxINHO0000000000", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account bank = new Account("NL01INHO0000000001", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
         Account sav = new Account("NLxxINHO0000011129", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
 
         // Transactions
@@ -51,11 +52,13 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         accountRepository.save(curr);
         accountRepository.save(sav);
+        accountRepository.save(bank);
 
         Set<Account> accountsUser = new HashSet<>();
         Set<Account> accountsEmployee = new HashSet<>();
         accountsUser.add(curr);
         accountsEmployee.add(sav);
+        accountsEmployee.add(bank);
 
         user.setAccounts(accountsUser);
         employee.setAccounts(accountsEmployee);

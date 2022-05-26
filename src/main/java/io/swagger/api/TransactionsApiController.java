@@ -47,9 +47,9 @@ public class TransactionsApiController implements TransactionsApi {
     private static final String DEFAULT_BANK_IBAN = new String("NL01INHO0000000001");
     private final ObjectMapper objectMapper;
     private final HttpServletRequest request;
+    private ModelMapper modelMapper;
     @Autowired
     private TransactionService transactionService;
-    private ModelMapper modelMapper;
     @Autowired
     private AccountService accountService;
     @Autowired
@@ -61,7 +61,10 @@ public class TransactionsApiController implements TransactionsApi {
     public TransactionsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
+        this.modelMapper = new ModelMapper();
     }
+
+    // todo: check timestamps
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
@@ -150,10 +153,10 @@ public class TransactionsApiController implements TransactionsApi {
         String query = "";
 
         // parameter options and make 1 query string
-        if (offset != null) {
+        if (offset == null) {
             offset = 0;
         }
-        if (limit != null) {
+        if (limit == null) {
             limit = 50;
         }
         if (ibANFrom != null) {
@@ -187,7 +190,7 @@ public class TransactionsApiController implements TransactionsApi {
         }
 
         // if there's no query just get them all with limit and offset 
-        if (query != "") {
+        if (query == "") {
             transactions = transactionService.getAll(offset, limit);
         } else {
             // get all the transactions with query
@@ -205,13 +208,18 @@ public class TransactionsApiController implements TransactionsApi {
         Transaction model = transactionService.createTransaction(transaction);
 
         //get from acc and modify it
-        Account from = accountService.getOneByIban(model.getIbanFrom());
-        from.setBalance(from.getBalance().subtract(model.getAmount()));
+        Account from = accountService.getOneByIban(transaction.getIbanFrom());
+        Account to = accountService.getOneByIban(transaction.getIbanTo());
+        // When a account is null, no account was found with specified iban, return 404
+        if (from == null || to == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "We have no account with this iban");
+        }
+
+        from.setBalance(from.getBalance().subtract(transaction.getAmount()));
         accountService.updateBalance(from);
 
         //get to acc and modify it
-        Account to = accountService.getOneByIban(model.getIbanTo());
-        to.setBalance(from.getBalance().add(model.getAmount()));
+        to.setBalance(to.getBalance().add(transaction.getAmount()));
         accountService.updateBalance(to);
 
         // Return the responseDTO
@@ -235,8 +243,9 @@ public class TransactionsApiController implements TransactionsApi {
         } else return true;
     }
 
-    //@PreAuthorize("hasRole('USER')")
-    public ResponseEntity<DepositResponseDTO> deposit(@RequestBody Transaction body) {
+
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<DepositResponseDTO> deposit(Transaction body) {
         User user = getUserByToken();
         // from bank to user
         body.setIbanFrom(DEFAULT_BANK_IBAN);
@@ -247,6 +256,7 @@ public class TransactionsApiController implements TransactionsApi {
         return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
     }
 
+    // todo: checks uitvoeren
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<WithdrawResponseDTO> withdraw(@RequestBody Transaction body) {
         // from user to bank
