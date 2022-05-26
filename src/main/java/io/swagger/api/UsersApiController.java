@@ -236,7 +236,7 @@ public class UsersApiController implements UsersApi {
         }
 
         user.setRoles(roles);
-        userService.add(user);
+        userService.put(user);
 
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
@@ -255,7 +255,7 @@ public class UsersApiController implements UsersApi {
 
         user.setActivated(body.isActivated());
 
-        userService.add(user);
+        userService.put(user);
 
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
@@ -313,8 +313,7 @@ public class UsersApiController implements UsersApi {
         user.setPostalCode(newUserDetails.getPostalCode());
         user.setCity(newUserDetails.getCity());
 
-        userService.add(user);
-        token = userService.editUser(user);
+        token = userService.EditUserAndToken(user);
 
         if (!admin) {
             InlineResponse200 res = new InlineResponse200();

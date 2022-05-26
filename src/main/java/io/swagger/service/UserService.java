@@ -63,7 +63,7 @@ public class UserService {
         return token;
     }
 
-    public String editUser(User user) {
+    public String EditUserAndToken(User user) {
         userRepository.save(user);
         return jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     }
@@ -91,10 +91,6 @@ public class UserService {
         } catch (AuthenticationException ex) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Current password is invalid!");
         }
-    }
-
-    public void add(User user) {
-        userRepository.save(user);
     }
 
     public User signup(User user) {
