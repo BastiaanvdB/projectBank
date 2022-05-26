@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Entity
@@ -22,7 +23,7 @@ public class Transaction {
     private Integer id;
     private String ibanFrom;
     private String ibanTo;
-    private Number amount;
+    private BigDecimal amount;
     private Integer issuedBy;
     @CreationTimestamp
     private Timestamp iat;

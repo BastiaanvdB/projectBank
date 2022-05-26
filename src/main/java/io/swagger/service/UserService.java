@@ -9,6 +9,7 @@ import io.swagger.security.JwtTokenProvider;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.NullValueInNestedPathException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,8 +39,8 @@ public class UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public List<User> getAll() {
-        return userRepository.findAll();
+    public List<User> getAll(Integer offset, Integer limit) {
+        return userRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
 
     public User getOne(int id) {
