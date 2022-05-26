@@ -115,14 +115,14 @@ public class AccountsApiController implements AccountsApi {
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
 
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
-        }
-
-        // When account is null, no account was found with specified iban, return 404
-        if (account == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         // Use mapper to map account to account response data transfer object
@@ -262,25 +262,55 @@ public class AccountsApiController implements AccountsApi {
     // **** HELPER METHODS
     private String generateIban() {
 
-        // Get all iban
+        // Get old iban and construct new iban with it
         String lastIban = accountService.getLastAccount().getIban();
+        String newIban = constructIban(lastIban.substring(0, 9), lastIban.substring(9));
 
-        // Get prefix of this iban
-        String prefix = lastIban.substring(0, 9);
+        return newIban;
+    }
 
-        // Get the number of the iban and raise by one, count amount of digits
-        int number = Integer.parseInt(lastIban.substring(9)) + 1;
+    private String constructIban(String prefix, String identifier) {
+
+        // Check if de prefix counter must be raised
+        if (identifier.equals("999999999")) {
+
+            // When identifier maxed, reset to 1 and raise prefix counter with 1
+            identifier = "000000001";
+            int number = Integer.parseInt(prefix.substring(2, 4)) + 1;
+
+            // Add 0 to prefix counter when number contains only 1 digit and add remaining prefix
+            if (String.valueOf(number).length() == 1) {
+                prefix = "NL0" + String.valueOf(number) + "INHO0";
+            } else {
+                prefix = "NL" + String.valueOf(number) + "INHO0";
+            }
+        } else {
+
+            // generate new identifier when identifier not maxed
+            identifier = generatateIdentifier(identifier);
+        }
+
+        // Combine prefix and identifier and return
+        return prefix + identifier;
+    }
+
+    private String generatateIdentifier(String identifier) {
+
+        // Get new identifier and amount of digits
+        int number = Integer.parseInt(identifier) + 1;
         int amountOfDigits = String.valueOf(number).length();
 
         // foreach leftover digit place, append a 0
+        String newIdentifier = "";
         for (int i = amountOfDigits; i < 9; i++) {
-            prefix += '0';
+            newIdentifier += '0';
         }
 
-        // Then return the new number and return
-        prefix += number;
-        return prefix;
+        // Add remaining number and return new identifier
+        newIdentifier += number;
+        return newIdentifier;
     }
+
 
     private String generatePincode() {
 
@@ -291,13 +321,12 @@ public class AccountsApiController implements AccountsApi {
 
     private void isValidIban(String iban) {
 
-        // When length is not 18, throw illegal argument exception
-        if (iban.length() != 18) {
-            throw new IllegalArgumentException();
+        if (iban.equals("NL01INHO0000000001")) {
+            return;
         }
 
-        // When iban prefix is incorrect, throw illegal argument exception
-        if (!Objects.equals(new String(iban.substring(0, 9)), "NLxxINHO0")) {
+        // When length is not 18, throw illegal argument exception
+        if (iban.length() != 18) {
             throw new IllegalArgumentException();
         }
 
