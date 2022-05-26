@@ -174,7 +174,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
-
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid) {
 
@@ -184,6 +184,11 @@ public class AccountsApiController implements AccountsApi {
         // When no accounts are returned, no user exists with that id, throw exception with 404
         if (accounts.size() == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No accounts found for this user");
+        }
+
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(accounts.get(0).getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
 
         // Map all accounts to response data transfer objects
