@@ -175,8 +175,21 @@ public class AccountsApiController implements AccountsApi {
 
     public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid) {
-        // :todo bram
-        return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
+
+        // Get all accounts for the user with given id
+        List<Account> accounts = accountService.getAllByUserId(userid);
+
+        // When no accounts are returned, no user exists with that id, throw exception with 404
+        if (accounts.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No accounts found for this user");
+        }
+
+        // Map all accounts to response data transfer objects
+        List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
+                .collect(Collectors.toList());
+
+        // Return the repsonse dto's
+        return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
 
