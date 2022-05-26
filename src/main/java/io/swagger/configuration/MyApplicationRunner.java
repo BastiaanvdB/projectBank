@@ -60,8 +60,8 @@ public class MyApplicationRunner implements ApplicationRunner {
         user.setAccounts(accountsUser);
         employee.setAccounts(accountsEmployee);
 
-        userService.add(user);
-        userService.addEmployeeFromSeeder(employee);
+        userService.addFromSeeder(user);
+        userService.addFromSeeder(employee);
 
         transactionService.createTransaction(trans);
         transactionService.createTransaction(trans2);

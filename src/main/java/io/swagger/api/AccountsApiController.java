@@ -6,6 +6,7 @@ import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.*;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
+import io.swagger.model.enumeration.Role;
 import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
@@ -111,6 +112,10 @@ public class AccountsApiController implements AccountsApi {
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
 
+        if (!canUserPerform(account.getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+
         // When account is null, no account was found with specified iban, return 404
         if (account == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -166,6 +171,11 @@ public class AccountsApiController implements AccountsApi {
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
 
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(account.getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+
         // Set the limit with value from body and update the account
         account.setAbsoluteLimit(body.getAbsoluteLimit());
         accountService.updateLimit(account);
@@ -185,6 +195,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(account.getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
 
         // Check if old pincode matches the pincode of the account for validation
         if (!account.getPin().equals(body.getOldPincode())) {
@@ -297,5 +312,23 @@ public class AccountsApiController implements AccountsApi {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
         }
         return jwtTokenProvider.getUsername(token);
+    }
+
+    private boolean canUserPerform(String email) {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+
+        System.out.print(jwtTokenProvider.getUsername(token));
+        System.out.print(email);
+        System.out.print(jwtTokenProvider.getAuthentication(token).getAuthorities());
+
+        if (!jwtTokenProvider.getUsername(token).equals(email) && !jwtTokenProvider.getAuthentication(token).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+        return true;
     }
 }
