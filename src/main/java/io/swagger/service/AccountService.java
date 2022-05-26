@@ -31,7 +31,7 @@ public class AccountService {
     }
 
     public List<Account> getAllByUserId(int userId) {
-        return  accountRepository.findAllByUserid(userId);
+        return accountRepository.findAllByUserid(userId);
     }
 
     public List<Account> getAllByFirstAndLastname(String firstname, String lastname, int offset, int limit) {

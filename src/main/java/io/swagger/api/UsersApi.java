@@ -6,7 +6,6 @@
 package io.swagger.api;
 
 import io.swagger.model.DTO.*;
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
@@ -143,6 +142,17 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.POST)
     ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body);
+
+    @Operation(summary = "get current user", description = "This call returns current logged in user.", security = {
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDTO.class))),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+    @RequestMapping(value = "/users/current",
+            produces = {"application/json"},
+            method = RequestMethod.GET)
+    ResponseEntity<UserResponseDTO> usersCurrentGet();
 
 }
 
