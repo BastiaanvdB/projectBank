@@ -30,7 +30,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -115,14 +117,14 @@ public class AccountsApiController implements AccountsApi {
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
 
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
-        }
-
-        // When account is null, no account was found with specified iban, return 404
-        if (account == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         // Use mapper to map account to account response data transfer object
@@ -138,14 +140,18 @@ public class AccountsApiController implements AccountsApi {
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         List<Account> accounts = null;
-
-        // Make sure offset and limit and sended with the request
-        if (offset == null || limit == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset and limit must be included in request.");
+        List<Account> filteredAccounts = null;
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 10;
         }
 
         // when parameter for first or lastname is given, call method for that
-        if (firstname != null && firstname.length() > 0) {
+        if (firstname != null && firstname.length() > 0 && lastname != null && lastname.length() > 0) {
+            accounts = accountService.getAllByFirstAndLastname(firstname, lastname, offset, limit);
+        } else if (firstname != null && firstname.length() > 0) {
             accounts = accountService.getAllByFirstname(firstname, offset, limit);
         } else if (lastname != null && lastname.length() > 0) {
             accounts = accountService.getAllByLastname(lastname, offset, limit);
@@ -167,6 +173,26 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
+    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid) {
+
+        // Get all accounts for the user with given id
+        List<Account> accounts = accountService.getAllByUserId(userid);
+
+        // When no accounts are returned, no user exists with that id, throw exception with 404
+        if (accounts.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No accounts found for this user");
+        }
+
+        // Map all accounts to response data transfer objects
+        List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
+                .collect(Collectors.toList());
+
+        // Return the repsonse dto's
+        return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
+    }
+
+
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
@@ -175,6 +201,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
@@ -200,6 +231,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
@@ -234,6 +270,11 @@ public class AccountsApiController implements AccountsApi {
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
 
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
         // Set the activation status with value from body and update account
         account.setActivated(body.isActivated());
         accountService.updateStatus(account);
@@ -262,25 +303,55 @@ public class AccountsApiController implements AccountsApi {
     // **** HELPER METHODS
     private String generateIban() {
 
-        // Get all iban
+        // Get old iban and construct new iban with it
         String lastIban = accountService.getLastAccount().getIban();
+        String newIban = constructIban(lastIban.substring(0, 9), lastIban.substring(9));
 
-        // Get prefix of this iban
-        String prefix = lastIban.substring(0, 9);
+        return newIban;
+    }
 
-        // Get the number of the iban and raise by one, count amount of digits
-        int number = Integer.parseInt(lastIban.substring(9)) + 1;
+    private String constructIban(String prefix, String identifier) {
+
+        // Check if de prefix counter must be raised
+        if (identifier.equals("999999999")) {
+
+            // When identifier maxed, reset to 1 and raise prefix counter with 1
+            identifier = "000000001";
+            int prefixNumber = Integer.parseInt(prefix.substring(2, 4)) + 1;
+
+            // Add 0 to prefix counter when number contains only 1 digit and add remaining prefix
+            if (String.valueOf(prefixNumber).length() == 1) {
+                prefix = "NL0" + String.valueOf(prefixNumber) + "INHO0";
+            } else {
+                prefix = "NL" + String.valueOf(prefixNumber) + "INHO0";
+            }
+        } else {
+
+            // generate new identifier when identifier not maxed
+            identifier = generatateIdentifier(identifier);
+        }
+
+        // Combine prefix and identifier and return
+        return prefix + identifier;
+    }
+
+    private String generatateIdentifier(String identifier) {
+
+        // Get new identifier and amount of digits
+        int number = Integer.parseInt(identifier) + 1;
         int amountOfDigits = String.valueOf(number).length();
 
         // foreach leftover digit place, append a 0
+        String newIdentifier = "";
         for (int i = amountOfDigits; i < 9; i++) {
-            prefix += '0';
+            newIdentifier += '0';
         }
 
-        // Then return the new number and return
-        prefix += number;
-        return prefix;
+        // Add remaining number and return new identifier
+        newIdentifier += number;
+        return newIdentifier;
     }
+
 
     private String generatePincode() {
 
@@ -291,13 +362,12 @@ public class AccountsApiController implements AccountsApi {
 
     private void isValidIban(String iban) {
 
-        // When length is not 18, throw illegal argument exception
-        if (iban.length() != 18) {
-            throw new IllegalArgumentException();
+        if (iban.equals("NL01INHO0000000001")) {
+            return;
         }
 
-        // When iban prefix is incorrect, throw illegal argument exception
-        if (!Objects.equals(new String(iban.substring(0, 9)), "NLxxINHO0")) {
+        // When length is not 18, throw illegal argument exception
+        if (iban.length() != 18) {
             throw new IllegalArgumentException();
         }
 

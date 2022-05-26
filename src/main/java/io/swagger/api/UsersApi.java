@@ -43,20 +43,6 @@ public interface UsersApi {
             method = RequestMethod.POST)
     ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body);
 
-    @Operation(summary = "Get all accounts of specific user", description = "Get all the accounts of the user with the id given as parameter", security = {
-            @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All accounts of user", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccountResponseDTO.class)))),
-
-            @ApiResponse(responseCode = "400", description = "User with this id could not be found"),
-
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
-    @RequestMapping(value = "/users/{userid}/accounts",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid);
-
 
     @Operation(summary = "Get all users", description = "This endpoint will provide all available users", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
