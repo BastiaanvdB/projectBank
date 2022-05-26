@@ -50,8 +50,11 @@ public class TransactionsApiController implements TransactionsApi {
     @Autowired
     private TransactionService transactionService;
     private ModelMapper modelMapper;
+    @Autowired
     private AccountService accountService;
+    @Autowired
     private JwtTokenProvider tokenProvider;
+    @Autowired
     private UserService userService;
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -78,8 +81,6 @@ public class TransactionsApiController implements TransactionsApi {
         User user = userService.findByEmail(username);
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            //todo: action for employee
-
             // Check if the iban is from the bank itself
             if (accFrom.getIban() == "NL01INHO0000000001") {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No acces to this account");
@@ -136,9 +137,15 @@ public class TransactionsApiController implements TransactionsApi {
         return new ResponseEntity<TransactionResponseDTO>(HttpStatus.FORBIDDEN);
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
 
+        User user = getUserByToken();
+        if (user.getRoles().contains(Role.ROLE_USER)) {
+            if (!isUserOwner(user, ibANFrom)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
+            }
+        }
         List<Transaction> transactions;
         String query = "";
 
@@ -196,6 +203,17 @@ public class TransactionsApiController implements TransactionsApi {
         // Do Transaction and map it to a response DTO
         transaction.setIssuedBy(user.getId());
         Transaction model = transactionService.createTransaction(transaction);
+
+        //get from acc and modify it
+        Account from = accountService.getOneByIban(model.getIbanFrom());
+        from.setBalance(from.getBalance().subtract(model.getAmount()));
+        accountService.updateBalance(from);
+
+        //get to acc and modify it
+        Account to = accountService.getOneByIban(model.getIbanTo());
+        to.setBalance(from.getBalance().add(model.getAmount()));
+        accountService.updateBalance(to);
+
         // Return the responseDTO
         return this.modelMapper.map(model, TransactionResponseDTO.class);
     }
@@ -210,7 +228,14 @@ public class TransactionsApiController implements TransactionsApi {
         return userService.findByEmail(username);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    private boolean isUserOwner(User user, String iban) {
+        Account acc = accountService.getOneByIban(iban);
+        if (acc.getUser() != user) {
+            return false;
+        } else return true;
+    }
+
+    //@PreAuthorize("hasRole('USER')")
     public ResponseEntity<DepositResponseDTO> deposit(@RequestBody Transaction body) {
         User user = getUserByToken();
         // from bank to user
@@ -221,6 +246,7 @@ public class TransactionsApiController implements TransactionsApi {
 
         return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
     }
+
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<WithdrawResponseDTO> withdraw(@RequestBody Transaction body) {
         // from user to bank
