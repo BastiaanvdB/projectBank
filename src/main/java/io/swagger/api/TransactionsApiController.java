@@ -3,7 +3,9 @@ package io.swagger.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.model.DTO.TransactionDTO;
+import io.swagger.model.ResponseDTO.DepositResponseDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
+import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
@@ -34,6 +36,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @RestController
@@ -41,6 +44,7 @@ import java.util.List;
 public class TransactionsApiController implements TransactionsApi {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionsApiController.class);
+    private static final String DEFAULT_BANK_IBAN = new String("NL01INHO0000000001");
     private final ObjectMapper objectMapper;
     private final HttpServletRequest request;
     @Autowired
@@ -86,7 +90,7 @@ public class TransactionsApiController implements TransactionsApi {
                 throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
             } else {
                 // Do Transaction and return response DTO
-                return this.doTransaction(transaction, user);
+                return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
             }
         }
         if (user == accFrom.getUser()) {
@@ -98,7 +102,7 @@ public class TransactionsApiController implements TransactionsApi {
                         throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
                     } else {
                         // Do Transaction and return response DTO
-                        return this.doTransaction(transaction, user);
+                        return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
                     }
                 } else {
                     throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
@@ -121,7 +125,7 @@ public class TransactionsApiController implements TransactionsApi {
                         // Check if the transaction is not exeeding the transaction limit
                         if (accFrom.getUser().getTransactionLimit().compareTo(transaction.getAmount()) > 0) {
                             // Do Transaction and return response DTO
-                            return this.doTransaction(transaction, user);
+                            return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
                         }
                     }
                 }
@@ -184,26 +188,49 @@ public class TransactionsApiController implements TransactionsApi {
         }
 
         // map the transactions to responseDTO
-        //List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
-        List<TransactionResponseDTO> responseDTOS = null;
+        List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
-    private ResponseEntity<TransactionResponseDTO> doTransaction(Transaction transaction, User user) {
+    private TransactionResponseDTO doTransaction(Transaction transaction, User user) {
         // Do Transaction and map it to a response DTO
         transaction.setIssuedBy(user.getId());
         Transaction model = transactionService.createTransaction(transaction);
-        TransactionResponseDTO responseDTO = this.modelMapper.map(model, TransactionResponseDTO.class);
-        // Return the responseDTO with status OK
-        return new ResponseEntity<TransactionResponseDTO>(responseDTO, HttpStatus.OK);
+        // Return the responseDTO
+        return this.modelMapper.map(model, TransactionResponseDTO.class);
     }
 
-    //TODO: Is ATM? <- special case
-    public ResponseEntity<TransactionResponseDTO> deposit() {
-        return new ResponseEntity<TransactionResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
+    private User getUserByToken() {
+        // get token and username for further checks
+        String token = tokenProvider.resolveToken(request);
+        if (token == null || !tokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        String username = tokenProvider.getUsername(token);
+        return userService.findByEmail(username);
     }
 
-    public ResponseEntity<TransactionResponseDTO> withdraw() {
-        return new ResponseEntity<TransactionResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<DepositResponseDTO> deposit(@RequestBody Transaction body) {
+        User user = getUserByToken();
+        // from bank to user
+        body.setIbanFrom(DEFAULT_BANK_IBAN);
+        // do transaction and map it to responseDTO
+        TransactionResponseDTO transaction = this.doTransaction(body, user);
+        DepositResponseDTO response = this.modelMapper.map(transaction, DepositResponseDTO.class);
+
+        return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
+    }
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<WithdrawResponseDTO> withdraw(@RequestBody Transaction body) {
+        // from user to bank
+        User user = getUserByToken();
+        // from bank to user
+        body.setIbanTo(DEFAULT_BANK_IBAN);
+        // do transaction and map it to responseDTO
+        TransactionResponseDTO transaction = this.doTransaction(body, user);
+        WithdrawResponseDTO response = this.modelMapper.map(transaction, WithdrawResponseDTO.class);
+
+        return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.OK);
     }
 }
