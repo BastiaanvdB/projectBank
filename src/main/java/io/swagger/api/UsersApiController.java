@@ -326,17 +326,20 @@ public class UsersApiController implements UsersApi {
     }
 
     public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {
+        String token = "";
 
-        // Get token with data from POST body
-        String token = userService.login(body.getEmail(), body.getPassword());
+        try {
+            // Get token with data from POST body
+            token = userService.login(body.getEmail(), body.getPassword());
 
-        // Create response body and set token
-        // **** @Bastiaan weet jij wat dit inlineResponse200 is? Het overerft van AuthorizationResponse ****
-        // **** @Bastiaan waar staat dat id voor in die AuthorizationResponse? ****
-        InlineResponse200 res = new InlineResponse200();
-        res.setToken(token);
+            // Create response body and set token
+            InlineResponse200 res = new InlineResponse200();
+            res.setToken(token);
 
-        // Return ..... with http status 200
-        return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
+            // Return with http status 200
+            return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
+        } catch (ResponseStatusException ex) {
+            throw new ResponseStatusException(ex.getStatus(), ex.getMessage());
+        }
     }
 }
