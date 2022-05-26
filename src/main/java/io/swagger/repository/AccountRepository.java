@@ -21,11 +21,14 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     public Account findLastAccountEntry();
 
     // Get with join
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME = ?#{#firstname}", nativeQuery = true)
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}%", nativeQuery = true)
     List<Account> findAllByFirstname(PageRequest of, @Param("firstname") String firstname);
 
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME = ?#{#lastname}", nativeQuery = true)
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
     public List<Account> findAllByLastname(PageRequest of, @Param("lastname") String lastname);
+
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}% OR USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
+    public List<Account> findAllByFirstAndLastname(PageRequest of, @Param("firstname") String firstname, @Param("lastname") String lastname);
 
     // Update queries
     @Transactional

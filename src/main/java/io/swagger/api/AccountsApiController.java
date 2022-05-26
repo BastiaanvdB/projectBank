@@ -138,14 +138,18 @@ public class AccountsApiController implements AccountsApi {
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         List<Account> accounts = null;
-
-        // Make sure offset and limit and sended with the request
-        if (offset == null || limit == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset and limit must be included in request.");
+        List<Account> filteredAccounts = null;
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 10;
         }
 
         // when parameter for first or lastname is given, call method for that
-        if (firstname != null && firstname.length() > 0) {
+        if (firstname != null && firstname.length() > 0 && lastname != null && lastname.length() > 0) {
+            accounts = accountService.getAllByFirstAndLastname(firstname, lastname, offset, limit);
+        } else if (firstname != null && firstname.length() > 0) {
             accounts = accountService.getAllByFirstname(firstname, offset, limit);
         } else if (lastname != null && lastname.length() > 0) {
             accounts = accountService.getAllByLastname(lastname, offset, limit);
@@ -176,6 +180,11 @@ public class AccountsApiController implements AccountsApi {
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
 
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
@@ -200,6 +209,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
@@ -233,6 +247,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
 
         // Set the activation status with value from body and update account
         account.setActivated(body.isActivated());
@@ -276,13 +295,13 @@ public class AccountsApiController implements AccountsApi {
 
             // When identifier maxed, reset to 1 and raise prefix counter with 1
             identifier = "000000001";
-            int number = Integer.parseInt(prefix.substring(2, 4)) + 1;
+            int prefixNumber = Integer.parseInt(prefix.substring(2, 4)) + 1;
 
             // Add 0 to prefix counter when number contains only 1 digit and add remaining prefix
-            if (String.valueOf(number).length() == 1) {
-                prefix = "NL0" + String.valueOf(number) + "INHO0";
+            if (String.valueOf(prefixNumber).length() == 1) {
+                prefix = "NL0" + String.valueOf(prefixNumber) + "INHO0";
             } else {
-                prefix = "NL" + String.valueOf(number) + "INHO0";
+                prefix = "NL" + String.valueOf(prefixNumber) + "INHO0";
             }
         } else {
 
