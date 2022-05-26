@@ -3,7 +3,6 @@ package io.swagger.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.model.DTO.*;
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
@@ -30,7 +29,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -326,5 +324,29 @@ public class UsersApiController implements UsersApi {
         } catch (ResponseStatusException ex) {
             throw new ResponseStatusException(ex.getStatus(), ex.getMessage());
         }
+    }
+
+    public ResponseEntity<UserResponseDTO> usersCurrentGet() {
+
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        String userEmail = jwtTokenProvider.getUsername(token);
+
+        // gets user throughs jwt that makes the request
+        User user = userService.findByEmail(userEmail);
+
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+
+        UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+
+
+        return new ResponseEntity<UserResponseDTO>(response, HttpStatus.OK);
     }
 }
