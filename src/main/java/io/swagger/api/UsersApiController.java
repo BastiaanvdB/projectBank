@@ -68,21 +68,6 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
-    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<List<AccountResponseDTO>>(objectMapper.readValue("[ {\n  \"pin\" : 1234,\n  \"balance\" : 0.8008281904610115,\n  \"user_Id\" : 1,\n  \"absolute_Limit\" : 10,\n  \"iban\" : \"NLxxINHO0xxxxxxxxx\",\n  \"employee_Id\" : 2,\n  \"type\" : \"Current\",\n  \"activated\" : true\n}, {\n  \"pin\" : 1234,\n  \"balance\" : 0.8008281904610115,\n  \"user_Id\" : 1,\n  \"absolute_Limit\" : 10,\n  \"iban\" : \"NLxxINHO0xxxxxxxxx\",\n  \"employee_Id\" : 2,\n  \"type\" : \"Current\",\n  \"activated\" : true\n} ]", List.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-
-        return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
     //    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated) {
 

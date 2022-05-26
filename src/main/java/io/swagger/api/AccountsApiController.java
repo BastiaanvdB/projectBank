@@ -30,7 +30,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -168,6 +170,13 @@ public class AccountsApiController implements AccountsApi {
 
         // return all response dto's and http 200
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
+    }
+
+
+    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid) {
+        // :todo bram
+        return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
 
