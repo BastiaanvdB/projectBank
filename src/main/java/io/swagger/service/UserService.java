@@ -126,7 +126,7 @@ public class UserService {
         return user;
     }
 
-    public User addEmployeeFromSeeder(User user) {
+    public User addFromSeeder(User user) {
         try {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepository.save(user);

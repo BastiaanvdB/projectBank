@@ -6,6 +6,7 @@ import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.*;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
+import io.swagger.model.enumeration.Role;
 import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
@@ -69,6 +70,7 @@ public class AccountsApiController implements AccountsApi {
         this.modelMapper = new ModelMapper();
     }
 
+
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) {
 
@@ -77,6 +79,7 @@ public class AccountsApiController implements AccountsApi {
         User employee = userService.findByEmail(getUsernameFromBearer());
         User user = userService.getOne(body.getUserId());
 
+        // User for whom account is being made must exist
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
@@ -92,6 +95,7 @@ public class AccountsApiController implements AccountsApi {
         account.setPin(generatePincode());
         account = accountService.createAccount(account);
 
+        // Add account to account list of user
         user.setAccounts(new HashSet<Account>(Arrays.asList(account)));
         userService.put(user);
 
@@ -110,6 +114,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
+
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(account.getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
 
         // When account is null, no account was found with specified iban, return 404
         if (account == null) {
@@ -130,6 +139,7 @@ public class AccountsApiController implements AccountsApi {
 
         List<Account> accounts = null;
 
+        // Make sure offset and limit and sended with the request
         if (offset == null || limit == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset and limit must be included in request.");
         }
@@ -166,6 +176,11 @@ public class AccountsApiController implements AccountsApi {
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
 
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(account.getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+
         // Set the limit with value from body and update the account
         account.setAbsoluteLimit(body.getAbsoluteLimit());
         accountService.updateLimit(account);
@@ -185,6 +200,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(account.getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
 
         // Check if old pincode matches the pincode of the account for validation
         if (!account.getPin().equals(body.getOldPincode())) {
@@ -297,5 +317,20 @@ public class AccountsApiController implements AccountsApi {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
         }
         return jwtTokenProvider.getUsername(token);
+    }
+
+    private boolean canUserPerform(String email) {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+
+        // Check if username and email equal eachother to make sure, a normal user cannot perform actions on somebody elses account
+        if (!jwtTokenProvider.getUsername(token).equals(email) && !jwtTokenProvider.getAuthentication(token).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+        return true;
     }
 }

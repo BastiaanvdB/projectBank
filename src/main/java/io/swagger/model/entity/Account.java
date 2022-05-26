@@ -1,6 +1,9 @@
 package io.swagger.model.entity;
 
 import io.swagger.model.enumeration.AccountType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -8,6 +11,9 @@ import javax.persistence.ManyToOne;
 import java.math.BigDecimal;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 
 public class Account {
 
@@ -23,9 +29,6 @@ public class Account {
     @ManyToOne
     private User user;
 
-    public Account() {
-    }
-
     public Account(String iban, AccountType type, String pin, Integer employeeId, BigDecimal balance, BigDecimal absoluteLimit, Boolean activated) {
         this.iban = iban;
         this.type = type;
@@ -34,69 +37,5 @@ public class Account {
         this.balance = balance;
         this.absoluteLimit = absoluteLimit;
         this.activated = activated;
-    }
-
-    public String getIban() {
-        return iban;
-    }
-
-    public void setIban(String iban) {
-        this.iban = iban;
-    }
-
-    public AccountType getType() {
-        return type;
-    }
-
-    public void setType(AccountType type) {
-        this.type = type;
-    }
-
-    public String getPin() {
-        return pin;
-    }
-
-    public void setPin(String pin) {
-        this.pin = pin;
-    }
-
-    public Integer getEmployeeId() {
-        return employeeId;
-    }
-
-    public void setEmployeeId(Integer employeeId) {
-        this.employeeId = employeeId;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public BigDecimal getAbsoluteLimit() {
-        return absoluteLimit;
-    }
-
-    public void setAbsoluteLimit(BigDecimal absoluteLimit) {
-        this.absoluteLimit = absoluteLimit;
-    }
-
-    public Boolean getActivated() {
-        return activated;
-    }
-
-    public void setActivated(Boolean activated) {
-        this.activated = activated;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }
