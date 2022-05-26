@@ -1,12 +1,14 @@
 package io.swagger.model.ResponseDTO;
 
-import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.math.BigDecimal;
 import org.springframework.validation.annotation.Validated;
+
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * TransactionResponseDTO
@@ -15,167 +17,174 @@ import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 
 
-public class TransactionResponseDTO   {
-  @JsonProperty("ibanFrom")
-  private String ibanFrom = null;
+public class TransactionResponseDTO {
+    @JsonProperty("ibanFrom")
+    private String ibanFrom = null;
 
-  @JsonProperty("ibanTo")
-  private String ibanTo = null;
+    @JsonProperty("ibanTo")
+    private String ibanTo = null;
 
-  @JsonProperty("issuedBy")
-  private Integer issuedBy = null;
+    @JsonProperty("issuedBy")
+    private Integer issuedBy = null;
 
-  @JsonProperty("amount")
-  private BigDecimal amount = null;
+    @JsonProperty("amount")
+    private BigDecimal amount = null;
 
-  @JsonProperty("iat")
-  private Integer iat = null;
+    @JsonProperty("iat")
+    private Integer iat = null;
 
-  public TransactionResponseDTO ibanFrom(String ibanFrom) {
-    this.ibanFrom = ibanFrom;
-    return this;
-  }
+    public TransactionResponseDTO ibanFrom(String ibanFrom) {
+        this.ibanFrom = ibanFrom;
+        return this;
+    }
 
-  /**
-   * Get ibanFrom
-   * @return ibanFrom
-   **/
-  @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
-      @NotNull
+    /**
+     * Get ibanFrom
+     *
+     * @return ibanFrom
+     **/
+    @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
+    @NotNull
 
-  @Size(min=18,max=18)   public String getIbanFrom() {
-    return ibanFrom;
-  }
+    @Size(min = 18, max = 18)
+    public String getIbanFrom() {
+        return ibanFrom;
+    }
 
-  public void setIbanFrom(String ibanFrom) {
-    this.ibanFrom = ibanFrom;
-  }
+    public void setIbanFrom(String ibanFrom) {
+        this.ibanFrom = ibanFrom;
+    }
 
-  public TransactionResponseDTO ibanTo(String ibanTo) {
-    this.ibanTo = ibanTo;
-    return this;
-  }
+    public TransactionResponseDTO ibanTo(String ibanTo) {
+        this.ibanTo = ibanTo;
+        return this;
+    }
 
-  /**
-   * Get ibanTo
-   * @return ibanTo
-   **/
-  @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
-      @NotNull
+    /**
+     * Get ibanTo
+     *
+     * @return ibanTo
+     **/
+    @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
+    @NotNull
 
-  @Size(min=18,max=18)   public String getIbanTo() {
-    return ibanTo;
-  }
+    @Size(min = 18, max = 18)
+    public String getIbanTo() {
+        return ibanTo;
+    }
 
-  public void setIbanTo(String ibanTo) {
-    this.ibanTo = ibanTo;
-  }
+    public void setIbanTo(String ibanTo) {
+        this.ibanTo = ibanTo;
+    }
 
-  public TransactionResponseDTO issuedBy(Integer issuedBy) {
-    this.issuedBy = issuedBy;
-    return this;
-  }
+    public TransactionResponseDTO issuedBy(Integer issuedBy) {
+        this.issuedBy = issuedBy;
+        return this;
+    }
 
-  /**
-   * Get issuedBy
-   * @return issuedBy
-   **/
-  @Schema(example = "1", required = true, description = "")
-      @NotNull
+    /**
+     * Get issuedBy
+     *
+     * @return issuedBy
+     **/
+    @Schema(example = "1", required = true, description = "")
+    @NotNull
 
     public Integer getIssuedBy() {
-    return issuedBy;
-  }
+        return issuedBy;
+    }
 
-  public void setIssuedBy(Integer issuedBy) {
-    this.issuedBy = issuedBy;
-  }
+    public void setIssuedBy(Integer issuedBy) {
+        this.issuedBy = issuedBy;
+    }
 
-  public TransactionResponseDTO amount(BigDecimal amount) {
-    this.amount = amount;
-    return this;
-  }
+    public TransactionResponseDTO amount(BigDecimal amount) {
+        this.amount = amount;
+        return this;
+    }
 
-  /**
-   * Get amount
-   * @return amount
-   **/
-  @Schema(required = true, description = "")
-      @NotNull
+    /**
+     * Get amount
+     *
+     * @return amount
+     **/
+    @Schema(required = true, description = "")
+    @NotNull
 
     @Valid
     public BigDecimal getAmount() {
-    return amount;
-  }
+        return amount;
+    }
 
-  public void setAmount(BigDecimal amount) {
-    this.amount = amount;
-  }
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 
-  public TransactionResponseDTO iat(Integer iat) {
-    this.iat = iat;
-    return this;
-  }
+    public TransactionResponseDTO iat(Integer iat) {
+        this.iat = iat;
+        return this;
+    }
 
-  /**
-   * Get iat
-   * @return iat
-   **/
-  @Schema(example = "1650466380", required = true, description = "")
-      @NotNull
+    /**
+     * Get iat
+     *
+     * @return iat
+     **/
+    @Schema(example = "1650466380", required = true, description = "")
+    @NotNull
 
     public Integer getIat() {
-    return iat;
-  }
-
-  public void setIat(Integer iat) {
-    this.iat = iat;
-  }
-
-
-  @Override
-  public boolean equals(java.lang.Object o) {
-    if (this == o) {
-      return true;
+        return iat;
     }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+
+    public void setIat(Integer iat) {
+        this.iat = iat;
     }
-    TransactionResponseDTO transactionResponseDTO = (TransactionResponseDTO) o;
-    return Objects.equals(this.ibanFrom, transactionResponseDTO.ibanFrom) &&
-        Objects.equals(this.ibanTo, transactionResponseDTO.ibanTo) &&
-        Objects.equals(this.issuedBy, transactionResponseDTO.issuedBy) &&
-        Objects.equals(this.amount, transactionResponseDTO.amount) &&
-        Objects.equals(this.iat, transactionResponseDTO.iat);
-  }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(ibanFrom, ibanTo, issuedBy, amount, iat);
-  }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class TransactionResponseDTO {\n");
-
-    sb.append("    ibanFrom: ").append(toIndentedString(ibanFrom)).append("\n");
-    sb.append("    ibanTo: ").append(toIndentedString(ibanTo)).append("\n");
-    sb.append("    issuedBy: ").append(toIndentedString(issuedBy)).append("\n");
-    sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
-    sb.append("    iat: ").append(toIndentedString(iat)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
-
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(java.lang.Object o) {
-    if (o == null) {
-      return "null";
+    @Override
+    public boolean equals(java.lang.Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TransactionResponseDTO transactionResponseDTO = (TransactionResponseDTO) o;
+        return Objects.equals(this.ibanFrom, transactionResponseDTO.ibanFrom) &&
+                Objects.equals(this.ibanTo, transactionResponseDTO.ibanTo) &&
+                Objects.equals(this.issuedBy, transactionResponseDTO.issuedBy) &&
+                Objects.equals(this.amount, transactionResponseDTO.amount) &&
+                Objects.equals(this.iat, transactionResponseDTO.iat);
     }
-    return o.toString().replace("\n", "\n    ");
-  }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ibanFrom, ibanTo, issuedBy, amount, iat);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("class TransactionResponseDTO {\n");
+
+        sb.append("    ibanFrom: ").append(toIndentedString(ibanFrom)).append("\n");
+        sb.append("    ibanTo: ").append(toIndentedString(ibanTo)).append("\n");
+        sb.append("    issuedBy: ").append(toIndentedString(issuedBy)).append("\n");
+        sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
+        sb.append("    iat: ").append(toIndentedString(iat)).append("\n");
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /**
+     * Convert the given object to string with each line indented by 4 spaces
+     * (except the first line).
+     */
+    private String toIndentedString(java.lang.Object o) {
+        if (o == null) {
+            return "null";
+        }
+        return o.toString().replace("\n", "\n    ");
+    }
 }

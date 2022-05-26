@@ -1,12 +1,12 @@
 package io.swagger.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
 import io.swagger.security.JwtTokenProvider;
@@ -21,12 +21,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.constraints.*;
-import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,27 +122,27 @@ public class UsersApiController implements UsersApi {
                 }
             }
 
-            if(firstname == null && lastname == null){
+            if (firstname == null && lastname == null) {
                 usersFilteredNames.add(s);
             }
         }
 
 
         // filters users on activation
-        if(activated != null){
+        if (activated != null) {
             for (User s : usersFilteredNames) {
-                if(activated){
+                if (activated) {
 
-                    if(s.getActivated()){
+                    if (s.getActivated()) {
                         usersFilteredStatus.add(s);
                     }
-                }else{
-                    if(!s.getActivated()){
+                } else {
+                    if (!s.getActivated()) {
                         usersFilteredStatus.add(s);
                     }
                 }
             }
-        }else {
+        } else {
             usersFilteredStatus = usersFilteredNames;
         }
 

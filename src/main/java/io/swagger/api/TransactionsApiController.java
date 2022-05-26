@@ -1,6 +1,9 @@
 package io.swagger.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
+import io.swagger.model.DTO.TransactionDTO;
+import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
@@ -10,27 +13,24 @@ import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.TransactionService;
 import io.swagger.service.UserService;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.server.ResponseStatusException;
-import org.threeten.bp.LocalDate;
-import io.swagger.model.DTO.TransactionDTO;
-import io.swagger.model.ResponseDTO.TransactionResponseDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.threeten.bp.LocalDate;
 
-import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
@@ -199,11 +199,11 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     //TODO: Is ATM? <- special case
-    public ResponseEntity<TransactionResponseDTO> deposit(){
+    public ResponseEntity<TransactionResponseDTO> deposit() {
         return new ResponseEntity<TransactionResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
     }
 
-    public ResponseEntity<TransactionResponseDTO> withdraw(){
+    public ResponseEntity<TransactionResponseDTO> withdraw() {
         return new ResponseEntity<TransactionResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
     }
 }

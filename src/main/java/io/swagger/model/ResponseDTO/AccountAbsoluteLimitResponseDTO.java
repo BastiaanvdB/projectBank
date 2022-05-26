@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-22T20:41:29.160Z[GMT]")
 
 
-public class AccountAbsoluteLimitResponseDTO   {
+public class AccountAbsoluteLimitResponseDTO {
     @JsonProperty("absolute_Limit")
     private BigDecimal absoluteLimit = null;
 

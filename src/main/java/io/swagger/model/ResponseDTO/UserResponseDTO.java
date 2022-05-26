@@ -1,19 +1,16 @@
 package io.swagger.model.ResponseDTO;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.model.enumeration.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.math.BigDecimal;
-
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * UserResponseDTO
@@ -211,8 +208,7 @@ public class UserResponseDTO {
     }
 
     public void setRoles(List<Role> roles) {
-        for (Role role : roles)
-        {
+        for (Role role : roles) {
             this.roles.add(role.ordinal());
         }
     }

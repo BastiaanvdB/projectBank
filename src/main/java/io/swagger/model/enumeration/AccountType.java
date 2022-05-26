@@ -11,13 +11,13 @@ public enum AccountType {
     private String value;
 
     AccountType(String value) {
-      this.value = value;
+        this.value = value;
     }
 
     @Override
     @JsonValue
     public String toString() {
-      return String.valueOf(value);
+        return String.valueOf(value);
     }
 
     @JsonCreator

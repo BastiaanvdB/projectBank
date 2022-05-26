@@ -1,13 +1,10 @@
 package io.swagger.service;
 
-import io.swagger.model.DTO.UserPasswordDTO;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
-import io.swagger.models.auth.In;
 import io.swagger.repository.UserRepository;
 import io.swagger.security.JwtTokenProvider;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.springframework.beans.NullValueInNestedPathException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -66,7 +63,7 @@ public class UserService {
         return token;
     }
 
-    public String editUser(User user){
+    public String editUser(User user) {
         userRepository.save(user);
         return jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     }
@@ -74,7 +71,7 @@ public class UserService {
     public User findByEmail(String email) {
         try {
             return userRepository.findByEmail(email);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             return null;
         }
     }
@@ -96,7 +93,7 @@ public class UserService {
         }
     }
 
-    public void add(User user){
+    public void add(User user) {
         userRepository.save(user);
     }
 
