@@ -42,8 +42,8 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 
         // Accounts
-        Account curr = new Account("NLxxINHO0000000000", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account sav = new Account("NLxxINHO0000011129", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account curr = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account sav = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
 
         // Transactions
         Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));

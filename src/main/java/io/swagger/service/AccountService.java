@@ -30,6 +30,10 @@ public class AccountService {
         return accountRepository.findAllByLastname(PageRequest.of(offset, limit), lastname);
     }
 
+    public List<Account> getAllByFirstAndLastname(String firstname, String lastname, int offset, int limit) {
+        return accountRepository.findAllByFirstAndLastname(PageRequest.of(offset, limit), firstname, lastname);
+    }
+
     public Account getOneByIban(String iban) {
         return accountRepository.findAccountByIban(iban);
     }
