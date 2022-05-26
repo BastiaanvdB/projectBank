@@ -16,12 +16,14 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     // Get by property
     @Query(value = "SELECT * FROM Account a WHERE a.iban = ?1", nativeQuery = true)
     public Account findAccountByIban(String iban);
+
     @Query(value = "SELECT * from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
     public Account findLastAccountEntry();
 
     // Get with join
     @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME = ?#{#firstname}", nativeQuery = true)
     List<Account> findAllByFirstname(PageRequest of, @Param("firstname") String firstname);
+
     @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME = ?#{#lastname}", nativeQuery = true)
     public List<Account> findAllByLastname(PageRequest of, @Param("lastname") String lastname);
 

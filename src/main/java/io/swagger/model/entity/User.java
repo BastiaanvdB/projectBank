@@ -1,9 +1,7 @@
 package io.swagger.model.entity;
 
 import io.swagger.model.enumeration.Role;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -32,7 +30,7 @@ public class User {
     private String city;
     @Column(nullable = false)
     private String postalCode;
-    @Column(nullable = false, unique=true)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)

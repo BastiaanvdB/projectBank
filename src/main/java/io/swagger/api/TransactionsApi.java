@@ -5,17 +5,16 @@
  */
 package io.swagger.api;
 
-import org.threeten.bp.LocalDate;
 import io.swagger.model.DTO.TransactionDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.threeten.bp.LocalDate;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -32,32 +32,32 @@ import java.util.List;
 public interface TransactionsApi {
 
     @Operation(summary = "Create new transaction", description = "This endpoint will create a new transaction and will perform the transaction", security = {
-        @SecurityRequirement(name = "bearerAuth")    }, tags={ "Transactions" })
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "The newly made transaction", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
+            @ApiResponse(responseCode = "201", description = "The newly made transaction", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
 
-        @ApiResponse(responseCode = "400", description = "Invalid input, object invalid"),
+            @ApiResponse(responseCode = "400", description = "Invalid input, object invalid"),
 
-        @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint") })
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
     @RequestMapping(value = "/transactions",
-        produces = { "application/json" },
-        consumes = { "application/json" },
-        method = RequestMethod.POST)
-    ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody TransactionDTO body);
+            produces = {"application/json"},
+            consumes = {"application/json"},
+            method = RequestMethod.POST)
+    ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body);
 
 
     @Operation(summary = "Get all transactions", description = "Only the employee gets all transactions of every account", security = {
-        @SecurityRequirement(name = "bearerAuth")    }, tags={ "Transactions" })
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully got all transactions", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
+            @ApiResponse(responseCode = "200", description = "Successfully got all transactions", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
 
-        @ApiResponse(responseCode = "400", description = "Transactions could not be found"),
+            @ApiResponse(responseCode = "400", description = "Transactions could not be found"),
 
-        @ApiResponse(responseCode = "403", description = "Forbidden") })
+            @ApiResponse(responseCode = "403", description = "Forbidden")})
     @RequestMapping(value = "/transactions",
-        produces = { "application/json" },
-        method = RequestMethod.GET)
-    ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. " ,schema=@Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. " ,schema=@Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance);
+            produces = {"application/json"},
+            method = RequestMethod.GET)
+    ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance);
 
 }
 

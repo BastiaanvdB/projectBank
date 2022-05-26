@@ -21,15 +21,19 @@ public class AccountService {
         Page<Account> result = accountRepository.findAll(PageRequest.of(offset, limit));
         return result.getContent();
     }
+
     public List<Account> getAllByFirstname(String firstname, int offset, int limit) {
         return accountRepository.findAllByFirstname(PageRequest.of(offset, limit), firstname);
     }
+
     public List<Account> getAllByLastname(String lastname, int offset, int limit) {
         return accountRepository.findAllByLastname(PageRequest.of(offset, limit), lastname);
     }
+
     public Account getOneByIban(String iban) {
         return accountRepository.findAccountByIban(iban);
     }
+
     public Account getLastAccount() {
         return accountRepository.findLastAccountEntry();
     }

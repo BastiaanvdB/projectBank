@@ -1,9 +1,10 @@
 package io.swagger.model.entity;
 
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.enumeration.AccountType;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import java.math.BigDecimal;
 
 @Entity

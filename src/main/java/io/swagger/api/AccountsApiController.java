@@ -1,14 +1,9 @@
 package io.swagger.api;
 
-import io.swagger.annotations.Api;
-import io.swagger.model.DTO.AccountAbsoluteLimitDTO;
-import io.swagger.model.DTO.AccountActivationDTO;
-import io.swagger.model.DTO.AccountDTO;
-import io.swagger.model.DTO.AccountPincodeDTO;
-import io.swagger.model.ResponseDTO.*;
-import io.swagger.model.DTO.DepositDTO;
-import io.swagger.model.DTO.WithdrawDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.annotations.Api;
+import io.swagger.model.DTO.*;
+import io.swagger.model.ResponseDTO.*;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.security.JwtTokenProvider;
@@ -24,10 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
@@ -75,7 +70,7 @@ public class AccountsApiController implements AccountsApi {
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountDTO body) {
+    public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) {
 
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
@@ -108,7 +103,7 @@ public class AccountsApiController implements AccountsApi {
 
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban) {
+    public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -131,7 +126,7 @@ public class AccountsApiController implements AccountsApi {
 
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
+    public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         List<Account> accounts = null;
 
@@ -163,7 +158,7 @@ public class AccountsApiController implements AccountsApi {
 
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
+    public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -183,7 +178,7 @@ public class AccountsApiController implements AccountsApi {
     }
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<AccountPincodeResponseDTO> setAccountPin( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountPincodeDTO body) {
+    public ResponseEntity<AccountPincodeResponseDTO> setAccountPin(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -211,7 +206,7 @@ public class AccountsApiController implements AccountsApi {
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<AccountActivationResponseDTO> setAccountStatus( @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required=true, schema=@Schema()) @Valid @RequestBody AccountActivationDTO body) {
+    public ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body) {
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -232,13 +227,15 @@ public class AccountsApiController implements AccountsApi {
 
     // **** VOOR MISTER GRIBNAU
     //TODO: transactions for user
-    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
+    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) {
         return new ResponseEntity<DepositResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
     }
-    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body) {
+
+    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) {
         return new ResponseEntity<WithdrawResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
     }
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,@Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
+
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
         return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 

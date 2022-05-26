@@ -1,13 +1,11 @@
 package io.swagger.configuration;
 
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
 import io.swagger.model.enumeration.Role;
 import io.swagger.repository.AccountRepository;
-import io.swagger.repository.TransactionRepository;
 import io.swagger.service.TransactionService;
 import io.swagger.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +46,8 @@ public class MyApplicationRunner implements ApplicationRunner {
         Account sav = new Account("NLxxINHO0000011129", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
 
         // Transactions
-        Transaction trans = new Transaction(1 ,"NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
-        Transaction trans2 = new Transaction(2 ,"NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans2 = new Transaction(2, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
 
         accountRepository.save(curr);
         accountRepository.save(sav);
