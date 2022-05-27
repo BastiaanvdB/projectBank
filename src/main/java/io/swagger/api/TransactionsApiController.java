@@ -68,7 +68,7 @@ public class TransactionsApiController implements TransactionsApi {
         this.modelMapper = new ModelMapper();
     }
 
-    // todo: check timestamps
+
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
@@ -87,13 +87,14 @@ public class TransactionsApiController implements TransactionsApi {
         String username = tokenProvider.getUsername(token);
         User user = userService.findByEmail(username);
 
+        // employee part
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             // Check if the iban is from the bank itself
             if (accFrom.getIban() == "NL01INHO0000000001") {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No acces to this account");
             }
 
-            if ((accFrom.getBalance().subtract(transaction.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0) {
+            if (!checkBalanceForTransaction(transaction.getIbanFrom(), transaction.getAmount())) {
                 // Not enough funds
                 throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
             } else {
@@ -101,11 +102,12 @@ public class TransactionsApiController implements TransactionsApi {
                 return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
             }
         }
+        // user part
         if (user == accFrom.getUser()) {
             if (accFrom.getType() == AccountType.SAVINGS || accTo.getType() == AccountType.SAVINGS) {
                 if (accFrom.getUser() == accTo.getUser() || accTo.getUser() == accFrom.getUser()) {
                     // Go Further with Savings transaction
-                    if ((accFrom.getBalance().subtract(transaction.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0) {
+                    if (!checkBalanceForTransaction(transaction.getIbanFrom(), transaction.getAmount())) {
                         // Not enough funds
                         throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
                     } else {
@@ -118,18 +120,13 @@ public class TransactionsApiController implements TransactionsApi {
             } else {
                 // Do normal transaction
                 //Check if the balance will not exeed the absolute limit with this transaction
-                if ((accFrom.getBalance().subtract(transaction.getAmount())).compareTo(accFrom.getAbsoluteLimit()) < 0) {
+                if (!checkBalanceForTransaction(transaction.getIbanFrom(), transaction.getAmount())) {
                     // Not enough funds
                     throw new ResponseStatusException(HttpStatus.resolve(400), "You have not enough money on this account");
                 } else {
                     //Continue
                     //Check for day limit is not getting exeeded
-                    List<Transaction> allTransactionsFromToday = transactionService.getAllFromToday(accFrom.getIban());
-                    double daySpendings = 0;
-                    for (Transaction trans : allTransactionsFromToday) {
-                        daySpendings += trans.getAmount().doubleValue();
-                    }
-                    if (accFrom.getUser().getDayLimit().compareTo(transaction.getAmount().add(BigDecimal.valueOf(daySpendings))) > 0) {
+                    if (accFrom.getUser().getDayLimit().compareTo(transaction.getAmount().add(getDaySpendings(accFrom.getIban()))) > 0) {
                         // Check if the transaction is not exeeding the transaction limit
                         if (accFrom.getUser().getTransactionLimit().compareTo(transaction.getAmount()) > 0) {
                             // Do Transaction and return response DTO
@@ -178,6 +175,7 @@ public class TransactionsApiController implements TransactionsApi {
             if (query != "") query += " AND";
             query += (" AMOUNT" + balanceOperator + " " + balance);
         }
+        // todo: check timestamps
         if (startDate != null && endDate != null) {
             Timestamp tsS = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
             Timestamp tsE = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
@@ -206,6 +204,58 @@ public class TransactionsApiController implements TransactionsApi {
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
+    //TODO: transactions for user
+
+    // from bank to user
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
+        // map the DTO to transaction
+        Transaction deposit = this.modelMapper.map(body, Transaction.class);
+        // set the iban of the bank on the right posistion
+        deposit.setIbanTo(IBAN);
+
+        User user = getUserByToken();
+
+        deposit.setIbanFrom(DEFAULT_BANK_IBAN);
+        // do transaction and map it to responseDTO
+        TransactionResponseDTO transaction = this.doTransaction(deposit, user);
+        DepositResponseDTO response = this.modelMapper.map(transaction, DepositResponseDTO.class);
+
+        return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
+    }
+
+    // from user to bank
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body) {
+        // map the DTO to transaction
+        Transaction withdraw = this.modelMapper.map(body, Transaction.class);
+        // set the iban of the bank on the right posistion
+        withdraw.setIbanFrom(IBAN);
+
+        // get user for transaction
+        User user = getUserByToken();
+
+        // enough money on account?
+        if (!checkBalanceForTransaction(withdraw.getIbanFrom(), withdraw.getAmount())){
+            throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
+        }
+
+        // from bank to user
+        withdraw.setIbanTo(DEFAULT_BANK_IBAN);
+
+        // do transaction and map it to responseDTO
+        TransactionResponseDTO transaction = this.doTransaction(withdraw, user);
+        WithdrawResponseDTO response = this.modelMapper.map(transaction, WithdrawResponseDTO.class);
+
+        return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.OK);
+    }
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) {
+        return getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
+    }
+
+    // private functions
+
+    // executes the transaction
     private TransactionResponseDTO doTransaction(Transaction transaction, User user) {
         // Do Transaction and map it to a response DTO
         transaction.setIssuedBy(user.getId());
@@ -230,6 +280,7 @@ public class TransactionsApiController implements TransactionsApi {
         return this.modelMapper.map(model, TransactionResponseDTO.class);
     }
 
+    // fetch the user by token
     private User getUserByToken() {
         // get token and username for further checks
         String token = tokenProvider.resolveToken(request);
@@ -240,6 +291,7 @@ public class TransactionsApiController implements TransactionsApi {
         return userService.findByEmail(username);
     }
 
+    // Checks if the user is the owner of the account
     private boolean isUserOwner(User user, String iban) {
         Account acc = accountService.getOneByIban(iban);
         if (acc.getUser() != user) {
@@ -247,47 +299,22 @@ public class TransactionsApiController implements TransactionsApi {
         } else return true;
     }
 
-
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<DepositResponseDTO> deposit(Transaction body) {
-        User user = getUserByToken();
-        // from bank to user
-        body.setIbanFrom(DEFAULT_BANK_IBAN);
-        // do transaction and map it to responseDTO
-        TransactionResponseDTO transaction = this.doTransaction(body, user);
-        DepositResponseDTO response = this.modelMapper.map(transaction, DepositResponseDTO.class);
-
-        return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
+    // Check if the account can do this transaction
+    private boolean checkBalanceForTransaction(String iban, BigDecimal amount) {
+        Account acc = accountService.getOneByIban(iban);
+        if ((acc.getBalance().subtract(amount)).compareTo(acc.getAbsoluteLimit()) < 0){
+            return false;
+        }
+        return true;
     }
 
-    // todo: checks uitvoeren
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<WithdrawResponseDTO> withdraw(@RequestBody Transaction body) {
-        // from user to bank
-        User user = getUserByToken();
-        // from bank to user
-        body.setIbanTo(DEFAULT_BANK_IBAN);
-        // do transaction and map it to responseDTO
-        TransactionResponseDTO transaction = this.doTransaction(body, user);
-        WithdrawResponseDTO response = this.modelMapper.map(transaction, WithdrawResponseDTO.class);
-
-        return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.OK);
-    }
-
-    // **** VOOR MISTER GRIBNAU
-    //TODO: transactions for user
-    //todo: overzetten
-    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
-        Transaction deposit = this.modelMapper.map(body, Transaction.class);
-        deposit.setIbanTo(IBAN);
-        return this.deposit(deposit);
-    }
-    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body) {
-        Transaction withdraw = this.modelMapper.map(body, Transaction.class);
-        withdraw.setIbanFrom(IBAN);
-        return this.withdraw(withdraw);
-    }
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) {
-        return this.getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
+    // get the day spendings of the provided iban
+    private BigDecimal getDaySpendings(String iban) {
+        List<Transaction> allTransactionsFromToday = transactionService.getAllFromToday(iban);
+        BigDecimal daySpendings = null;
+        for (Transaction trans : allTransactionsFromToday) {
+            daySpendings.add(trans.getAmount());
+        }
+        return daySpendings;
     }
 }
