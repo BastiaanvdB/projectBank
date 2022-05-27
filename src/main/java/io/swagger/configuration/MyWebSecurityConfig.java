@@ -14,6 +14,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -45,7 +50,6 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
         // Disable cross-site request forgery and set session creation policy to stateless
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
         // Authorize all endpoints from AUTH_ALLOWED_REQUESTS list and secure all other endpoints
         http.authorizeRequests()
                 .antMatchers(AUTH_ALLOWED_REQUESTS)
