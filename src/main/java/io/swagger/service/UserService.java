@@ -52,13 +52,10 @@ public class UserService {
     public String login(String email, String password) {
         String token = "";
 
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-            User user = findByEmail(email);
-            token = jwtTokenProvider.createToken(email, user.getRoles());
-        } catch (AuthenticationException ex) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid user credentials.");
-        }
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        User user = findByEmail(email);
+        token = jwtTokenProvider.createToken(email, user.getRoles());
 
         return token;
     }
