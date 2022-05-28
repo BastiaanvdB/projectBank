@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Api(tags = "Users")
 
 public class UsersApiController implements UsersApi {
@@ -309,19 +311,20 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {
         String token = "";
 
+        // Get token with data from POST body
+
         try {
-            // Get token with data from POST body
             token = userService.login(body.getEmail(), body.getPassword());
-
-            // Create response body and set token
-            InlineResponse200 res = new InlineResponse200();
-            res.setToken(token);
-
-            // Return with http status 200
-            return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
-        } catch (ResponseStatusException ex) {
-            throw new ResponseStatusException(ex.getStatus(), ex.getMessage());
+        } catch (AuthenticationException ex) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid user credentials.");
         }
+
+        // Create response body and set token
+        InlineResponse200 res = new InlineResponse200();
+        res.setToken(token);
+
+        // Return with http status 200
+        return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
     }
 
     public ResponseEntity<UserResponseDTO> usersCurrentGet() {
