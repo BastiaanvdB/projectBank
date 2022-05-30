@@ -68,7 +68,7 @@ public class TransactionsApiController implements TransactionsApi {
         this.modelMapper = new ModelMapper();
     }
 
-
+    // todo: check timestamps
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
@@ -162,7 +162,7 @@ public class TransactionsApiController implements TransactionsApi {
         }
         if (ibANFrom != null) {
             if (query != "") query += " AND";
-            query += (" t.IBAN_FROM = '" + ibANFrom + "'");
+            query += (" t.ibanFrom=" + ibANFrom);
         }
         if (ibANTo != null) {
             if (query != "") query += " AND";
@@ -175,7 +175,7 @@ public class TransactionsApiController implements TransactionsApi {
             if (query != "") query += " AND";
             query += (" AMOUNT" + balanceOperator + " " + balance);
         }
-        // todo: check timestamps
+
         if (startDate != null && endDate != null) {
             Timestamp tsS = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
             Timestamp tsE = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
@@ -196,6 +196,8 @@ public class TransactionsApiController implements TransactionsApi {
             transactions = transactionService.getAll(offset, limit);
         } else {
             // get all the transactions with query
+            String queryFull = "SELECT t FROM Transaction t WHERE ";
+            queryFull += query;
             transactions = transactionService.getAll(query, offset, limit);
         }
 
