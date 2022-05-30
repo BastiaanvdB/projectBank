@@ -11,7 +11,9 @@ import io.swagger.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -59,9 +61,12 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         user.setAccounts(accountsUser);
         employee.setAccounts(accountsEmployee);
-
-        userService.addFromSeeder(user);
-        userService.addFromSeeder(employee);
+        try {
+            userService.addFromSeeder(user);
+            userService.addFromSeeder(employee);
+        } catch (Exception ex) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
+        }
 
         transactionService.createTransaction(trans);
         transactionService.createTransaction(trans2);

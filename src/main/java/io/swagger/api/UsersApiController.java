@@ -22,7 +22,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -60,7 +59,32 @@ public class UsersApiController implements UsersApi {
 
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
-        user = userService.signup(user);
+
+
+        if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
+            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (!EmailValidator.getInstance().isValid(user.getEmail())) {
+            return new ResponseEntity("Enter a correct email!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        if (userService.findByEmail(user.getEmail()) != null) {
+            return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        if (user.getPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6) {
+            return new ResponseEntity("Password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        try {
+
+            user = userService.signup(user);
+
+        } catch (Exception ex) {
+            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
 
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
@@ -142,21 +166,21 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
         User user = userService.findByEmail(userEmail);
 
         if (user.getId() != userid || !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not allowed to get user!");
+                return new ResponseEntity("Not allowed to get user!", HttpStatus.NOT_ACCEPTABLE);
             }
         }
 
         User requestedUser = userService.getOne(userid);
 
         if (requestedUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         ModelMapper modelMapper = new ModelMapper();
@@ -173,7 +197,7 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
 
@@ -181,18 +205,23 @@ public class UsersApiController implements UsersApi {
         User user = userService.findByEmail(userEmail);
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to change password for user");
+            return new ResponseEntity("Not the authority to change password for user", HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (body.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || body.getNewPassword().length() < 6) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New password doesnt meet security requirements!");
+            return new ResponseEntity("New password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             user = userService.getOne(userid);
             force = true;
         }
-        userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
+        try {
+            userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
+        } catch (AuthenticationException ex) {
+            return new ResponseEntity("Current password is invalid!", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
 
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
@@ -203,7 +232,7 @@ public class UsersApiController implements UsersApi {
 
         // checks if atleast one rola has been given
         if (body.getRoles().size() == 0 || body.getRoles() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No role provided for user!");
+            return new ResponseEntity("No role provided for user!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         List<Role> roles = new ArrayList<>();
@@ -215,7 +244,7 @@ public class UsersApiController implements UsersApi {
 
         //checks if user by userid exists
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         user.setRoles(roles);
@@ -233,7 +262,7 @@ public class UsersApiController implements UsersApi {
 
         //checks if user by userid exists
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         user.setActivated(body.isActivated());
@@ -253,7 +282,7 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
 
@@ -261,7 +290,7 @@ public class UsersApiController implements UsersApi {
         User user = userService.findByEmail(userEmail);
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to update userdetails for requested user");
+            return new ResponseEntity("Not the authority to update userdetails for requested user", HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
@@ -270,11 +299,11 @@ public class UsersApiController implements UsersApi {
         }
 
         if (newUserDetails.getFirstname().length() < 2 || newUserDetails.getLastname().length() < 2 || newUserDetails.getPhone().length() < 10 || newUserDetails.getPostalCode().length() < 6 || newUserDetails.getCity().length() < 2 || newUserDetails.getAddress().length() < 2) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
+            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         if (!EmailValidator.getInstance().isValid(newUserDetails.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Enter a correct email!");
+            return new ResponseEntity("Enter a correct email!", HttpStatus.NOT_ACCEPTABLE);
         }
 
 
@@ -284,7 +313,7 @@ public class UsersApiController implements UsersApi {
         //check if its not the same user
         if (checkUser != null) {
             if (checkUser.getId() != user.getId()) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
+                return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
             }
         }
 
@@ -316,7 +345,7 @@ public class UsersApiController implements UsersApi {
         try {
             token = userService.login(body.getEmail(), body.getPassword());
         } catch (AuthenticationException ex) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Invalid user credentials.");
+            return new ResponseEntity("Invalid user credentials.", HttpStatus.UNAUTHORIZED);
         }
 
         // Create response body and set token
@@ -334,7 +363,7 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
 
@@ -342,7 +371,7 @@ public class UsersApiController implements UsersApi {
         User user = userService.findByEmail(userEmail);
 
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);

@@ -34,10 +34,8 @@ public interface UsersApi {
     @Operation(summary = "Creating a new user", description = "", tags = {"Users"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User has been created.", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponseDTO.class)))),
-
-//            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")
     })
-    @RequestMapping(value = "/users",
+    @RequestMapping(value = "/users/signup",
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
