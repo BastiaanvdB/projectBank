@@ -42,20 +42,32 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 
         // Accounts
-        Account curr = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account sav = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account curr1 = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account curr2 = new Account("NL01INHO0000000003", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account curr3 = new Account("NL01INHO0000000004", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account sav1 = new Account("NL01INHO0999999996", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account sav2 = new Account("NL01INHO0999999997", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account sav3 = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
 
         // Transactions
         Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
         Transaction trans2 = new Transaction(2, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
 
-        accountRepository.save(curr);
-        accountRepository.save(sav);
+        accountRepository.save(curr1);
+        accountRepository.save(curr2);
+        accountRepository.save(curr3);
+        accountRepository.save(sav1);
+        accountRepository.save(sav2);
+        accountRepository.save(sav3);
 
         Set<Account> accountsUser = new HashSet<>();
         Set<Account> accountsEmployee = new HashSet<>();
-        accountsUser.add(curr);
-        accountsEmployee.add(sav);
+        accountsUser.add(curr1);
+        accountsUser.add(sav2);
+        accountsUser.add(sav3);
+        accountsEmployee.add(curr2);
+        accountsEmployee.add(curr3);
+        accountsEmployee.add(sav1);
 
         user.setAccounts(accountsUser);
         employee.setAccounts(accountsEmployee);
