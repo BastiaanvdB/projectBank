@@ -52,10 +52,6 @@ public class AccountsApiController implements AccountsApi {
 
     private final ModelMapper modelMapper;
 
-    private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
-    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTELIMIT = new BigDecimal(20);
-    private static final Boolean DEFAULT_ACCOUNT_ACTIVATION = true;
-
     @Autowired
     private AccountService accountService;
 
@@ -86,15 +82,10 @@ public class AccountsApiController implements AccountsApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
 
-        // Set all default values for new account
+        // Set employee id from bearer
         account.setEmployeeId(employee.getId());
-        account.setIban(generateIban());
-        account.setBalance(DEFAULT_ACCOUNT_BALANCE);
-        account.setActivated(DEFAULT_ACCOUNT_ACTIVATION);
-        account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTELIMIT);
 
-        // Create random 4 digit pin code and then add to db with service
-        account.setPin(generatePincode());
+        // send account to service for more data, get the object from db returned
         account = accountService.createAccount(account);
 
         // Add account to account list of user
@@ -306,58 +297,6 @@ public class AccountsApiController implements AccountsApi {
     }
 
     // **** HELPER METHODS
-    private String generateIban() {
-
-        // Get old iban and construct new iban with it
-        String lastIban = accountService.getLastAccount().getIban();
-        String newIban = constructIban(lastIban.substring(0, 9), lastIban.substring(9));
-
-        return newIban;
-    }
-
-    private String constructIban(String prefix, String identifier) {
-
-        // Check if de prefix counter must be raised
-        if (identifier.equals("999999999")) {
-
-            // When identifier maxed, reset to 1 and raise prefix counter with 1
-            identifier = "000000001";
-            int prefixNumber = Integer.parseInt(prefix.substring(2, 4)) + 1;
-
-            // Add 0 to prefix counter when number contains only 1 digit and add remaining prefix
-            if (String.valueOf(prefixNumber).length() == 1) {
-                prefix = "NL0" + String.valueOf(prefixNumber) + "INHO0";
-            } else {
-                prefix = "NL" + String.valueOf(prefixNumber) + "INHO0";
-            }
-        } else {
-
-            // generate new identifier when identifier not maxed
-            identifier = generatateIdentifier(identifier);
-        }
-
-        // Combine prefix and identifier and return
-        return prefix + identifier;
-    }
-
-    private String generatateIdentifier(String identifier) {
-
-        // Get new identifier and amount of digits
-        int number = Integer.parseInt(identifier) + 1;
-        int amountOfDigits = String.valueOf(number).length();
-
-        // foreach leftover digit place, append a 0
-        String newIdentifier = "";
-        for (int i = amountOfDigits; i < 9; i++) {
-            newIdentifier += '0';
-        }
-
-        // Add remaining number and return new identifier
-        newIdentifier += number;
-        return newIdentifier;
-    }
-
-
     private String generatePincode() {
 
         // Create random pin with 4 digits
@@ -373,14 +312,14 @@ public class AccountsApiController implements AccountsApi {
 
         // When length is not 18, throw illegal argument exception
         if (iban.length() != 18) {
-            throw new IllegalArgumentException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban must be 18 characters long.");
         }
 
         // When number section of iban contains letters, throw illegal argument exception
         Pattern pattern = Pattern.compile("[0-9]+");
         Matcher matcher = pattern.matcher(iban.substring(10, 18));
         if (!matcher.matches()) {
-            throw new IllegalArgumentException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban identifier can only contain numbers.");
         }
     }
 
