@@ -33,6 +33,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
     // All endpoints where no authorization is necessary
     private static final String[] AUTH_ALLOWED_REQUESTS = {
             "/users/login",
+            "/users/signup",
             "/h2-console/**/**",
             "/swagger-ui.html",
             ".webjars/**",
