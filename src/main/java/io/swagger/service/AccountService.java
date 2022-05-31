@@ -63,10 +63,6 @@ public class AccountService {
     }
 
     public void updateStatus(Account account) {
-        if (account.getActivated()) {
-            accountRepository.updateStatus(false, account.getIban());
-        } else {
-            accountRepository.updateStatus(account.getActivated(), account.getIban());
-        }
+        accountRepository.updateStatus(account.getActivated(), account.getIban());
     }
 }
