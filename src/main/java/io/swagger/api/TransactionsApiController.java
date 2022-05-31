@@ -158,52 +158,13 @@ public class TransactionsApiController implements TransactionsApi {
             }
         }
         List<Transaction> transactions;
-        String query = "";
-
-        // parameter options and make 1 query string
-        if (offset == null) {
-            offset = 0;
-        }
-        if (limit == null) {
-            limit = 50;
-        }
-        if (ibANFrom != null) {
-            if (query != "") query += " AND";
-            query += (" t.ibanFrom=" + ibANFrom);
-        }
-        if (ibANTo != null) {
-            if (query != "") query += " AND";
-            query += (" t.IBAN_TO = " + ibANTo);
-        }
-        if (balance != null) {
-            if (balanceOperator == null) {
-                balanceOperator = ("=");
-            }
-            if (query != "") query += " AND";
-            query += (" AMOUNT" + balanceOperator + " " + balance);
-        }
-
-        if (startDate != null && endDate != null) {
-            Timestamp tsS = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
-            Timestamp tsE = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
-            if (query != "") query += " AND";
-            query += (" IAT BETWEEN" + tsS + " AND " + tsE);
-        } else if (startDate != null) {
-            Timestamp ts = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
-            if (query != "") query += " AND";
-            query += (" IAT >= " + ts);
-        } else if (endDate != null) {
-            Timestamp ts = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
-            if (query != "") query += " AND";
-            query += (" IAT <= " + ts);
-        }
 
         // if there's no query just get them all with limit and offset 
-        if (query == "") {
-            transactions = transactionService.getAll(offset, limit);
-        } else {
+        if ((ibANFrom != null) || (ibANTo != null) || (balance != null) || (startDate != null) || (endDate != null)) {
             // get all the transactions with query
-            transactions = transactionService.getAll(startDate,endDate, ibANFrom,ibANTo,balanceOperator,balance,offset,limit);
+            transactions = transactionService.getAll(startDate, endDate, ibANFrom, ibANTo, balanceOperator, balance, offset, limit);
+        } else {
+            transactions = transactionService.getAll(offset, limit);
         }
 
         // map the transactions to responseDTO
@@ -215,7 +176,7 @@ public class TransactionsApiController implements TransactionsApi {
 
     // from bank to user
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody DepositDTO body) {
+    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) {
         // map the DTO to transaction
         Transaction deposit = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -233,7 +194,7 @@ public class TransactionsApiController implements TransactionsApi {
 
     // from user to bank
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min=18,max=18) @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("IBAN") String IBAN,@Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required=true, schema=@Schema()) @Valid @RequestBody WithdrawDTO body) {
+    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) {
         // map the DTO to transaction
         Transaction withdraw = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -243,7 +204,7 @@ public class TransactionsApiController implements TransactionsApi {
         User user = getUserByToken();
 
         // enough money on account?
-        if (!checkBalanceForTransaction(withdraw.getIbanFrom(), withdraw.getAmount())){
+        if (!checkBalanceForTransaction(withdraw.getIbanFrom(), withdraw.getAmount())) {
             throw new ResponseStatusException(HttpStatus.resolve(400), "Not enough money on this account");
         }
 
@@ -256,9 +217,11 @@ public class TransactionsApiController implements TransactionsApi {
 
         return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.OK);
     }
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) {
+
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) {
         return getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
     }
+
 
     // private functions
 
@@ -309,7 +272,7 @@ public class TransactionsApiController implements TransactionsApi {
     // Check if the account can do this transaction
     private boolean checkBalanceForTransaction(String iban, BigDecimal amount) {
         Account acc = accountService.getOneByIban(iban);
-        if ((acc.getBalance().subtract(amount)).compareTo(acc.getAbsoluteLimit()) < 0){
+        if ((acc.getBalance().subtract(amount)).compareTo(acc.getAbsoluteLimit()) < 0) {
             return false;
         }
         return true;
