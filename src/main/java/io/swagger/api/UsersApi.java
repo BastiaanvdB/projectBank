@@ -28,7 +28,6 @@ import java.util.List;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @Validated
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public interface UsersApi {
 
     @Operation(summary = "Creating a new user", description = "", tags = {"Users"})

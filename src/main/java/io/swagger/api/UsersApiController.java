@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,9 +33,8 @@ import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @RestController
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Api(tags = "Users")
-
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsersApiController implements UsersApi {
 
     private static final Logger log = LoggerFactory.getLogger(UsersApiController.class);
@@ -189,7 +189,7 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.OK);
     }
 
-    //    @PreAuthorize("hasRole('EMPLOYEE', 'USER')")
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
 
@@ -212,10 +212,12 @@ public class UsersApiController implements UsersApi {
             return new ResponseEntity("New password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+        if (user.getRoles().contains(Role.ROLE_EMPLOYEE) && user.getId() != userid) {
             user = userService.getOne(userid);
             force = true;
         }
+
+
         try {
             userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
         } catch (AuthenticationException ex) {
