@@ -68,8 +68,6 @@ public class TransactionsApiController implements TransactionsApi {
         this.modelMapper = new ModelMapper();
     }
 
-    // todo: check timestamps
-
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
         // Convert request to a Transaction
@@ -177,8 +175,6 @@ public class TransactionsApiController implements TransactionsApi {
         List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
-
-    //TODO: transactions for user
 
     // from bank to user
     @PreAuthorize("hasRole('USER')")
