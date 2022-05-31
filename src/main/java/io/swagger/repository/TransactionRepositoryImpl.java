@@ -38,10 +38,8 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
         if (ibanTo != null) {
             predicates.add(cb.equal(trans.get("ibanTo"), ibanTo));
         }
-        //todo: check how i can implement the balance operator.
         if (balance != null) {
             if (balanceOperator == null) {
-//                predicates.add(cb.equal(trans.get("balance"), balance));
                 predicates.add(cb.equal(trans.get("amount"), balance));
             } else if (balanceOperator.equals(">")) {
                 predicates.add(cb.greaterThan(trans.get("amount"), balance));
@@ -55,14 +53,14 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
         }
         // todo: check how timings work with this
         if (startDate != null && endDate != null) {
-            Timestamp tsS = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
-            Timestamp tsE = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
+            Timestamp tsS = Timestamp.valueOf(startDate + " 00:00:00");
+            Timestamp tsE = Timestamp.valueOf(endDate + " 23:59:59");
             predicates.add(cb.between(trans.get("iat"), tsS, tsE));
         } else if (startDate != null) {
-            //Timestamp ts = Timestamp.valueOf(String.valueOf(startDate.atStartOfDay()));
-            predicates.add(cb.greaterThanOrEqualTo(trans.get("iat"), startDate));
+            Timestamp ts = Timestamp.valueOf(startDate + " 00:00:00");
+            predicates.add(cb.greaterThanOrEqualTo(trans.get("iat"), ts));
         } else if (endDate != null) {
-            Timestamp ts = Timestamp.valueOf(String.valueOf(endDate.atStartOfDay()));
+            Timestamp ts = Timestamp.valueOf(endDate + " 23:59:59");
             predicates.add(cb.lessThanOrEqualTo(trans.get("iat"), ts));
         }
 
