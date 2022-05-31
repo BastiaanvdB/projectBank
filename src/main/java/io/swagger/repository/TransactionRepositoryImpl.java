@@ -26,12 +26,6 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
         Root<Transaction> trans = cq.from(Transaction.class);
         List<Predicate> predicates = new ArrayList<>();
 
-        if (offset == null) {
-            offset = 0;
-        }
-        if (limit == null) {
-            limit = 50;
-        }
         if (ibanFrom != null) {
             predicates.add(cb.equal(trans.get("ibanFrom"), ibanFrom));
         }
@@ -51,7 +45,6 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
                 predicates.add(cb.greaterThanOrEqualTo(trans.get("amount"), balance));
             }
         }
-        // todo: check how timings work with this
         if (startDate != null && endDate != null) {
             Timestamp tsS = Timestamp.valueOf(startDate + " 00:00:00");
             Timestamp tsE = Timestamp.valueOf(endDate + " 23:59:59");

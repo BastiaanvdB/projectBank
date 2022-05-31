@@ -158,7 +158,13 @@ public class TransactionsApiController implements TransactionsApi {
             }
         }
         List<Transaction> transactions;
-
+        // Check if offset and limit is not empty otherwise give default readings
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 50;
+        }
         // if there's no query just get them all with limit and offset 
         if ((ibANFrom != null) || (ibANTo != null) || (balance != null) || (startDate != null) || (endDate != null)) {
             // get all the transactions with query
