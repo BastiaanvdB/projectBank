@@ -1,8 +1,9 @@
 package io.swagger.model;
 
 import io.swagger.model.entity.Account;
-import org.junit.Test;
+
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AccountTest {
 
