@@ -3,13 +3,13 @@ package io.swagger.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.model.DTO.*;
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
 import io.swagger.security.JwtTokenProvider;
+import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -21,16 +21,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +35,7 @@ import java.util.stream.Collectors;
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @RestController
 @Api(tags = "Users")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsersApiController implements UsersApi {
 
     private static final Logger log = LoggerFactory.getLogger(UsersApiController.class);
@@ -48,6 +46,9 @@ public class UsersApiController implements UsersApi {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AccountService accountService;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -62,29 +63,39 @@ public class UsersApiController implements UsersApi {
 
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
-        user = userService.signup(user);
+
+
+        if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
+            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (!EmailValidator.getInstance().isValid(user.getEmail())) {
+            return new ResponseEntity("Enter a correct email!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        if (userService.findByEmail(user.getEmail()) != null) {
+            return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        if (user.getPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6) {
+            return new ResponseEntity("Password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        try {
+
+            user = userService.signup(user);
+
+        } catch (Exception ex) {
+            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
 
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
-    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid) {
-        String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<List<AccountResponseDTO>>(objectMapper.readValue("[ {\n  \"pin\" : 1234,\n  \"balance\" : 0.8008281904610115,\n  \"user_Id\" : 1,\n  \"absolute_Limit\" : 10,\n  \"iban\" : \"NLxxINHO0xxxxxxxxx\",\n  \"employee_Id\" : 2,\n  \"type\" : \"Current\",\n  \"activated\" : true\n}, {\n  \"pin\" : 1234,\n  \"balance\" : 0.8008281904610115,\n  \"user_Id\" : 1,\n  \"absolute_Limit\" : 10,\n  \"iban\" : \"NLxxINHO0xxxxxxxxx\",\n  \"employee_Id\" : 2,\n  \"type\" : \"Current\",\n  \"activated\" : true\n} ]", List.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-
-        return new ResponseEntity<List<AccountResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
     //    @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated) {
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) {
 
         if (offset == null) {
             offset = 0;
@@ -99,6 +110,7 @@ public class UsersApiController implements UsersApi {
         ModelMapper modelMapper = new ModelMapper();
         List<User> usersFilteredNames = new ArrayList<>();
         List<User> usersFilteredStatus = new ArrayList<>();
+        List<User> userFilteredHasAccount = new ArrayList<>();
 
         // filters users on firstname, lastname or both
         for (User s : users) {
@@ -146,8 +158,25 @@ public class UsersApiController implements UsersApi {
             usersFilteredStatus = usersFilteredNames;
         }
 
+        // filters users on owning a account or not
+        if (hasAccount != null) {
+            for (User s : usersFilteredStatus) {
+                if (hasAccount) {
+                    if (accountService.getAllByUserId(s.getId()) != null) {
+                        userFilteredHasAccount.add(s);
+                    }
+                } else {
+                    if (accountService.getAllByUserId(s.getId()) == null) {
+                        userFilteredHasAccount.add(s);
+                    }
+                }
+            }
+        } else {
+            userFilteredHasAccount = usersFilteredStatus;
+        }
+
         // use mapper to map all users to user response data transfer object
-        List<UserResponseDTO> responseDTOS = usersFilteredStatus.stream().map(user -> modelMapper.map(user, UserResponseDTO.class)).collect(Collectors.toList());
+        List<UserResponseDTO> responseDTOS = userFilteredHasAccount.stream().map(user -> modelMapper.map(user, UserResponseDTO.class)).collect(Collectors.toList());
 
 
         // return all response dto's and http 200
@@ -159,21 +188,21 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
         User user = userService.findByEmail(userEmail);
 
         if (user.getId() != userid || !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not allowed to get user!");
+                return new ResponseEntity("Not allowed to get user!", HttpStatus.NOT_ACCEPTABLE);
             }
         }
 
         User requestedUser = userService.getOne(userid);
 
         if (requestedUser == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         ModelMapper modelMapper = new ModelMapper();
@@ -182,7 +211,7 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.OK);
     }
 
-    //    @PreAuthorize("hasRole('EMPLOYEE', 'USER')")
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
 
@@ -190,7 +219,7 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
 
@@ -198,18 +227,25 @@ public class UsersApiController implements UsersApi {
         User user = userService.findByEmail(userEmail);
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to change password for user");
+            return new ResponseEntity("Not the authority to change password for user", HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (body.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || body.getNewPassword().length() < 6) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "New password doesnt meet security requirements!");
+            return new ResponseEntity("New password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+        if (user.getRoles().contains(Role.ROLE_EMPLOYEE) && user.getId() != userid) {
             user = userService.getOne(userid);
             force = true;
         }
-        userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
+
+
+        try {
+            userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
+        } catch (AuthenticationException ex) {
+            return new ResponseEntity("Current password is invalid!", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
 
         return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
     }
@@ -220,7 +256,7 @@ public class UsersApiController implements UsersApi {
 
         // checks if atleast one rola has been given
         if (body.getRoles().size() == 0 || body.getRoles() == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No role provided for user!");
+            return new ResponseEntity("No role provided for user!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         List<Role> roles = new ArrayList<>();
@@ -232,7 +268,7 @@ public class UsersApiController implements UsersApi {
 
         //checks if user by userid exists
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         user.setRoles(roles);
@@ -250,7 +286,7 @@ public class UsersApiController implements UsersApi {
 
         //checks if user by userid exists
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "No user found with provided userid!");
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         user.setActivated(body.isActivated());
@@ -270,7 +306,7 @@ public class UsersApiController implements UsersApi {
 
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         String userEmail = jwtTokenProvider.getUsername(token);
 
@@ -278,7 +314,7 @@ public class UsersApiController implements UsersApi {
         User user = userService.findByEmail(userEmail);
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Not the authority to update userdetails for requested user");
+            return new ResponseEntity("Not the authority to update userdetails for requested user", HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
@@ -287,11 +323,11 @@ public class UsersApiController implements UsersApi {
         }
 
         if (newUserDetails.getFirstname().length() < 2 || newUserDetails.getLastname().length() < 2 || newUserDetails.getPhone().length() < 10 || newUserDetails.getPostalCode().length() < 6 || newUserDetails.getCity().length() < 2 || newUserDetails.getAddress().length() < 2) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
+            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         if (!EmailValidator.getInstance().isValid(newUserDetails.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Enter a correct email!");
+            return new ResponseEntity("Enter a correct email!", HttpStatus.NOT_ACCEPTABLE);
         }
 
 
@@ -301,7 +337,7 @@ public class UsersApiController implements UsersApi {
         //check if its not the same user
         if (checkUser != null) {
             if (checkUser.getId() != user.getId()) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Email already has been used!");
+                return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
             }
         }
 
@@ -326,17 +362,45 @@ public class UsersApiController implements UsersApi {
     }
 
     public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {
+        String token = "";
 
         // Get token with data from POST body
-        String token = userService.login(body.getEmail(), body.getPassword());
+
+        try {
+            token = userService.login(body.getEmail(), body.getPassword());
+        } catch (AuthenticationException ex) {
+            return new ResponseEntity("Invalid user credentials.", HttpStatus.UNAUTHORIZED);
+        }
 
         // Create response body and set token
-        // **** @Bastiaan weet jij wat dit inlineResponse200 is? Het overerft van AuthorizationResponse ****
-        // **** @Bastiaan waar staat dat id voor in die AuthorizationResponse? ****
         InlineResponse200 res = new InlineResponse200();
         res.setToken(token);
 
-        // Return ..... with http status 200
+        // Return with http status 200
         return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
+    }
+
+    public ResponseEntity<UserResponseDTO> usersCurrentGet() {
+
+
+        ModelMapper modelMapper = new ModelMapper();
+
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        String userEmail = jwtTokenProvider.getUsername(token);
+
+        // gets user throughs jwt that makes the request
+        User user = userService.findByEmail(userEmail);
+
+        if (user == null) {
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+
+
+        return new ResponseEntity<UserResponseDTO>(response, HttpStatus.OK);
     }
 }

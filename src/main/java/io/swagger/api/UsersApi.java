@@ -6,7 +6,6 @@
 package io.swagger.api;
 
 import io.swagger.model.DTO.*;
-import io.swagger.model.ResponseDTO.AccountResponseDTO;
 import io.swagger.model.ResponseDTO.InlineResponse200;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
@@ -34,28 +33,12 @@ public interface UsersApi {
     @Operation(summary = "Creating a new user", description = "", tags = {"Users"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User has been created.", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponseDTO.class)))),
-
-//            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")
     })
-    @RequestMapping(value = "/users",
+    @RequestMapping(value = "/users/signup",
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
     ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body);
-
-    @Operation(summary = "Get all accounts of specific user", description = "Get all the accounts of the user with the id given as parameter", security = {
-            @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "All accounts of user", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccountResponseDTO.class)))),
-
-            @ApiResponse(responseCode = "400", description = "User with this id could not be found"),
-
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
-    @RequestMapping(value = "/users/{userid}/accounts",
-            produces = {"application/json"},
-            method = RequestMethod.GET)
-    ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid);
 
 
     @Operation(summary = "Get all users", description = "This endpoint will provide all available users", security = {
@@ -69,7 +52,7 @@ public interface UsersApi {
     @RequestMapping(value = "/users",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated);
+    ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount);
 
 
     @Operation(summary = "Get one specific user", description = "Get one user with the given id as parameter", security = {
@@ -157,6 +140,17 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.POST)
     ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body);
+
+    @Operation(summary = "get current user", description = "This call returns current logged in user.", security = {
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Authentication OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDTO.class))),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+    @RequestMapping(value = "/users/current",
+            produces = {"application/json"},
+            method = RequestMethod.GET)
+    ResponseEntity<UserResponseDTO> usersCurrentGet();
 
 }
 

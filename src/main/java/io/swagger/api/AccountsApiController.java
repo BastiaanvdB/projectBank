@@ -21,10 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
@@ -32,15 +29,19 @@ import org.threeten.bp.LocalDate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
-import java.math.BigDecimal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Api(tags = "Accounts")
 public class AccountsApiController implements AccountsApi {
 
@@ -51,10 +52,6 @@ public class AccountsApiController implements AccountsApi {
     private final HttpServletRequest request;
 
     private final ModelMapper modelMapper;
-
-    private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
-    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTELIMIT = new BigDecimal(20);
-    private static final Boolean DEFAULT_ACCOUNT_ACTIVATION = true;
 
     @Autowired
     private AccountService accountService;
@@ -89,15 +86,10 @@ public class AccountsApiController implements AccountsApi {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
 
-        // Set all default values for new account
+        // Set employee id from bearer
         account.setEmployeeId(employee.getId());
-        account.setIban(generateIban());
-        account.setBalance(DEFAULT_ACCOUNT_BALANCE);
-        account.setActivated(DEFAULT_ACCOUNT_ACTIVATION);
-        account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTELIMIT);
 
-        // Create random 4 digit pin code and then add to db with service
-        account.setPin(generatePincode());
+        // send account to service for more data, get the object from db returned
         account = accountService.createAccount(account);
 
         // Add account to account list of user
@@ -120,14 +112,14 @@ public class AccountsApiController implements AccountsApi {
         // Get the account, create mapper
         Account account = accountService.getOneByIban(iban);
 
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
-        }
-
-        // When account is null, no account was found with specified iban, return 404
-        if (account == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
         // Use mapper to map account to account response data transfer object
@@ -143,14 +135,18 @@ public class AccountsApiController implements AccountsApi {
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
         List<Account> accounts = null;
-
-        // Make sure offset and limit and sended with the request
-        if (offset == null || limit == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Offset and limit must be included in request.");
+        List<Account> filteredAccounts = null;
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 10;
         }
 
         // when parameter for first or lastname is given, call method for that
-        if (firstname != null && firstname.length() > 0) {
+        if (firstname != null && firstname.length() > 0 && lastname != null && lastname.length() > 0) {
+            accounts = accountService.getAllByFirstAndLastname(firstname, lastname, offset, limit);
+        } else if (firstname != null && firstname.length() > 0) {
             accounts = accountService.getAllByFirstname(firstname, offset, limit);
         } else if (lastname != null && lastname.length() > 0) {
             accounts = accountService.getAllByLastname(lastname, offset, limit);
@@ -171,6 +167,31 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+    public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
+    )) @PathVariable("userid") Integer userid) {
+
+        // Get all accounts for the user with given id
+        List<Account> accounts = accountService.getAllByUserId(userid);
+
+        // When no accounts are returned, no user exists with that id, throw exception with 404
+        if (accounts.size() == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No accounts found for this user");
+        }
+
+        // Make sure users can only perform on their own account
+        if (!canUserPerform(accounts.get(0).getUser().getEmail())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+        }
+
+        // Map all accounts to response data transfer objects
+        List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
+                .collect(Collectors.toList());
+
+        // Return the repsonse dto's
+        return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
+    }
+
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
@@ -180,6 +201,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
@@ -205,6 +231,11 @@ public class AccountsApiController implements AccountsApi {
 
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
@@ -239,6 +270,11 @@ public class AccountsApiController implements AccountsApi {
         // Get the account with iban
         Account account = accountService.getOneByIban(iban);
 
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
         // Set the activation status with value from body and update account
         account.setActivated(body.isActivated());
         accountService.updateStatus(account);
@@ -251,28 +287,6 @@ public class AccountsApiController implements AccountsApi {
     }
 
     // **** HELPER METHODS
-    private String generateIban() {
-
-        // Get all iban
-        String lastIban = accountService.getLastAccount().getIban();
-
-        // Get prefix of this iban
-        String prefix = lastIban.substring(0, 9);
-
-        // Get the number of the iban and raise by one, count amount of digits
-        int number = Integer.parseInt(lastIban.substring(9)) + 1;
-        int amountOfDigits = String.valueOf(number).length();
-
-        // foreach leftover digit place, append a 0
-        for (int i = amountOfDigits; i < 9; i++) {
-            prefix += '0';
-        }
-
-        // Then return the new number and return
-        prefix += number;
-        return prefix;
-    }
-
     private String generatePincode() {
 
         // Create random pin with 4 digits
@@ -282,21 +296,20 @@ public class AccountsApiController implements AccountsApi {
 
     private void isValidIban(String iban) {
 
-        // When length is not 18, throw illegal argument exception
-        if (iban.length() != 18) {
-            throw new IllegalArgumentException();
+        if (iban.equals("NL01INHO0000000001")) {
+            return;
         }
 
-        // When iban prefix is incorrect, throw illegal argument exception
-        if (!Objects.equals(new String(iban.substring(0, 9)), "NLxxINHO0")) {
-            throw new IllegalArgumentException();
+        // When length is not 18, throw illegal argument exception
+        if (iban.length() != 18) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban must be 18 characters long.");
         }
 
         // When number section of iban contains letters, throw illegal argument exception
         Pattern pattern = Pattern.compile("[0-9]+");
         Matcher matcher = pattern.matcher(iban.substring(10, 18));
         if (!matcher.matches()) {
-            throw new IllegalArgumentException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban identifier can only contain numbers.");
         }
     }
 

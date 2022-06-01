@@ -6,26 +6,34 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
 
     // Get by property
     @Query(value = "SELECT * FROM Account a WHERE a.iban = ?1", nativeQuery = true)
     public Account findAccountByIban(String iban);
 
+    @Query(value = "SELECT * FROM Account a WHERE a.USER_ID = ?1", nativeQuery = true)
+    public List<Account> findAllByUserid(int userId);
+
     @Query(value = "SELECT * from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
     public Account findLastAccountEntry();
 
     // Get with join
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME = ?#{#firstname}", nativeQuery = true)
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}%", nativeQuery = true)
     List<Account> findAllByFirstname(PageRequest of, @Param("firstname") String firstname);
 
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME = ?#{#lastname}", nativeQuery = true)
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
     public List<Account> findAllByLastname(PageRequest of, @Param("lastname") String lastname);
+
+    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}% OR USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
+    public List<Account> findAllByFirstAndLastname(PageRequest of, @Param("firstname") String firstname, @Param("lastname") String lastname);
 
     // Update queries
     @Transactional

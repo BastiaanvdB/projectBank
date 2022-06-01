@@ -17,5 +17,4 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         ExceptionResponseDTO dto = new ExceptionResponseDTO("Illegal input argument, follow input requirements.");
         return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.NOT_ACCEPTABLE, request);
     }
-
 }

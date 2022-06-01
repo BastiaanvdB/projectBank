@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -26,6 +27,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
     // All endpoints where no authorization is necessary
     private static final String[] AUTH_ALLOWED_REQUESTS = {
             "/users/login",
+            "/users/signup",
             "/h2-console/**/**",
             "/swagger-ui.html",
             ".webjars/**",
@@ -41,11 +43,10 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
+        http.cors().and();
         // Disable cross-site request forgery and set session creation policy to stateless
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
         // Authorize all endpoints from AUTH_ALLOWED_REQUESTS list and secure all other endpoints
         http.authorizeRequests()
                 .antMatchers(AUTH_ALLOWED_REQUESTS)
