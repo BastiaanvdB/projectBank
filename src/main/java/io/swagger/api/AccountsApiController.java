@@ -53,6 +53,10 @@ public class AccountsApiController implements AccountsApi {
 
     private final ModelMapper modelMapper;
 
+    // constant data of the bank for validation
+    private static final String IBAN_BANK = "NL01INHO0000000001";
+    private static final String EMAIL_BANK = "bank@live.nl";
+
     @Autowired
     private AccountService accountService;
 
@@ -160,6 +164,10 @@ public class AccountsApiController implements AccountsApi {
 
         // add all user_ids to response as they are saved in user as property
         for (int i = 0; i < responseDTOS.size(); i++) {
+            if (responseDTOS.get(i).getIban().equals(IBAN_BANK)){ // remove bank account
+                responseDTOS.remove(i);
+                continue;
+            }
             responseDTOS.get(i).setUserId(accounts.get(i).getUser().getId());
         }
 
@@ -296,8 +304,8 @@ public class AccountsApiController implements AccountsApi {
 
     private void isValidIban(String iban) {
 
-        if (iban.equals("NL01INHO0000000001")) {
-            return;
+        if (iban.equals(IBAN_BANK) && !EMAIL_BANK.equals(this.getUsernameFromBearer())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No access to this account.");
         }
 
         // When length is not 18, throw illegal argument exception
