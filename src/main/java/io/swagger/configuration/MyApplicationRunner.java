@@ -94,5 +94,9 @@ public class MyApplicationRunner implements ApplicationRunner {
 
         transactionService.createTransaction(trans);
         transactionService.createTransaction(trans2);
+        transactionService.createTransaction(trans3);
+        transactionService.createTransaction(trans4);
+        transactionService.createTransaction(trans5);
+        transactionService.createTransaction(trans6);
     }
 }
