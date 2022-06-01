@@ -54,8 +54,12 @@ public class MyApplicationRunner implements ApplicationRunner {
         Account account_Savings3 = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
 
         // Transactions
-        Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
-        Transaction trans2 = new Transaction(2, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000002", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans2 = new Transaction(2, "NL01INHO0000000003", "NL01INHO0000000002", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans3 = new Transaction(3, "NL01INHO0000000002", "NL01INHO0000000004", new BigDecimal(99), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans4 = new Transaction(4, "NL01INHO0000000004", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans5 = new Transaction(5, "NL01INHO0000000002", "NL01INHO0000000001", new BigDecimal(75), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans6 = new Transaction(6, "NL01INHO0000000001", "NL01INHO0000000004", new BigDecimal(22), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
 
         accountService.createFromSeeder(account_Bank);
         accountService.createFromSeeder(account_Current1);
