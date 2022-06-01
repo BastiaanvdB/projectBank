@@ -44,17 +44,19 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 
         // Accounts
-        Account bank = new Account("NL01INHO0000000001", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account curr1 = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account curr2 = new Account("NL01INHO0000000003", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account curr3 = new Account("NL01INHO0000000004", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account sav1 = new Account("NL01INHO0999999996", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account sav2 = new Account("NL01INHO0999999997", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account sav3 = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account bank = new Account("NL01INHO0000000001", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(20), true);
+        Account curr1 = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(20), true);
+        Account curr2 = new Account("NL01INHO0000000003", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(20), true);
+        Account curr3 = new Account("NL01INHO0000000004", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(20), true);
+        Account sav1 = new Account("NL01INHO0999999996", AccountType.SAVINGS, "1255", 2, new BigDecimal(200), new BigDecimal(20), true);
+        Account sav2 = new Account("NL01INHO0999999997", AccountType.SAVINGS, "1255", 2, new BigDecimal(200), new BigDecimal(20), true);
+        Account sav3 = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(200), new BigDecimal(20), true);
 
         // Transactions
-        Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
-        Transaction trans2 = new Transaction(2, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000003", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans2 = new Transaction(2, "NL01INHO0000000001", "NL01INHO0000000002", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans3 = new Transaction(3, "NL01INHO0000000001", "NL01INHO0000000004", new BigDecimal(150), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
+        Transaction trans4 = new Transaction(4, "NL01INHO0000000002", "NL01INHO0000000001", new BigDecimal(112), 1, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
 
         accountRepository.save(bank);
         accountRepository.save(curr1);

@@ -27,10 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.threeten.bp.LocalDate;
 
@@ -44,6 +41,7 @@ import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Api(tags = "Transactions")
 public class TransactionsApiController implements TransactionsApi {
 
@@ -73,6 +71,11 @@ public class TransactionsApiController implements TransactionsApi {
         // Convert request to a Transaction
         Transaction transaction = this.modelMapper.map(body, Transaction.class);
 
+        // check if the account is the same
+        if (transaction.getIbanFrom() == transaction.getIbanTo()){
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Same account");
+        }
+
         // get accounts for checks
         Account accFrom = accountService.getOneByIban(transaction.getIbanFrom());
         Account accTo = accountService.getOneByIban(transaction.getIbanTo());
@@ -89,7 +92,7 @@ public class TransactionsApiController implements TransactionsApi {
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             // Check if the iban is from the bank itself
             if (accFrom.getIban() == "NL01INHO0000000001") {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No acces to this account");
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access to this account");
             }
 
             if (!checkBalanceForTransaction(transaction.getIbanFrom(), transaction.getAmount())) {
@@ -113,7 +116,7 @@ public class TransactionsApiController implements TransactionsApi {
                         return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
                     }
                 } else {
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
+                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
                 }
             } else {
                 // Do normal transaction
@@ -134,20 +137,21 @@ public class TransactionsApiController implements TransactionsApi {
                 }
             }
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
         }
         return new ResponseEntity<TransactionResponseDTO>(HttpStatus.FORBIDDEN);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
-                                                                           @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
+            @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,
+            @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
 
         User user = getUserByToken();
         if (user.getRoles().contains(Role.ROLE_USER)) {
@@ -155,21 +159,8 @@ public class TransactionsApiController implements TransactionsApi {
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
             }
         }
-        List<Transaction> transactions;
-        // Check if offset and limit is not empty otherwise give default readings
-        if (offset == null) {
-            offset = 0;
-        }
-        if (limit == null) {
-            limit = 50;
-        }
-        // if there's no query just get them all with limit and offset 
-        if ((ibANFrom != null) || (ibANTo != null) || (balance != null) || (startDate != null) || (endDate != null)) {
-            // get all the transactions with query
-            transactions = transactionService.getAll(startDate, endDate, ibANFrom, ibANTo, balanceOperator, balance, offset, limit);
-        } else {
-            transactions = transactionService.getAll(offset, limit);
-        }
+        // get ze transactions
+        List<Transaction> transactions = this.getTransactions(startDate, endDate, ibANFrom, ibANTo, balanceOperator, balance, offset, limit);
 
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
@@ -220,12 +211,47 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // route to other public get transactions
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) {
-        return getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
+    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(
+            @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
+            @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid
+            @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid
+            @RequestParam(value = "end_date", required = false) LocalDate endDate) {
+
+        List<Transaction> all = this.getTransactions(startDate, endDate, iban, ibANTo, balanceOperator, balance, offset, limit);
+        all.addAll(this.getTransactions(startDate, endDate, ibANTo, iban, balanceOperator, balance, offset, limit));
+
+        // map the transactions to responseDTO
+        List<TransactionResponseDTO> responseDTOS = all.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
+        return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
+        //return getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
     }
 
 
     // private functions
+
+    // getTransactions
+    private List<Transaction> getTransactions(LocalDate startDate, LocalDate endDate, String ibANFrom, String  ibANTo, String balanceOperator, String balance, Integer offset, Integer limit) {
+        // Check if offset and limit is not empty otherwise give default readings
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 50;
+        }
+
+        // if there's no query just get them all with limit and offset
+        if ((ibANFrom != null) || (ibANTo != null) || (balance != null) || (startDate != null) || (endDate != null)) {
+            // get all the transactions with query
+            return transactionService.getAll(startDate, endDate, ibANFrom, ibANTo, balanceOperator, balance, offset, limit);
+        } else {
+            return transactionService.getAll(offset, limit);
+        }
+    }
 
     // executes the transaction
     private TransactionResponseDTO doTransaction(Transaction transaction, User user) {
