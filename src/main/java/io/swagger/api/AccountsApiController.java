@@ -166,6 +166,7 @@ public class AccountsApiController implements AccountsApi {
         for (int i = 0; i < responseDTOS.size(); i++) {
             if (responseDTOS.get(i).getIban().equals(IBAN_BANK)){ // remove bank account
                 responseDTOS.remove(i);
+                continue;
             }
             responseDTOS.get(i).setUserId(accounts.get(i).getUser().getId());
         }
