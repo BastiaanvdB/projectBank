@@ -20,8 +20,8 @@ public class DepositDTO {
     @JsonProperty("amount")
     private BigDecimal amount = null;
 
-    @JsonProperty("location")
-    private String location = null;
+//    @JsonProperty("location")
+//    private String location = null;
 
     public DepositDTO amount(BigDecimal amount) {
         this.amount = amount;
@@ -45,26 +45,26 @@ public class DepositDTO {
         this.amount = amount;
     }
 
-    public DepositDTO location(String location) {
-        this.location = location;
-        return this;
-    }
+//    public DepositDTO location(String location) {
+//        this.location = location;
+//        return this;
+//    }
 
     /**
      * Get location
      *
      * @return location
      **/
-    @Schema(example = "ATM Haarlem", required = true, description = "")
-    @NotNull
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
+//    @Schema(example = "ATM Haarlem", required = true, description = "")
+//    @NotNull
+//
+//    public String getLocation() {
+//        return location;
+//    }
+//
+//    public void setLocation(String location) {
+//        this.location = location;
+//    }
 
 
     @Override
@@ -76,13 +76,13 @@ public class DepositDTO {
             return false;
         }
         DepositDTO depositDTO = (DepositDTO) o;
-        return Objects.equals(this.amount, depositDTO.amount) &&
-                Objects.equals(this.location, depositDTO.location);
+        return Objects.equals(this.amount, depositDTO.amount); //&&
+//                Objects.equals(this.location, depositDTO.location);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(amount, location);
+        return Objects.hash(amount);
     }
 
     @Override
@@ -91,7 +91,7 @@ public class DepositDTO {
         sb.append("class DepositDTO {\n");
 
         sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
-        sb.append("    location: ").append(toIndentedString(location)).append("\n");
+//        sb.append("    location: ").append(toIndentedString(location)).append("\n");
         sb.append("}");
         return sb.toString();
     }

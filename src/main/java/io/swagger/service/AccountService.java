@@ -69,6 +69,10 @@ public class AccountService {
         accountRepository.updateLimit(account.getAbsoluteLimit(), account.getIban());
     }
 
+    public void updateBalance(Account account) {
+        accountRepository.updateLimit(account.getAbsoluteLimit(), account.getIban());
+    }
+
     public void updatePin(Account account) {
         accountRepository.updatePin(account.getPin(), account.getIban());
     }

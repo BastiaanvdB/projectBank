@@ -44,6 +44,7 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 
         // Accounts
+        Account bank = new Account("NL01INHO0000000001", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
         Account curr1 = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
         Account curr2 = new Account("NL01INHO0000000003", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
         Account curr3 = new Account("NL01INHO0000000004", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
@@ -55,6 +56,7 @@ public class MyApplicationRunner implements ApplicationRunner {
         Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
         Transaction trans2 = new Transaction(2, "NL01INHO0000000001", "NL01INHO0000000001", new BigDecimal(100), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));
 
+        accountRepository.save(bank);
         accountRepository.save(curr1);
         accountRepository.save(curr2);
         accountRepository.save(curr3);
@@ -70,6 +72,7 @@ public class MyApplicationRunner implements ApplicationRunner {
         accountsEmployee.add(curr2);
         accountsEmployee.add(curr3);
         accountsEmployee.add(sav1);
+        accountsEmployee.add(bank);
 
         user.setAccounts(accountsUser);
         employee.setAccounts(accountsEmployee);

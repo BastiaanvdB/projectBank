@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.*;
 import io.swagger.model.entity.Account;
+import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
 import io.swagger.security.JwtTokenProvider;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
+import org.threeten.bp.LocalDate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -59,6 +61,9 @@ public class AccountsApiController implements AccountsApi {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private TransactionsApiController transactionsApiController;
 
     @org.springframework.beans.factory.annotation.Autowired
     public AccountsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -279,20 +284,6 @@ public class AccountsApiController implements AccountsApi {
 
         // return http status 200
         return new ResponseEntity<AccountActivationResponseDTO>(responseDTO, HttpStatus.OK);
-    }
-
-    // **** VOOR MISTER GRIBNAU
-    //TODO: transactions for user
-    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) {
-        return new ResponseEntity<DepositResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) {
-        return new ResponseEntity<WithdrawResponseDTO>(HttpStatus.NOT_IMPLEMENTED);
-    }
-
-    public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
-        return new ResponseEntity<List<TransactionResponseDTO>>(HttpStatus.NOT_IMPLEMENTED);
     }
 
     // **** HELPER METHODS

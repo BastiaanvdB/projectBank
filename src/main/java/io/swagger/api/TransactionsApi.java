@@ -5,8 +5,12 @@
  */
 package io.swagger.api;
 
+import io.swagger.model.DTO.DepositDTO;
 import io.swagger.model.DTO.TransactionDTO;
+import io.swagger.model.DTO.WithdrawDTO;
+import io.swagger.model.ResponseDTO.DepositResponseDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
+import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -18,13 +22,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.threeten.bp.LocalDate;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.List;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
@@ -58,6 +60,52 @@ public interface TransactionsApi {
             produces = {"application/json"},
             method = RequestMethod.GET)
     ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance);
+
+    @Operation(summary = "Do a deposit on account", description = "", security = {
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "The newly made deposit", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = DepositResponseDTO.class)))),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+    @RequestMapping(value = "/accounts/{IBAN}/deposit",
+            produces = {"application/json"},
+            consumes = {"application/json"},
+            method = RequestMethod.POST)
+    ResponseEntity<DepositResponseDTO> createDeposit(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body);
+
+
+    @Operation(summary = "Do a withdraw of account", description = "", security = {
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "The newly made withdraw", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = WithdrawResponseDTO.class)))),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+    @RequestMapping(value = "/accounts/{IBAN}/withdraw",
+            produces = {"application/json"},
+            consumes = {"application/json"},
+            method = RequestMethod.POST)
+    ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body);
+
+    @Operation(summary = "Get all from account", description = "Get all the transactions from a account with given parameter", security = {
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All transactions", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+
+            @ApiResponse(responseCode = "404", description = "Account with this iban could not be found")})
+    @RequestMapping(value = "/accounts/{iban}/transactions",
+            produces = {"application/json"},
+            method = RequestMethod.GET)
+    ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(
+            @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,
+            @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
+            @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
+            @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
+            @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,
+            @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate);
 
 }
 

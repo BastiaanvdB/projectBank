@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
@@ -19,7 +20,7 @@ import java.util.Objects;
 
 public class DepositResponseDTO {
     @JsonProperty("iban")
-    private String iban = null;
+    private String ibanTo = null;
 
     @JsonProperty("amount")
     private BigDecimal amount = null;
@@ -28,10 +29,10 @@ public class DepositResponseDTO {
     private String location = null;
 
     @JsonProperty("iat")
-    private BigDecimal iat = null;
+    private Timestamp iat = null;
 
     public DepositResponseDTO iban(String iban) {
-        this.iban = iban;
+        this.ibanTo = iban;
         return this;
     }
 
@@ -44,12 +45,12 @@ public class DepositResponseDTO {
     @NotNull
 
     @Size(min = 18, max = 18)
-    public String getIban() {
-        return iban;
+    public String getIbanTo() {
+        return ibanTo;
     }
 
-    public void setIban(String iban) {
-        this.iban = iban;
+    public void setIbanTo(String ibanTo) {
+        this.ibanTo = ibanTo;
     }
 
     public DepositResponseDTO amount(BigDecimal amount) {
@@ -95,7 +96,7 @@ public class DepositResponseDTO {
         this.location = location;
     }
 
-    public DepositResponseDTO iat(BigDecimal iat) {
+    public DepositResponseDTO iat(Timestamp iat) {
         this.iat = iat;
         return this;
     }
@@ -109,11 +110,11 @@ public class DepositResponseDTO {
     @NotNull
 
     @Valid
-    public BigDecimal getIat() {
+    public Timestamp getIat() {
         return iat;
     }
 
-    public void setIat(BigDecimal iat) {
+    public void setIat(Timestamp iat) {
         this.iat = iat;
     }
 
@@ -127,7 +128,7 @@ public class DepositResponseDTO {
             return false;
         }
         DepositResponseDTO depositResponseDTO = (DepositResponseDTO) o;
-        return Objects.equals(this.iban, depositResponseDTO.iban) &&
+        return Objects.equals(this.ibanTo, depositResponseDTO.ibanTo) &&
                 Objects.equals(this.amount, depositResponseDTO.amount) &&
                 Objects.equals(this.location, depositResponseDTO.location) &&
                 Objects.equals(this.iat, depositResponseDTO.iat);
@@ -135,7 +136,7 @@ public class DepositResponseDTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(iban, amount, location, iat);
+        return Objects.hash(ibanTo, amount, location, iat);
     }
 
     @Override
@@ -143,7 +144,7 @@ public class DepositResponseDTO {
         StringBuilder sb = new StringBuilder();
         sb.append("class DepositResponseDTO {\n");
 
-        sb.append("    iban: ").append(toIndentedString(iban)).append("\n");
+        sb.append("    iban: ").append(toIndentedString(ibanTo)).append("\n");
         sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
         sb.append("    location: ").append(toIndentedString(location)).append("\n");
         sb.append("    iat: ").append(toIndentedString(iat)).append("\n");
