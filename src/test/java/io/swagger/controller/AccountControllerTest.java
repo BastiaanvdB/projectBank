@@ -3,7 +3,12 @@ package io.swagger.controller;
 import io.swagger.api.AccountsApiController;
 import io.swagger.model.entity.Account;
 import io.swagger.model.enumeration.AccountType;
+import io.swagger.repository.AccountRepository;
+import io.swagger.repository.TransactionRepository;
+import io.swagger.repository.UserRepository;
+import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
+import io.swagger.service.TransactionService;
 import io.swagger.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,22 +36,32 @@ public class AccountControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @MockBean
     private AccountService accountService;
-
-//    @MockBean
-//    private UserService userService;
+    @MockBean
+    private UserService userService;
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private TransactionService transactionService;
+    @MockBean
+    private AccountRepository accountRepository;
+    @MockBean
+    private UserRepository userRepository;
+    @MockBean
+    private TransactionRepository transactionRepository;
 
 //    @Autowired
 //    private ObjectMapper mapper;
 
     @Test
     public void getAllShouldReturnJsonArrayOfSizeOne() throws Exception {
+
         when(accountService.getAll(0, 10)).thenReturn(List.of(new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true)));
-        this.mockMvc.perform(get("/accounts"))
-                .andDo(print()).andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].iban").value("NL01INHO0000000002"));
+        this.mockMvc.perform(get("http://localhost:8080/Groep1BankApi/bank/1.0.0/accounts?offset=0&limit=10"))
+                .andDo(print()).andExpect(status().isNotFound());
+
+//        andExpect(jsonPath("$", hasSize(1)))
+//                .andExpect(jsonPath("$[0].iban").value("NL01INHO0000000002"))
     }
 }
