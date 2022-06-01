@@ -63,6 +63,10 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
+    public Account createFromSeeder(Account account) {
+        return accountRepository.save(account);
+    }
+
 
     // Put queries
     public void updateLimit(Account account) {
