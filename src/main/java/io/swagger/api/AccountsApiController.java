@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -65,6 +66,9 @@ public class AccountsApiController implements AccountsApi {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Autowired
     private TransactionsApiController transactionsApiController;
@@ -250,8 +254,13 @@ public class AccountsApiController implements AccountsApi {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
 
-        // Check if old pincode matches the pincode of the account for validation
-        if (!account.getPin().equals(body.getOldPincode())) {
+        // validate token before getting the authorities
+        if (jwtTokenProvider.resolveToken(request) == null || !jwtTokenProvider.validateToken(jwtTokenProvider.resolveToken(request))) {
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        // when pincode is wrong and user performing is not employee, throw exception, also throw exception when pincode is not 4 digits
+        if (!passwordEncoder.matches(body.getOldPincode(), account.getPin()) && !jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request)).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong pincode!");
         }
         if (!body.getNewPincode().matches("[0-9]+") || body.getNewPincode().length() != 4) {
@@ -259,7 +268,7 @@ public class AccountsApiController implements AccountsApi {
         }
 
         // Set the pin with value from body and update account
-        account.setPin(String.valueOf(body.getNewPincode()));
+        account.setPin(passwordEncoder.encode(String.valueOf(body.getNewPincode())));
         accountService.updatePin(account);
 
         // Map new value to response dto
@@ -292,6 +301,11 @@ public class AccountsApiController implements AccountsApi {
 
         // return http status 200
         return new ResponseEntity<AccountActivationResponseDTO>(responseDTO, HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<AccountResponseDTO> authenticateAcount(String iban, AccountActivationDTO body) {
+        return null;
     }
 
     // **** HELPER METHODS
