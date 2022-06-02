@@ -307,7 +307,7 @@ public class AccountsApiController implements AccountsApi {
         return new ResponseEntity<AccountActivationResponseDTO>(responseDTO, HttpStatus.OK);
     }
 
-    @Override
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount(PinAuthenticateDTO body) {
 
         // Call validation method to validate the iban given as parameter
