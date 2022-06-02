@@ -85,6 +85,7 @@ public class TransactionControllerTest {
                 .build();
     }
 
+    // ** TESTS TO SEE IF JUNIT MOCK TESTING WORKS!!!!
     @Test
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     public void testToSeeIfTestsWork1() throws Exception {
@@ -95,5 +96,80 @@ public class TransactionControllerTest {
 
         this.mockMvc.perform(get("/transactions?offset=0&limit=10"))
                 .andDo(print()).andExpect(status().isOk());
+    }
+
+
+
+    // TESTS FOR CREATING A TRANSACTION
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
+    void createTransactionForOtherUserWithRoleUserWillReturnUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void somethingCreateTransactionOnSuccess() throws Exception {
+
+    }
+
+
+
+    // TESTS FOR CREATING A DEPOSIT
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void createDepositForOtherUserWithRoleEmployeeWillReturnUnauthorized() {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void somethingCreateDepositOnSuccess() throws Exception {
+
+    }
+
+
+
+    // TESTS FOR CREATING A WITHDRAWAL
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void createWithdrawalForOtherUserWithRoleEmployeeWillReturnUnauthorized() {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void somethingCreateWithdrawalOnSuccess() throws Exception {
+
+    }
+
+
+
+    // TESTS TO GET ALL TRANSACTIONS FOR ACCOUNT
+    // -- Authorization
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void somethingGetAllTransactionsForAccountOnSuccess() throws Exception {
+
+    }
+
+
+
+    // TESTS TO GET ALL TRANSACTIONS
+    // -- Authorization
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void somethingGetAllTransactionsOnSuccess() throws Exception {
+
     }
 }
