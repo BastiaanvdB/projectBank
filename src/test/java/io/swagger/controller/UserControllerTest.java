@@ -2,6 +2,7 @@ package io.swagger.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.api.UsersApiController;
+import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
 import io.swagger.model.enumeration.Role;
@@ -35,8 +36,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -99,7 +99,12 @@ public class UserControllerTest {
     // -- Authorization
     @Test
     void createUserWithoutRoleAuthorized() throws Exception {
-
+        when(accountService.createAccount(any(Account.class))).thenReturn(new Account());
+        mockMvc.perform(post("/users")
+                        .content("{}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status()
+                        .isCreated());
     }
 
     // -- Success and return values
@@ -117,6 +122,10 @@ public class UserControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void getAllUsersWithRoleUserWillReturnUnauthorized() throws Exception {
 
+        when(userService.getAll(0, 10)).thenReturn(List.of(new User()));
+
+        this.mockMvc.perform(get("/users?offset=0&limit=10"))
+                .andDo(print()).andExpect(status().isForbidden());
     }
 
     // -- Success and return values
@@ -124,6 +133,13 @@ public class UserControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAllUsersShouldReturnStatusOkAndAccount() throws Exception {
 
+        when(userService.getAll(0, 10)).thenReturn(List.of(new User(1, "Bram", "Terlouw",
+                "Bijdorplaan 15", "Haarlem", "2015CE", "bram@live.nl",
+                new ArrayList<>(List.of(Role.ROLE_USER)), "0235412412", new BigDecimal(200),
+                new BigDecimal(100), true, "BramTest")));
+
+        this.mockMvc.perform(get("/users?offset=0&limit=10"))
+                .andDo(print()).andExpect(status().isOk());
     }
 
 
@@ -141,6 +157,17 @@ public class UserControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getOneUserByUserIdShouldReturnStatusOkAndAccount() throws Exception {
 
+        when(userService.getOne(any())).thenReturn(new User(1, "Bram", "Terlouw",
+                "Bijdorplaan 15", "Haarlem", "2015CE", "bram@live.nl",
+                new ArrayList<>(List.of(Role.ROLE_USER)), "0235412412", new BigDecimal(200),
+                new BigDecimal(100), true, "BramTest"));
+
+        this.mockMvc.perform(get("/users/2"))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk())
+                .andExpect(jsonPath("$[0].Firstname")
+                        .value("Bram"));
     }
 
     // -- User id not found
@@ -165,6 +192,10 @@ public class UserControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void SetPasswordShouldReturnStatusOk() throws Exception {
 
+        this.mockMvc.perform(put("/users/1/password"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- User id not found
@@ -182,6 +213,10 @@ public class UserControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setRoleWithRoleUserWillReturnUnauthorized() throws Exception {
 
+        this.mockMvc.perform(put("/users/1/role"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
@@ -189,6 +224,10 @@ public class UserControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void SetRoleShouldReturnStatusOkAndReturnNewRole() throws Exception {
 
+        this.mockMvc.perform(put("/users/1/role"))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk());
     }
 
     // -- User id not found
@@ -206,6 +245,10 @@ public class UserControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setStatusWithRoleUserWillReturnUnauthorized() throws Exception {
 
+        this.mockMvc.perform(put("/users/1/activation"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
@@ -213,6 +256,10 @@ public class UserControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void SetStatusShouldReturnStatusOkAndReturnNewStatus() throws Exception {
 
+        this.mockMvc.perform(put("/users/1/activation"))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk());
     }
 
     // -- User id not found
