@@ -5,7 +5,10 @@ import io.swagger.api.TransactionsApiController;
 import io.swagger.api.UsersApiController;
 import io.swagger.model.DTO.AccountDTO;
 import io.swagger.model.entity.Account;
+import io.swagger.model.entity.Transaction;
+import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
+import io.swagger.model.enumeration.Role;
 import io.swagger.repository.AccountRepository;
 import io.swagger.repository.TransactionRepository;
 import io.swagger.repository.UserRepository;
@@ -28,6 +31,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -74,5 +80,17 @@ public class TransactionControllerTest {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+    }
+
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    public void testToSeeIfTestsWork1() throws Exception {
+
+        when(transactionService.getAll(0, 10)).thenReturn(List.of(new Transaction(1, "NL01INHO0000000001",
+                "NL01INHO0000000001", new BigDecimal(200), 2,
+                Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())))));
+
+        this.mockMvc.perform(get("/transactions?offset=0&limit=10"))
+                .andDo(print()).andExpect(status().isOk());
     }
 }
