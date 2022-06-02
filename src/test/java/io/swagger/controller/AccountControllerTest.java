@@ -33,8 +33,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,18 +42,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AccountsApiController.class)
 public class AccountControllerTest {
 
+    // Mock mvc and contect
     @Autowired
     private WebApplicationContext context;
     @Autowired
     private MockMvc mockMvc;
-    @MockBean
-    private AccountService accountService;
-    @MockBean
-    private UserService userService;
+
+    // Mock jwt and mapper
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
     @MockBean
     private AuthenticationManager authenticationManagerBean;
+    @Autowired
+    private ObjectMapper mapper;
+
+    // Mock service and repository's
+    @MockBean
+    private AccountService accountService;
+    @MockBean
+    private UserService userService;
     @MockBean
     private TransactionService transactionService;
     @MockBean
@@ -64,8 +70,6 @@ public class AccountControllerTest {
     @MockBean
     private TransactionRepository transactionRepository;
 
-    @Autowired
-    private ObjectMapper mapper;
 
     @BeforeEach
     void init() {
@@ -74,6 +78,10 @@ public class AccountControllerTest {
                 .build();
     }
 
+
+
+
+    // ** TESTS TO SEE IF JUNIT MOCK TESTING WORKS!!!!
     @Test
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     public void testToSeeIfTestsWork1() throws Exception {
@@ -82,9 +90,9 @@ public class AccountControllerTest {
         this.mockMvc.perform(get("/accounts?offset=0&limit=10"))
                 .andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].iban").value("NL01INHO0000000002"));
+                .andExpect(jsonPath("$[0].iban")
+                        .value("NL01INHO0000000002"));
     }
-
     @Test
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void testToSeeIfTestsWork2() throws Exception {
@@ -101,9 +109,9 @@ public class AccountControllerTest {
         mockMvc.perform(post("/accounts")
                         .content(mapper.writeValueAsString(dto))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .andExpect(status()
+                        .isCreated());
     }
-
     @Test
     @WithMockUser(roles = "USER")
     void testToSeeIfTestsWork3() throws Exception {
@@ -111,28 +119,49 @@ public class AccountControllerTest {
         mockMvc.perform(post("/accounts")
                         .content("{}")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status()
+                        .isForbidden());
     }
 
 
 
-    // ** TESTS FOR CREATE USER
+    // ** TESTS FOR CREATE ACCOUNT
     // -- Authorization
     @Test
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void createAccountWithRoleUserWillReturnUnauthorized() throws Exception {
+
         when(accountService.createAccount(any(Account.class))).thenReturn(new Account());
         mockMvc.perform(post("/accounts")
                         .content("{}")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
     @Test
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
-    void createUserShouldReturnStatusCreatedAndNewAccount() throws Exception {
+    void createAccountShouldReturnStatusCreatedAndNewAccount() throws Exception {
 
+        Account account = new Account();
+        account.setIban("NL01INHO0000000002");
+        account.setBalance(new BigDecimal(20));
+        account.setType(AccountType.CURRENT);
+        account.setPin("1234");
+        account.setEmployeeId(2);
+        account.setAbsoluteLimit(new BigDecimal(20));
+        account.setActivated(true);
+
+        AccountDTO dto = new AccountDTO();
+
+        when(accountService.createAccount(any(Account.class))).thenReturn(account);
+
+        mockMvc.perform(post("/accounts")
+                        .content(mapper.writeValueAsString(dto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status()
+                        .isCreated());
     }
 
 
@@ -150,6 +179,13 @@ public class AccountControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAccountByIbanShouldReturnStatusOkAndAccount() throws Exception {
 
+        when(accountService.getOneByIban(any())).thenReturn(new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true));
+        this.mockMvc.perform(get("/accounts/NL01INHO0000000002"))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk())
+                .andExpect(jsonPath("$[0].iban")
+                        .value("NL01INHO0000000002"));
     }
 
     // -- Iban not found
@@ -174,6 +210,13 @@ public class AccountControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAllAccountsByUserIdShouldReturnStatusOkAndAccount() throws Exception {
 
+        when(accountService.getAllByUserId(any())).thenReturn(List.of(new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true)));
+        this.mockMvc.perform(get("/users/2/accounts"))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk())
+                .andExpect(jsonPath("$[0].iban")
+                        .value("NL01INHO0000000002"));
     }
 
     // -- User id not found
@@ -191,6 +234,11 @@ public class AccountControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void getAllAccountsWithRoleUserUnauthorized() throws Exception {
 
+        when(accountService.getAll(0, 10)).thenReturn(List.of(new Account()));
+        this.mockMvc.perform(get("/accounts?offset=0&limit=10"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
@@ -198,6 +246,13 @@ public class AccountControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAllAccountsShouldReturnStatusOkAndAccount() throws Exception {
 
+        when(accountService.getAll(0, 10)).thenReturn(List.of(new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true)));
+        this.mockMvc.perform(get("/accounts?offset=0&limit=10"))
+                .andDo(print())
+                .andExpect(status()
+                        .isOk())
+                .andExpect(jsonPath("$[0].iban")
+                        .value("NL01INHO0000000002"));
     }
 
 
@@ -208,6 +263,10 @@ public class AccountControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setLimitWithRoleUserUnauthorized() throws Exception {
 
+        this.mockMvc.perform(put("/accounts/NL01INHO0000000002"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
@@ -215,6 +274,9 @@ public class AccountControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void SetLimitShouldReturnStatusOkAndNewLimit() throws Exception {
 
+        this.mockMvc.perform(put("/accounts/NL01INHO0000000002"))
+                .andExpect(status()
+                        .isOk());
     }
 
     // -- Iban not found
@@ -232,6 +294,10 @@ public class AccountControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setPinFromOtherUserWithRoleUserUnauthorized() throws Exception {
 
+        this.mockMvc.perform(put("/accounts/NL01INHO0000000002/pincode"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
@@ -239,6 +305,9 @@ public class AccountControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setPinShouldReturnStatusOkAndNewPin() throws Exception {
 
+        this.mockMvc.perform(put("/accounts/NL01INHO0000000002/pincode"))
+                .andExpect(status()
+                        .isOk());
     }
 
     // -- Iban not found
@@ -256,6 +325,10 @@ public class AccountControllerTest {
     @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setStatusWithRoleUserUnauthorized() throws Exception {
 
+        this.mockMvc.perform(put("/accounts/NL01INHO0000000002/activation"))
+                .andDo(print())
+                .andExpect(status()
+                        .isForbidden());
     }
 
     // -- Success and return values
@@ -263,6 +336,9 @@ public class AccountControllerTest {
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setStatusShouldReturnStatusOkAndNewStatus() throws Exception {
 
+        this.mockMvc.perform(put("/accounts/NL01INHO0000000002/activation"))
+                .andExpect(status()
+                        .isOk());
     }
 
     // -- Iban not found

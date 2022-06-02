@@ -45,11 +45,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UsersApiController.class)
 public class UserControllerTest {
 
+    // Mock mvc and contect
     @Autowired
     private WebApplicationContext context;
     @Autowired
     private MockMvc mockMvc;
 
+    // Mock jwt and mapper
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
     @MockBean
@@ -57,6 +59,7 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
+    // Mock service and repository's
     @MockBean
     private UserService userService;
     @MockBean
@@ -88,5 +91,134 @@ public class UserControllerTest {
 
         this.mockMvc.perform(get("/users?offset=0&limit=10"))
                 .andDo(print()).andExpect(status().isOk());
+    }
+
+
+
+    // ** TESTS FOR CREATE USER
+    // -- Authorization
+    @Test
+    void createUserWithoutRoleAuthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void createUserShouldReturnStatusCreatedAndNewUser() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR GET ALL USERS
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
+    void getAllUsersWithRoleUserWillReturnUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void getAllUsersShouldReturnStatusOkAndAccount() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR GET ONE USER
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
+    void getOneUserFromOtherUserWithRoleUserWillReturnUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void getOneUserByUserIdShouldReturnStatusOkAndAccount() throws Exception {
+
+    }
+
+    // -- User id not found
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void getOneUserByUserIdWithNonExistingUserIdShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR SET USER PASSWORD
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
+    void setPasswordFromOtherUserWithRoleUserWillReturnUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void SetPasswordShouldReturnStatusOk() throws Exception {
+
+    }
+
+    // -- User id not found
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void SetPasswordWithNonExistingUserIdShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR SET USER ROLE
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
+    void setRoleWithRoleUserWillReturnUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void SetRoleShouldReturnStatusOkAndReturnNewRole() throws Exception {
+
+    }
+
+    // -- User id not found
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void SetRoleWithNonExistingUserIdShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR SET USER STATUS
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
+    void setStatusWithRoleUserWillReturnUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void SetStatusShouldReturnStatusOkAndReturnNewStatus() throws Exception {
+
+    }
+
+    // -- User id not found
+    @Test
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
+    void SetStatusWithNonExistingUserIdShouldReturnStatusNotFound() throws Exception {
+
     }
 }

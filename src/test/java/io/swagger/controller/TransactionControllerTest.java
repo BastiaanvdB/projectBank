@@ -50,11 +50,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TransactionsApiController.class)
 public class TransactionControllerTest {
 
+    // Mock mvc and contect
     @Autowired
     private WebApplicationContext context;
     @Autowired
     private MockMvc mockMvc;
 
+    // Mock jwt and mapper
     @MockBean
     private JwtTokenProvider jwtTokenProvider;
     @MockBean
@@ -62,6 +64,7 @@ public class TransactionControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
+    // Mock service and repository's
     @MockBean
     private TransactionService transactionService;
     @MockBean
