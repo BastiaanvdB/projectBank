@@ -42,16 +42,16 @@ public class MyApplicationRunner implements ApplicationRunner {
         // Users
         User bank = new User(1, "BBC Bank", "", "Bijdorplaan 15", "Haarlem", "2015CE", "bank@live.nl", new ArrayList<>(Arrays.asList(Role.ROLE_EMPLOYEE)), "0235412412", new BigDecimal(200), new BigDecimal(100), true, "BankTest");
         User user = new User(2, "Bram", "Terlouw", "Bijdorplaan 15", "Haarlem", "2015CE", "bram@live.nl", new ArrayList<>(Arrays.asList(Role.ROLE_USER)), "0235412412", new BigDecimal(200), new BigDecimal(100), true, "BramTest");
-        User employee = new User(3, "Mark", "Haantje", "Bijdorplaan 15", "Haarlem", "2015CE", "mark@live.nl", new ArrayList<>(Arrays.asList(Role.ROLE_EMPLOYEE)), "0235412412", new BigDecimal(200), new BigDecimal(100), true, "MarkTest");
+        User employee = new User(3, "Mark", "Haantje", "Bijdorplaan 15", "Haarlem", "2015CE", "mark@live.nl", new ArrayList<>(Arrays.asList(Role.ROLE_EMPLOYEE, Role.ROLE_USER)), "0235412412", new BigDecimal(200), new BigDecimal(100), true, "MarkTest");
 
         // Accounts
-        Account account_Bank = new Account("NL01INHO0000000001", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account account_Current1 = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account account_Current2 = new Account("NL01INHO0000000003", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account account_Current3 = new Account("NL01INHO0000000004", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account account_Savings1 = new Account("NL01INHO0999999996", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account account_Savings2 = new Account("NL01INHO0999999997", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
-        Account account_Savings3 = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(20), new BigDecimal(20), true);
+        Account account_Bank = new Account("NL01INHO0000000001", AccountType.CURRENT, "1234", 2, new BigDecimal(20000000), new BigDecimal(0), true);
+        Account account_Current1 = new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(-2000), true);
+        Account account_Current2 = new Account("NL01INHO0000000003", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(0), true);
+        Account account_Current3 = new Account("NL01INHO0000000004", AccountType.CURRENT, "1234", 2, new BigDecimal(200), new BigDecimal(0), true);
+        Account account_Savings1 = new Account("NL01INHO0999999996", AccountType.SAVINGS, "1255", 2, new BigDecimal(200), new BigDecimal(0), true);
+        Account account_Savings2 = new Account("NL01INHO0999999997", AccountType.SAVINGS, "1255", 2, new BigDecimal(200), new BigDecimal(0), true);
+        Account account_Savings3 = new Account("NL01INHO0999999998", AccountType.SAVINGS, "1255", 2, new BigDecimal(200), new BigDecimal(0), true);
 
         // Transactions
         Transaction trans = new Transaction(1, "NL01INHO0000000001", "NL01INHO0000000002", new BigDecimal(200), 2, Timestamp.from(Instant.ofEpochSecond(Instant.now().getEpochSecond())));

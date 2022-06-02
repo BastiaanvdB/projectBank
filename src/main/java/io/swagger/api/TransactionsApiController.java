@@ -36,6 +36,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -168,7 +169,7 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // from bank to user
-    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) {
         // map the DTO to transaction
         Transaction deposit = this.modelMapper.map(body, Transaction.class);
@@ -186,8 +187,8 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // from user to bank
-    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) {
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) {
         // map the DTO to transaction
         Transaction withdraw = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -224,7 +225,8 @@ public class TransactionsApiController implements TransactionsApi {
 
         List<Transaction> all = this.getTransactions(startDate, endDate, iban, ibANTo, balanceOperator, balance, offset, limit);
         all.addAll(this.getTransactions(startDate, endDate, ibANTo, iban, balanceOperator, balance, offset, limit));
-
+        // sort the complete list desc. so that the last transaction is first
+        all.sort(Comparator.comparing(Transaction::getIat).reversed());
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = all.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
