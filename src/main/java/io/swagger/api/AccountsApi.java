@@ -130,15 +130,17 @@ public interface AccountsApi {
 
     @Operation(summary = "Check pincode", description = "Check the pincode and the account of the iban", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Pincode is correct", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountResponseDTO.class))),
-//
-//            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-//
-//            @ApiResponse(responseCode = "404", description = "Account with this iban could not be found")})
-    @RequestMapping(value = "/accounts/{iban}/authentication",
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pincode is correct", content = @Content(mediaType = "application/json", schema = @Schema(implementation = PinAuthenticateResponseDTO.class))),
+
+            @ApiResponse(responseCode = "401", description = "Wrong pincode for this iban"),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+
+            @ApiResponse(responseCode = "404", description = "Account with this iban could not be found")})
+    @RequestMapping(value = "/accounts/authentication",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    ResponseEntity<AccountResponseDTO> authenticateAcount(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body);
+    ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount( @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody PinAuthenticateDTO body);
 }
 

@@ -84,6 +84,10 @@ public class AccountsApiController implements AccountsApi {
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) {
 
+        if (body.getUserId() == null || body.getType() == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incomplete data.");
+        }
+
         // Map dto body to account class
         Account account = this.modelMapper.map(body, Account.class);
         User employee = userService.findByEmail(getUsernameFromBearer());
@@ -304,8 +308,31 @@ public class AccountsApiController implements AccountsApi {
     }
 
     @Override
-    public ResponseEntity<AccountResponseDTO> authenticateAcount(String iban, AccountActivationDTO body) {
-        return null;
+    public ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount(PinAuthenticateDTO body) {
+
+        // Call validation method to validate the iban given as parameter
+        isValidIban(body.getIban());
+
+        // Get the account with iban
+        Account account = accountService.getOneByIban(body.getIban());
+
+        // When account is null, no account was found with specified iban, return 404
+        if (account == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No account found with this iban!");
+        }
+
+        // set values of dto to response dto
+        PinAuthenticateResponseDTO responseDTO = this.modelMapper.map(body, PinAuthenticateResponseDTO.class);
+
+        // If pincodes match, set isValid to true and return response dto with http OK
+        // Otherwise set isValid to false and return response dto with http unauthorized
+        if (passwordEncoder.matches(body.getPincode(), account.getPin())) {
+            responseDTO.setIsValid(true);
+            return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.OK);
+        } else {
+            responseDTO.setIsValid(false);
+            return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.UNAUTHORIZED);
+        }
     }
 
     // **** HELPER METHODS
