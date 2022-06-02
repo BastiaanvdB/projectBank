@@ -77,7 +77,7 @@ public class AccountControllerTest {
 
     @Test
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
-    public void getAllShouldReturnJsonArrayOfSizeOne() throws Exception {
+    public void testToSeeIfTestsWork1() throws Exception {
 
         when(accountService.getAll(0, 10)).thenReturn(List.of(new Account("NL01INHO0000000002", AccountType.CURRENT, "1234", 2, new BigDecimal(20), new BigDecimal(20), true)));
         this.mockMvc.perform(get("/accounts?offset=0&limit=10"))
@@ -88,7 +88,7 @@ public class AccountControllerTest {
 
     @Test
     @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
-    void createAccountShouldReturnStatusCreatedAndOneObject() throws Exception {
+    void testToSeeIfTestsWork2() throws Exception {
         Account account = new Account();
         account.setIban("NL01INHO0000000002");
         account.setBalance(new BigDecimal(20));
@@ -107,6 +107,20 @@ public class AccountControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
+    void testToSeeIfTestsWork3() throws Exception {
+        when(accountService.createAccount(any(Account.class))).thenReturn(new Account());
+        mockMvc.perform(post("/accounts")
+                        .content("{}")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+
+
+    // ** TESTS FOR CREATE USER
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
     void createAccountWithRoleUserWillReturnUnauthorized() throws Exception {
         when(accountService.createAccount(any(Account.class))).thenReturn(new Account());
         mockMvc.perform(post("/accounts")
@@ -114,4 +128,149 @@ public class AccountControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
     }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void createUserShouldReturnStatusCreatedAndNewAccount() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR GET ACCOUNT BY IBAN
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAccountByIbanFromOtherUserWithRoleUserUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAccountByIbanShouldReturnStatusOkAndAccount() throws Exception {
+
+    }
+
+    // -- Iban not found
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAccountByIbanShouldWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR GET ALL ACCOUNTS BY USER ID
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAllAccountsByUserIdFromOtherUserWithRoleUserUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAllAccountsByUserIdShouldReturnStatusOkAndAccount() throws Exception {
+
+    }
+
+    // -- User id not found
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAllAccountsByUserIdWithNonExistingUserIdShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR GET ALL ACCOUNTS
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAllAccountsWithRoleUserUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void getAllAccountsShouldReturnStatusOkAndAccount() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR SET ACCOUNT LIMIT
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setLimitWithRoleUserUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void SetLimitShouldReturnStatusOkAndNewLimit() throws Exception {
+
+    }
+
+    // -- Iban not found
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setLimitWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR SET ACCOUNT PIN
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setPinFromOtherUserWithRoleUserUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setPinShouldReturnStatusOkAndNewPin() throws Exception {
+
+    }
+
+    // -- Iban not found
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setPinWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
+
+    }
+
+
+
+    // ** TESTS FOR SET ACCOUNT STATUS
+    // -- Authorization
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setStatusWithRoleUserUnauthorized() throws Exception {
+
+    }
+
+    // -- Success and return values
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setStatusShouldReturnStatusOkAndNewStatus() throws Exception {
+
+    }
+
+    // -- Iban not found
+    @Test
+    @WithMockUser(username = "", password = "", roles = "")
+    void setStatusWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
+
+    }
+
 }
