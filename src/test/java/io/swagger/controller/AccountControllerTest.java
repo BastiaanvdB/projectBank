@@ -120,7 +120,7 @@ public class AccountControllerTest {
     // ** TESTS FOR CREATE USER
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void createAccountWithRoleUserWillReturnUnauthorized() throws Exception {
         when(accountService.createAccount(any(Account.class))).thenReturn(new Account());
         mockMvc.perform(post("/accounts")
@@ -131,7 +131,7 @@ public class AccountControllerTest {
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void createUserShouldReturnStatusCreatedAndNewAccount() throws Exception {
 
     }
@@ -141,21 +141,21 @@ public class AccountControllerTest {
     // ** TESTS FOR GET ACCOUNT BY IBAN
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void getAccountByIbanFromOtherUserWithRoleUserUnauthorized() throws Exception {
 
     }
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAccountByIbanShouldReturnStatusOkAndAccount() throws Exception {
 
     }
 
     // -- Iban not found
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAccountByIbanShouldWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
 
     }
@@ -165,21 +165,21 @@ public class AccountControllerTest {
     // ** TESTS FOR GET ALL ACCOUNTS BY USER ID
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void getAllAccountsByUserIdFromOtherUserWithRoleUserUnauthorized() throws Exception {
 
     }
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAllAccountsByUserIdShouldReturnStatusOkAndAccount() throws Exception {
 
     }
 
     // -- User id not found
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAllAccountsByUserIdWithNonExistingUserIdShouldReturnStatusNotFound() throws Exception {
 
     }
@@ -189,14 +189,14 @@ public class AccountControllerTest {
     // ** TESTS FOR GET ALL ACCOUNTS
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void getAllAccountsWithRoleUserUnauthorized() throws Exception {
 
     }
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void getAllAccountsShouldReturnStatusOkAndAccount() throws Exception {
 
     }
@@ -206,21 +206,21 @@ public class AccountControllerTest {
     // ** TESTS FOR SET ACCOUNT LIMIT
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setLimitWithRoleUserUnauthorized() throws Exception {
 
     }
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void SetLimitShouldReturnStatusOkAndNewLimit() throws Exception {
 
     }
 
     // -- Iban not found
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setLimitWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
 
     }
@@ -230,21 +230,21 @@ public class AccountControllerTest {
     // ** TESTS FOR SET ACCOUNT PIN
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setPinFromOtherUserWithRoleUserUnauthorized() throws Exception {
 
     }
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setPinShouldReturnStatusOkAndNewPin() throws Exception {
 
     }
 
     // -- Iban not found
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setPinWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
 
     }
@@ -254,23 +254,22 @@ public class AccountControllerTest {
     // ** TESTS FOR SET ACCOUNT STATUS
     // -- Authorization
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "bram@live.nl", password = "BramTest", roles = "USER")
     void setStatusWithRoleUserUnauthorized() throws Exception {
 
     }
 
     // -- Success and return values
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setStatusShouldReturnStatusOkAndNewStatus() throws Exception {
 
     }
 
     // -- Iban not found
     @Test
-    @WithMockUser(username = "", password = "", roles = "")
+    @WithMockUser(username = "mark@live.nl", password = "MarkTest", roles = "EMPLOYEE")
     void setStatusWithNonExistingIbanShouldReturnStatusNotFound() throws Exception {
 
     }
-
 }
