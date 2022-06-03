@@ -5,6 +5,7 @@ import io.swagger.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,6 +17,9 @@ public class AccountService {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
     private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTELIMIT = new BigDecimal(20);
@@ -63,8 +67,9 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    public Account createFromSeeder(Account account) {
-        return accountRepository.save(account);
+    public void createFromSeeder(Account account) {
+        account.setPin(passwordEncoder.encode(account.getPin()));
+        accountRepository.save(account);
     }
 
 
@@ -141,6 +146,6 @@ public class AccountService {
 
         // Create random pin with 4 digits
         Random rnd = new Random();
-        return String.format("%04d", rnd.nextInt(10000));
+        return passwordEncoder.encode(String.format("%04d", rnd.nextInt(10000)));
     }
 }
