@@ -8,6 +8,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import org.threeten.bp.LocalDate;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -29,7 +31,7 @@ public class TransactionService {
         return transactionRepoImpl.findAllCustom(startDate,endDate, ibanFrom,ibanTo,balanceOperator,balance,offset,limit);
     }
 
-    public List<Transaction> getAllFromToday(String iban) {
-        return transactionRepository.getAllFromToday(iban);
+    public BigDecimal getAllFromTodaySUM(String iban) {
+        return transactionRepository.getAllFromTodaySUM(iban);
     }
 }

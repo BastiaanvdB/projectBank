@@ -330,8 +330,7 @@ public class AccountsApiController implements AccountsApi {
             responseDTO.setIsValid(true);
             return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.OK);
         } else {
-            responseDTO.setIsValid(false);
-            return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "This pin was inccorect");
         }
     }
 

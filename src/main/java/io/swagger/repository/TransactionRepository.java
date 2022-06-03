@@ -5,11 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, String>, TransactionRepositoryCustom {
-    @Query(value = "SELECT t FROM Transaction t WHERE t.ibanFrom = :iban AND DATE('t.iat') = NOW()", nativeQuery = true)
-    List<Transaction> getAllFromToday(@Param("iban") String iban);
-
+    @Query(value = "SELECT SUM(t.amount) FROM Transaction t WHERE t.ibanFrom = :iban AND t.iat > CURRENT_DATE()")
+    BigDecimal getAllFromTodaySUM(String iban);
 }
