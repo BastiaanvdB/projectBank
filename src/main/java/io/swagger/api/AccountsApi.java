@@ -140,7 +140,7 @@ public interface AccountsApi {
             @ApiResponse(responseCode = "404", description = "Account with this iban could not be found")})
     @RequestMapping(value = "/accounts/authentication",
             produces = {"application/json"},
-            method = RequestMethod.GET)
+            method = RequestMethod.POST)
     ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount( @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody PinAuthenticateDTO body);
 }
 
