@@ -57,6 +57,8 @@ public class AccountsApiController implements AccountsApi {
     // constant data of the bank for validation
     private static final String IBAN_BANK = "NL01INHO0000000001";
     private static final String EMAIL_BANK = "bank@live.nl";
+    private static final String IBAN_COUNTRY_PREFIX = "NL";
+    private static final String IBAN_BANK_PREFIX = "INHO0";
 
     @Autowired
     private AccountService accountService;
@@ -170,11 +172,6 @@ public class AccountsApiController implements AccountsApi {
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
 
-        // add all user_ids to response as they are saved in user as property
-        for (int i = 0; i < responseDTOS.size(); i++) {
-            responseDTOS.get(i).setUserId(accounts.get(i).getUser().getId());
-        }
-
         // remove bank
         responseDTOS.removeIf(dto -> dto.getIban().equals(IBAN_BANK));
 
@@ -257,13 +254,8 @@ public class AccountsApiController implements AccountsApi {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
 
-        // validate token before getting the authorities
-        if (jwtTokenProvider.resolveToken(request) == null || !jwtTokenProvider.validateToken(jwtTokenProvider.resolveToken(request))) {
-            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
         // when pincode is wrong and user performing is not employee, throw exception, also throw exception when pincode is not 4 digits
-        if (!passwordEncoder.matches(body.getOldPincode(), account.getPin()) && !jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request)).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
+        if (!passwordEncoder.matches(body.getOldPincode(), account.getPin()) && !jwtTokenProvider.getAuthentication(getValidatedToken()).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong pincode!");
         }
         if (!body.getNewPincode().matches("[0-9]+") || body.getNewPincode().length() != 4) {
@@ -324,7 +316,7 @@ public class AccountsApiController implements AccountsApi {
         PinAuthenticateResponseDTO responseDTO = this.modelMapper.map(body, PinAuthenticateResponseDTO.class);
 
         // If pincodes match, set isValid to true and return response dto with http OK
-        // Otherwise set isValid to false and return response dto with http unauthorized
+        // Otherwise http unauthorized
         if (passwordEncoder.matches(body.getPincode(), account.getPin())) {
             responseDTO.setIsValid(true);
             return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.OK);
@@ -334,54 +326,49 @@ public class AccountsApiController implements AccountsApi {
     }
 
     // **** HELPER METHODS
-    private String generatePincode() {
-
-        // Create random pin with 4 digits
-        Random rnd = new Random();
-        return String.format("%04d", rnd.nextInt(10000));
-    }
-
     private void isValidIban(String iban) {
-
         if (iban.equals(IBAN_BANK) && !EMAIL_BANK.equals(this.getUsernameFromBearer())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No access to this account.");
         }
-
         // When length is not 18, throw illegal argument exception
         if (iban.length() != 18) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban must be 18 characters long.");
         }
-
+        // Check the country prefix
+        if (!iban.substring(0, 2).equals(IBAN_COUNTRY_PREFIX)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong country prefix, only NL is accepted.");
+        }
         // When number section of iban contains letters, throw illegal argument exception
-        Pattern pattern = Pattern.compile("[0-9]+");
-        Matcher matcher = pattern.matcher(iban.substring(10, 18));
-        if (!matcher.matches()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban identifier can only contain numbers.");
+        if (!iban.substring(2, 4).matches("[0-9]+") || !iban.substring(10, 18).matches("[0-9]+")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Iban identifiers can only contain numbers.");
         }
-    }
-
-    private String getUsernameFromBearer() {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String token = jwtTokenProvider.resolveToken(request);
-
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        // Check the bank prefix
+        if (!iban.substring(4, 9).equals(IBAN_BANK_PREFIX)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wrong bank prefix, only INHO0 is accepted.");
         }
-        return jwtTokenProvider.getUsername(token);
     }
 
     private boolean canUserPerform(String email) {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String token = jwtTokenProvider.resolveToken(request);
-
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
-        }
+        String token = getValidatedToken();
 
         // Check if username and email equal eachother to make sure, a normal user cannot perform actions on somebody elses account
         if (!jwtTokenProvider.getUsername(token).equals(email) && !jwtTokenProvider.getAuthentication(token).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
         return true;
+    }
+
+    private String getValidatedToken() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+        return token;
+    }
+
+    private String getUsernameFromBearer() {
+        return jwtTokenProvider.getUsername(getValidatedToken());
     }
 }
