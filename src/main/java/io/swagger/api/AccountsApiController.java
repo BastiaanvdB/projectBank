@@ -331,7 +331,7 @@ public class AccountsApiController implements AccountsApi {
             return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.OK);
         } else {
             responseDTO.setIsValid(false);
-            return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.BAD_REQUEST);
         }
     }
 
