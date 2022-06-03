@@ -6,6 +6,7 @@ import io.swagger.model.DTO.DepositDTO;
 import io.swagger.model.DTO.TransactionDTO;
 import io.swagger.model.DTO.WithdrawDTO;
 import io.swagger.model.ResponseDTO.DepositResponseDTO;
+import io.swagger.model.ResponseDTO.SpendResponseDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
 import io.swagger.model.entity.Account;
@@ -135,7 +136,7 @@ public class TransactionsApiController implements TransactionsApi {
                 } else {
                     //Continue
                     //Check for day limit is not getting exeeded
-                    if (accFrom.getUser().getDayLimit().compareTo(transaction.getAmount().add(getDaySpendings(accFrom.getIban()))) > 0) {
+                    if (accFrom.getUser().getDayLimit().compareTo(transaction.getAmount().add(getDaySpendingsSUM(accFrom.getIban()))) > 0) {
                         // Check if the transaction is not exeeding the transaction limit
                         if (accFrom.getUser().getTransactionLimit().compareTo(transaction.getAmount()) > 0) {
                             // Do Transaction and return response DTO
@@ -265,6 +266,12 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
 
+    // get the day spendings of the provided iban
+    @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
+    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN) {
+        return new ResponseEntity<SpendResponseDTO>(new SpendResponseDTO(getDaySpendingsSUM(IBAN)), HttpStatus.OK);
+    }
+
     // private functions
 
     // getTransactions
@@ -341,7 +348,8 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // get the day spendings of the provided iban
-    private BigDecimal getDaySpendings(String iban) {
+    private BigDecimal getDaySpendingsSUM(String iban) {
         return transactionService.getAllFromTodaySUM(iban);
     }
+
 }

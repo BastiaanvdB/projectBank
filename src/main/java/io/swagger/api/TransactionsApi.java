@@ -9,6 +9,7 @@ import io.swagger.model.DTO.DepositDTO;
 import io.swagger.model.DTO.TransactionDTO;
 import io.swagger.model.DTO.WithdrawDTO;
 import io.swagger.model.ResponseDTO.DepositResponseDTO;
+import io.swagger.model.ResponseDTO.SpendResponseDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +33,18 @@ import java.util.List;
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @Validated
 public interface TransactionsApi {
+    @Operation(summary = "Get the spends on this account for today", description = "This endpoint will give the total day spendings of the provided iban", security = {
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts" , "Transactions"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "total spends on this account for today", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = SpendResponseDTO.class)))),
+
+            @ApiResponse(responseCode = "400", description = "Invalid input, object invalid"),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+    @RequestMapping(value = "/accounts/{IBAN}/spend",
+            produces = {"application/json"},
+            method = RequestMethod.GET)
+    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN);
 
     @Operation(summary = "Create new transaction", description = "This endpoint will create a new transaction and will perform the transaction", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
