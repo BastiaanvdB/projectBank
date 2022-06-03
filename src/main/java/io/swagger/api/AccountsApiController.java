@@ -172,12 +172,11 @@ public class AccountsApiController implements AccountsApi {
 
         // add all user_ids to response as they are saved in user as property
         for (int i = 0; i < responseDTOS.size(); i++) {
-            if (responseDTOS.get(i).getIban().equals(IBAN_BANK)){ // remove bank account
-                responseDTOS.remove(i);
-                continue;
-            }
             responseDTOS.get(i).setUserId(accounts.get(i).getUser().getId());
         }
+
+        // remove bank
+        responseDTOS.removeIf(dto -> dto.getIban().equals(IBAN_BANK));
 
         // return all response dto's and http 200
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
