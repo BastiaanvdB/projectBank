@@ -27,15 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.threeten.bp.LocalDate;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,6 +57,8 @@ public class TransactionsApiController implements TransactionsApi {
     private JwtTokenProvider tokenProvider;
     @Autowired
     private UserService userService;
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @org.springframework.beans.factory.annotation.Autowired
     public TransactionsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -68,18 +68,25 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
-    public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) {
+    public ResponseEntity<TransactionResponseDTO> createTransaction(
+            @Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid
+            @RequestBody TransactionDTO body) {
         // Convert request to a Transaction
         Transaction transaction = this.modelMapper.map(body, Transaction.class);
 
         // check if the account is the same
-        if (transaction.getIbanFrom() == transaction.getIbanTo()){
+        if (transaction.getIbanFrom() == transaction.getIbanTo()) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Same account");
         }
 
         // get accounts for checks
         Account accFrom = accountService.getOneByIban(transaction.getIbanFrom());
         Account accTo = accountService.getOneByIban(transaction.getIbanTo());
+
+        // check if pin is correct
+        if (!passwordEncoder.matches(body.getPin(), accFrom.getPin())) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Incorrect Pin");
+        }
 
         // get token and username for further checks
         String token = tokenProvider.resolveToken(request);
@@ -133,26 +140,37 @@ public class TransactionsApiController implements TransactionsApi {
                         if (accFrom.getUser().getTransactionLimit().compareTo(transaction.getAmount()) > 0) {
                             // Do Transaction and return response DTO
                             return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
+                        } else {
+                            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "This transaction exceeds the transaction limit");
                         }
+                    } else {
+                        throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "With this transaction day limit will be exceeded");
                     }
                 }
             }
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
         }
-        return new ResponseEntity<TransactionResponseDTO>(HttpStatus.FORBIDDEN);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
-            @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,
-            @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) {
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer
+                    offset,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer
+                    limit,
+            @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate
+                    startDate,
+            @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate
+                    endDate,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String
+                    ibANFrom,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String
+                    ibANTo,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String
+                    balanceOperator,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String
+                    balance) {
 
         User user = getUserByToken();
         if (user.getRoles().contains(Role.ROLE_USER)) {
@@ -170,7 +188,10 @@ public class TransactionsApiController implements TransactionsApi {
 
     // from bank to user
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<DepositResponseDTO> createDeposit(@Size(min = 18, max = 18) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) {
+    public ResponseEntity<DepositResponseDTO> createDeposit
+    (@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String
+             IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO
+             body) {
         // map the DTO to transaction
         Transaction deposit = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -188,7 +209,10 @@ public class TransactionsApiController implements TransactionsApi {
 
     // from user to bank
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) {
+    public ResponseEntity<WithdrawResponseDTO> createWithdraw
+    (@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String
+             IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO
+             body) {
         // map the DTO to transaction
         Transaction withdraw = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -213,14 +237,21 @@ public class TransactionsApiController implements TransactionsApi {
 
     // route to other public get transactions
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(
-            @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
-            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
+            @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String
+                    iban,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String
+                    ibANTo,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String
+                    balanceOperator,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String
+                    balance,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer
+                    offset,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer
+                    limit,
             @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid
-            @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid
+            @RequestParam(value = "start_date", required = false) LocalDate
+                    startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid
             @RequestParam(value = "end_date", required = false) LocalDate endDate) {
 
         List<Transaction> all = this.getTransactions(startDate, endDate, iban, ibANTo, balanceOperator, balance, offset, limit);
@@ -237,7 +268,8 @@ public class TransactionsApiController implements TransactionsApi {
     // private functions
 
     // getTransactions
-    private List<Transaction> getTransactions(LocalDate startDate, LocalDate endDate, String ibANFrom, String  ibANTo, String balanceOperator, String balance, Integer offset, Integer limit) {
+    private List<Transaction> getTransactions(LocalDate startDate, LocalDate endDate, String ibANFrom, String
+            ibANTo, String balanceOperator, String balance, Integer offset, Integer limit) {
         // Check if offset and limit is not empty otherwise give default readings
         if (offset == null) {
             offset = 0;
@@ -310,11 +342,6 @@ public class TransactionsApiController implements TransactionsApi {
 
     // get the day spendings of the provided iban
     private BigDecimal getDaySpendings(String iban) {
-        List<Transaction> allTransactionsFromToday = transactionService.getAllFromToday(iban);
-        BigDecimal daySpendings = null;
-        for (Transaction trans : allTransactionsFromToday) {
-            daySpendings.add(trans.getAmount());
-        }
-        return daySpendings;
+        return transactionService.getAllFromTodaySUM(iban);
     }
 }

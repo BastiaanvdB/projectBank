@@ -24,6 +24,9 @@ public class TransactionDTO {
     @JsonProperty("ibanTo")
     private String ibanTo = null;
 
+    @JsonProperty("pin")
+    private String pin = null;
+
     @JsonProperty("amount")
     private BigDecimal amount = null;
 
@@ -32,6 +35,15 @@ public class TransactionDTO {
         return this;
     }
 
+
+
+    public String getPin() {
+        return pin;
+    }
+
+    public void setPin(String pin) {
+        this.pin = pin;
+    }
     /**
      * Get ibanFrom
      *
