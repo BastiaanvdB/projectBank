@@ -80,6 +80,11 @@ public class TransactionsApiController implements TransactionsApi {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Same account");
         }
 
+        //check if amount <= 0
+        if (body.getAmount().compareTo(BigDecimal.ZERO) <= 0){
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Trying negative or ZERO transaction amount");
+        }
+
         // get accounts for checks
         Account accFrom = accountService.getOneByIban(transaction.getIbanFrom());
         Account accTo = accountService.getOneByIban(transaction.getIbanTo());
