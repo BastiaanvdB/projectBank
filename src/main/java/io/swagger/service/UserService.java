@@ -45,14 +45,14 @@ public class UserService {
     }
 
     public String login(String email, String password) {
-        String token = "";
-
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         User user = findByEmail(email);
-        token = jwtTokenProvider.createToken(email, user.getRoles());
-
-        return token;
+        if (user.getActivated()) {
+            return jwtTokenProvider.createToken(email, user.getRoles());
+        } else {
+            return null;
+        }
     }
 
     public String EditUserAndToken(User user) {

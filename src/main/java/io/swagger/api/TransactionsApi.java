@@ -27,14 +27,13 @@ import org.springframework.web.bind.annotation.*;
 import org.threeten.bp.LocalDate;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 @Validated
 public interface TransactionsApi {
     @Operation(summary = "Get the spends on this account for today", description = "This endpoint will give the total day spendings of the provided iban", security = {
-            @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts" , "Transactions"})
+            @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts", "Transactions"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "total spends on this account for today", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = SpendResponseDTO.class)))),
 
@@ -111,10 +110,10 @@ public interface TransactionsApi {
             produces = {"application/json"},
             method = RequestMethod.GET)
     ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(
-            @Parameter(in = ParameterIn.PATH, description = "", required=true, schema=@Schema()) @PathVariable("iban") String iban,
-            @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
-            @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
-            @Parameter(in = ParameterIn.QUERY, description = "" ,schema=@Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance,
+            @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator,
+            @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance,
             @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
             @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
             @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,

@@ -2,22 +2,23 @@ package io.swagger.repository;
 
 import io.swagger.model.entity.Transaction;
 import org.springframework.stereotype.Repository;
-
-import javax.persistence.*;
-import javax.persistence.criteria.*;
-import javax.persistence.metamodel.Metamodel;
-import java.sql.Timestamp;
-
 import org.threeten.bp.LocalDate;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
     @PersistenceContext
     private EntityManager em;
+
     @Override
     public List<Transaction> findAllCustom(LocalDate startDate, LocalDate endDate, String ibanFrom, String ibanTo, String balanceOperator, String balance, Integer offset, Integer limit) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -39,9 +40,9 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
                 predicates.add(cb.greaterThan(trans.get("amount"), balance));
             } else if (balanceOperator.equals("<")) {
                 predicates.add(cb.lessThan(trans.get("amount"), balance));
-            }else if (balanceOperator.equals("<=")) {
+            } else if (balanceOperator.equals("<=")) {
                 predicates.add(cb.lessThanOrEqualTo(trans.get("amount"), balance));
-            }else if (balanceOperator.equals(">=")) {
+            } else if (balanceOperator.equals(">=")) {
                 predicates.add(cb.greaterThanOrEqualTo(trans.get("amount"), balance));
             }
         }
@@ -58,7 +59,7 @@ public class TransactionRepositoryImpl implements TransactionRepositoryCustom {
         }
 
         cq.where(predicates.toArray(new Predicate[0]));
-         return em.createQuery(cq)
+        return em.createQuery(cq)
                 .setFirstResult(offset) // offset of items
                 .setMaxResults(limit)   // limit of items return
                 .getResultList();

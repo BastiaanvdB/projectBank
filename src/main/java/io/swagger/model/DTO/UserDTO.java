@@ -125,7 +125,6 @@ public class UserDTO {
     }
 
 
-
     public void setCity(String city) {
         this.city = city;
     }

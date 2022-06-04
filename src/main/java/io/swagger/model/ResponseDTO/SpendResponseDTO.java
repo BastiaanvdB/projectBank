@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 
 public class SpendResponseDTO {
-    @JsonProperty("spend" )
+    @JsonProperty("spend")
     private BigDecimal spendMoney;
 
     public SpendResponseDTO(BigDecimal SUM) {

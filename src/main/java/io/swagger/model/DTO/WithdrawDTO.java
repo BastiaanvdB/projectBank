@@ -65,8 +65,6 @@ public class WithdrawDTO {
 //    public void setLocation(String location) {
 //        this.location = location;
 //    }
-
-
     @Override
     public boolean equals(java.lang.Object o) {
         if (this == o) {
@@ -76,7 +74,7 @@ public class WithdrawDTO {
             return false;
         }
         WithdrawDTO withdrawDTO = (WithdrawDTO) o;
-        return Objects.equals(this.amount, withdrawDTO.amount) ;
+        return Objects.equals(this.amount, withdrawDTO.amount);
 //        &&
 //                Objects.equals(this.location, withdrawDTO.location);
     }

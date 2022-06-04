@@ -61,13 +61,19 @@ public class UsersApiController implements UsersApi {
     }
 
 
-    private User checkTokenAndReturnUser(){
+    private User checkTokenAndReturnUser() {
         String token = jwtTokenProvider.resolveToken(request);
         if (token == null || !jwtTokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalid or expired");
         }
 
-        return userService.findByEmail(jwtTokenProvider.getUsername(token));
+        User user = userService.findByEmail(jwtTokenProvider.getUsername(token));
+
+        if (!user.getActivated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalid or expired");
+        }
+
+        return user;
     }
 
     public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
@@ -251,7 +257,7 @@ public class UsersApiController implements UsersApi {
         }
 
 
-        return new ResponseEntity("Password successfully changed!",HttpStatus.ACCEPTED);
+        return new ResponseEntity("Password successfully changed!", HttpStatus.ACCEPTED);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
@@ -278,7 +284,7 @@ public class UsersApiController implements UsersApi {
         user.setRoles(roles);
         userService.put(user);
 
-        return new ResponseEntity("Role successfully changed!",HttpStatus.ACCEPTED);
+        return new ResponseEntity("Role successfully changed!", HttpStatus.ACCEPTED);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
@@ -363,7 +369,7 @@ public class UsersApiController implements UsersApi {
     }
 
     public ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) {
-        String token = "";
+        String token = null;
 
         // Get token with data from POST body
 
@@ -373,6 +379,9 @@ public class UsersApiController implements UsersApi {
             return new ResponseEntity("Invalid user credentials.", HttpStatus.UNAUTHORIZED);
         }
 
+        if (token == null) {
+            return new ResponseEntity("Invalid user credentials.", HttpStatus.UNAUTHORIZED);
+        }
         // Create response body and set token
         InlineResponse200 res = new InlineResponse200();
         res.setToken(token);
@@ -391,7 +400,7 @@ public class UsersApiController implements UsersApi {
         User user = this.checkTokenAndReturnUser();
 
         if (user == null) {
-            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity("Token invalid or expired", HttpStatus.UNAUTHORIZED);
         }
 
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);

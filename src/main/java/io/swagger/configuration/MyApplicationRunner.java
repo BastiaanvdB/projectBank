@@ -5,7 +5,6 @@ import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
 import io.swagger.model.enumeration.Role;
-import io.swagger.repository.AccountRepository;
 import io.swagger.service.AccountService;
 import io.swagger.service.TransactionService;
 import io.swagger.service.UserService;

@@ -36,7 +36,6 @@ public class TransactionDTO {
     }
 
 
-
     public String getPin() {
         return pin;
     }
@@ -44,6 +43,7 @@ public class TransactionDTO {
     public void setPin(String pin) {
         this.pin = pin;
     }
+
     /**
      * Get ibanFrom
      *

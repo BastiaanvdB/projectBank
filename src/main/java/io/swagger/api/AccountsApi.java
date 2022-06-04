@@ -19,11 +19,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.threeten.bp.LocalDate;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
@@ -125,9 +123,6 @@ public interface AccountsApi {
     ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body);
 
 
-
-
-
     @Operation(summary = "Check pincode", description = "Check the pincode and the account of the iban", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
     @ApiResponses(value = {
@@ -141,6 +136,6 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/authentication",
             produces = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount( @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody PinAuthenticateDTO body);
+    ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount(@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody PinAuthenticateDTO body);
 }
 

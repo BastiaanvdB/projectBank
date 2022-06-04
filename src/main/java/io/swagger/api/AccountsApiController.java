@@ -5,7 +5,6 @@ import io.swagger.annotations.Api;
 import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.*;
 import io.swagger.model.entity.Account;
-import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
 import io.swagger.security.JwtTokenProvider;
@@ -26,18 +25,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
-import org.threeten.bp.LocalDate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.Size;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
@@ -86,7 +80,7 @@ public class AccountsApiController implements AccountsApi {
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) {
 
-        if (body.getUserId() == null || body.getType() == null){
+        if (body.getUserId() == null || body.getType() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incomplete data.");
         }
 
