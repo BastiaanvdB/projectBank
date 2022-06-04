@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -35,6 +36,13 @@ public class UserDTO {
 
     @JsonProperty("phone")
     private String phone = null;
+
+    @JsonProperty("day_limit")
+    private BigDecimal dayLimit = null;
+
+    @JsonProperty("transaction_Limit")
+    private BigDecimal transactionLimit = null;
+
 
     public UserDTO firstname(String firstname) {
         this.firstname = firstname;
@@ -116,6 +124,8 @@ public class UserDTO {
         return city;
     }
 
+
+
     public void setCity(String city) {
         this.city = city;
     }
@@ -162,6 +172,21 @@ public class UserDTO {
         this.email = email;
     }
 
+    public BigDecimal getDayLimit() {
+        return dayLimit;
+    }
+
+    public void setDayLimit(BigDecimal dayLimit) {
+        this.dayLimit = dayLimit;
+    }
+
+    public BigDecimal getTransactionLimit() {
+        return transactionLimit;
+    }
+
+    public void setTransactionLimit(BigDecimal transactionLimit) {
+        this.transactionLimit = transactionLimit;
+    }
 
     /**
      * Get role

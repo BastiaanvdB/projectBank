@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -57,6 +58,16 @@ public class UsersApiController implements UsersApi {
     public UsersApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
+    }
+
+
+    private User checkTokenAndReturnUser(){
+        String token = jwtTokenProvider.resolveToken(request);
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+        }
+
+        return userService.findByEmail(jwtTokenProvider.getUsername(token));
     }
 
     public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
@@ -94,7 +105,7 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
-    //    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) {
 
         if (offset == null) {
@@ -183,15 +194,12 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<List<UserResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<UserResponseDTO> getOneUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid) {
 
-        String token = jwtTokenProvider.resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        String userEmail = jwtTokenProvider.getUsername(token);
-        User user = userService.findByEmail(userEmail);
+        // gets user throughs jwt that makes the request
+        User user = this.checkTokenAndReturnUser();
 
         if (user.getId() != userid || !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
@@ -217,14 +225,10 @@ public class UsersApiController implements UsersApi {
 
         boolean force = false;
 
-        String token = jwtTokenProvider.resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        String userEmail = jwtTokenProvider.getUsername(token);
 
         // gets user throughs jwt that makes the request
-        User user = userService.findByEmail(userEmail);
+        User user = this.checkTokenAndReturnUser();
+
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             return new ResponseEntity("Not the authority to change password for user", HttpStatus.NOT_ACCEPTABLE);
@@ -247,10 +251,10 @@ public class UsersApiController implements UsersApi {
         }
 
 
-        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
+        return new ResponseEntity("Password successfully changed!",HttpStatus.ACCEPTED);
     }
 
-    //    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
 
@@ -274,10 +278,10 @@ public class UsersApiController implements UsersApi {
         user.setRoles(roles);
         userService.put(user);
 
-        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
+        return new ResponseEntity("Role successfully changed!",HttpStatus.ACCEPTED);
     }
 
-    //    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) {
 
@@ -293,9 +297,10 @@ public class UsersApiController implements UsersApi {
 
         userService.put(user);
 
-        return new ResponseEntity<Void>(HttpStatus.ACCEPTED);
+        return new ResponseEntity("Activation successfully changed!", HttpStatus.ACCEPTED);
     }
 
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<InlineResponse200> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) {
 
@@ -304,14 +309,8 @@ public class UsersApiController implements UsersApi {
         User newUserDetails = modelMapper.map(body, User.class);
 
 
-        String token = jwtTokenProvider.resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        String userEmail = jwtTokenProvider.getUsername(token);
-
         // gets user throughs jwt that makes the request
-        User user = userService.findByEmail(userEmail);
+        User user = this.checkTokenAndReturnUser();
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             return new ResponseEntity("Not the authority to update userdetails for requested user", HttpStatus.NOT_ACCEPTABLE);
@@ -348,8 +347,10 @@ public class UsersApiController implements UsersApi {
         user.setAddress(newUserDetails.getAddress());
         user.setPostalCode(newUserDetails.getPostalCode());
         user.setCity(newUserDetails.getCity());
+        user.setTransactionLimit(newUserDetails.getTransactionLimit());
+        user.setDayLimit(newUserDetails.getDayLimit());
 
-        token = userService.EditUserAndToken(user);
+        String token = userService.EditUserAndToken(user);
 
         if (!admin) {
             InlineResponse200 res = new InlineResponse200();
@@ -357,7 +358,7 @@ public class UsersApiController implements UsersApi {
             // Return new token with http status 200
             return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
         } else {
-            return new ResponseEntity<InlineResponse200>(HttpStatus.OK);
+            return new ResponseEntity("User has been updated!", HttpStatus.OK);
         }
     }
 
@@ -380,19 +381,14 @@ public class UsersApiController implements UsersApi {
         return new ResponseEntity<InlineResponse200>(res, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<UserResponseDTO> usersCurrentGet() {
 
 
         ModelMapper modelMapper = new ModelMapper();
 
-        String token = jwtTokenProvider.resolveToken(request);
-        if (token == null || !jwtTokenProvider.validateToken(token)) {
-            return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        String userEmail = jwtTokenProvider.getUsername(token);
-
         // gets user throughs jwt that makes the request
-        User user = userService.findByEmail(userEmail);
+        User user = this.checkTokenAndReturnUser();
 
         if (user == null) {
             return new ResponseEntity("Token invalid or expired", HttpStatus.UNPROCESSABLE_ENTITY);
