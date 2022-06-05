@@ -349,6 +349,13 @@ public class AccountsApiController implements AccountsApi {
         if (!jwtTokenProvider.getUsername(token).equals(email) && !jwtTokenProvider.getAuthentication(token).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
         }
+
+        User user = userService.findByEmail(jwtTokenProvider.getUsername(token));
+
+        if (!user.getActivated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalid or expired");
+        }
+
         return true;
     }
 
@@ -359,6 +366,7 @@ public class AccountsApiController implements AccountsApi {
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
         }
+
         return token;
     }
 
