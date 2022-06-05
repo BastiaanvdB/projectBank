@@ -194,6 +194,8 @@ public class AccountsApiController implements AccountsApi {
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
 
+        responseDTOS.removeIf(dto -> !dto.isActivated());
+
         // Return the repsonse dto's
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
     }
