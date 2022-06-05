@@ -327,13 +327,18 @@ public class TransactionsApiController implements TransactionsApi {
 
     // fetch the user by token
     private User getUserByToken() {
-        // get token and username for further checks
         String token = tokenProvider.resolveToken(request);
         if (token == null || !tokenProvider.validateToken(token)) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Token invalid or expired");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalid or expired");
         }
-        String username = tokenProvider.getUsername(token);
-        return userService.findByEmail(username);
+
+        User user = userService.findByEmail(tokenProvider.getUsername(token));
+
+        if (!user.getActivated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalid or expired");
+        }
+
+        return user;
     }
 
     // Checks if the user is the owner of the account
