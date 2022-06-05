@@ -76,6 +76,7 @@ public class UsersApiController implements UsersApi {
         return user;
     }
 
+
     public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
 
         ModelMapper modelMapper = new ModelMapper();
@@ -122,8 +123,12 @@ public class UsersApiController implements UsersApi {
             limit = 10;
         }
 
+        //check user his token
+        checkTokenAndReturnUser();
+
         // Get all users from service, create model mapper
         List<User> users = userService.getAll(offset, limit);
+
         ModelMapper modelMapper = new ModelMapper();
         List<User> usersFilteredNames = new ArrayList<>();
         List<User> usersFilteredStatus = new ArrayList<>();
@@ -131,7 +136,7 @@ public class UsersApiController implements UsersApi {
 
         // filters users on firstname, lastname or both
         for (User s : users) {
-
+        if(s.getEmail() != "bank@live.nl") {
             if (firstname != null && lastname == null) {
                 if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase())) {
                     usersFilteredNames.add(s);
@@ -154,6 +159,7 @@ public class UsersApiController implements UsersApi {
             if (firstname == null && lastname == null) {
                 usersFilteredNames.add(s);
             }
+        }
         }
 
 
@@ -207,10 +213,9 @@ public class UsersApiController implements UsersApi {
         // gets user throughs jwt that makes the request
         User user = this.checkTokenAndReturnUser();
 
-        if (user.getId() != userid || !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-                return new ResponseEntity("Not allowed to get user!", HttpStatus.NOT_ACCEPTABLE);
-            }
+        // check if user request himself or not
+        if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+            return new ResponseEntity("Not allowed to get user!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         User requestedUser = userService.getOne(userid);
@@ -231,11 +236,10 @@ public class UsersApiController implements UsersApi {
 
         boolean force = false;
 
-
         // gets user throughs jwt that makes the request
         User user = this.checkTokenAndReturnUser();
 
-
+        //check if user want to change himself
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             return new ResponseEntity("Not the authority to change password for user", HttpStatus.NOT_ACCEPTABLE);
         }
@@ -249,13 +253,11 @@ public class UsersApiController implements UsersApi {
             force = true;
         }
 
-
         try {
             userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
         } catch (AuthenticationException ex) {
             return new ResponseEntity("Current password is invalid!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
-
 
         return new ResponseEntity("Password successfully changed!", HttpStatus.ACCEPTED);
     }
@@ -263,6 +265,9 @@ public class UsersApiController implements UsersApi {
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
+
+        //check user his token
+        checkTokenAndReturnUser();
 
         // checks if atleast one rola has been given
         if (body.getRoles().size() == 0 || body.getRoles() == null) {
@@ -291,6 +296,8 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) {
 
+        //check user his token
+        checkTokenAndReturnUser();
 
         User user = userService.getOne(userid);
 
