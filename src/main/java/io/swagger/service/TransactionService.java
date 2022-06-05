@@ -31,6 +31,8 @@ public class TransactionService {
     }
 
     public BigDecimal getAllFromTodaySUM(String iban) {
-        return transactionRepository.getAllFromTodaySUM(iban);
+        BigDecimal var = transactionRepository.getAllFromTodaySUM(iban);
+        if (var.equals(null)) {var = BigDecimal.ZERO;}
+        return var;
     }
 }
