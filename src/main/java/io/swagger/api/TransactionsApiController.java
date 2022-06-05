@@ -82,7 +82,7 @@ public class TransactionsApiController implements TransactionsApi {
         }
 
         //check if amount <= 0
-        if (body.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (transaction.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Trying negative or ZERO transaction amount");
         }
 
