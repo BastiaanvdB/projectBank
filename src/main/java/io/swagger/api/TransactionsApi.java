@@ -39,7 +39,11 @@ public interface TransactionsApi {
 
             @ApiResponse(responseCode = "400", description = "Invalid input, object invalid"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
+            @ApiResponse(responseCode = "422", description = "We have no account with this iban")})
+
+
     @RequestMapping(value = "/accounts/{IBAN}/spend",
             produces = {"application/json"},
             method = RequestMethod.GET)
@@ -52,7 +56,10 @@ public interface TransactionsApi {
 
             @ApiResponse(responseCode = "400", description = "Invalid input, object invalid"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
+            @ApiResponse(responseCode = "404", description = "We have no account with this iban"),
+    })
     @RequestMapping(value = "/transactions",
             produces = {"application/json"},
             consumes = {"application/json"},
@@ -67,7 +74,10 @@ public interface TransactionsApi {
 
             @ApiResponse(responseCode = "400", description = "Transactions could not be found"),
 
-            @ApiResponse(responseCode = "403", description = "Forbidden")})
+            @ApiResponse(responseCode = "401", description = "Forbidden"),
+
+            @ApiResponse(responseCode = "406", description = "Not Acceptable"),
+    })
     @RequestMapping(value = "/transactions",
             produces = {"application/json"},
             method = RequestMethod.GET)
@@ -78,7 +88,7 @@ public interface TransactionsApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "The newly made deposit", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = DepositResponseDTO.class)))),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint")})
     @RequestMapping(value = "/accounts/{IBAN}/deposit",
             produces = {"application/json"},
             consumes = {"application/json"},
@@ -90,8 +100,8 @@ public interface TransactionsApi {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "The newly made withdraw", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = WithdrawResponseDTO.class)))),
-
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+            @ApiResponse(responseCode = "400", description = "Not enough money on this account"),
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint")})
     @RequestMapping(value = "/accounts/{IBAN}/withdraw",
             produces = {"application/json"},
             consumes = {"application/json"},
@@ -103,7 +113,7 @@ public interface TransactionsApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All transactions", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = TransactionResponseDTO.class)))),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
 
             @ApiResponse(responseCode = "404", description = "Account with this iban could not be found")})
     @RequestMapping(value = "/accounts/{iban}/transactions",
