@@ -136,30 +136,30 @@ public class UsersApiController implements UsersApi {
 
         // filters users on firstname, lastname or both
         for (User s : users) {
-        if(s.getEmail() != "bank@live.nl") {
-            if (firstname != null && lastname == null) {
-                if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase())) {
+            if (s.getEmail() != "bank@bbcbank.nl") {
+                if (firstname != null && lastname == null) {
+                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase())) {
+                        usersFilteredNames.add(s);
+                    }
+                }
+
+                if (firstname == null && lastname != null) {
+                    if (s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
+                        usersFilteredNames.add(s);
+                    }
+                }
+
+                if (firstname != null && lastname != null) {
+
+                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase()) && s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
+                        usersFilteredNames.add(s);
+                    }
+                }
+
+                if (firstname == null && lastname == null) {
                     usersFilteredNames.add(s);
                 }
             }
-
-            if (firstname == null && lastname != null) {
-                if (s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
-                    usersFilteredNames.add(s);
-                }
-            }
-
-            if (firstname != null && lastname != null) {
-
-                if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase()) && s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
-                    usersFilteredNames.add(s);
-                }
-            }
-
-            if (firstname == null && lastname == null) {
-                usersFilteredNames.add(s);
-            }
-        }
         }
 
 
