@@ -34,6 +34,8 @@ public interface UsersApi {
     @Operation(summary = "Creating a new user", description = "", tags = {"Users"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User has been created.", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponseDTO.class)))),
+            @ApiResponse(responseCode = "422", description = "Fields are missing!"),
+            @ApiResponse(responseCode = "406", description = "Input doesnt meet requirements!"),
     })
     @RequestMapping(value = "/users/signup",
             produces = {"application/json"},
@@ -47,9 +49,7 @@ public interface UsersApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All users", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserResponseDTO.class)))),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-
-            @ApiResponse(responseCode = "404", description = "No user could could be found")})
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint")})
     @RequestMapping(value = "/users",
             produces = {"application/json"},
             method = RequestMethod.GET)
@@ -61,9 +61,9 @@ public interface UsersApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "One user", content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDTO.class))),
 
-            @ApiResponse(responseCode = "400", description = "User with this id could not be found"),
+            @ApiResponse(responseCode = "404", description = "No user found with provided userid!"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+            @ApiResponse(responseCode = "401", description = "Not allowed to get user!")})
     @RequestMapping(value = "/users/{userid}",
             produces = {"application/json"},
             method = RequestMethod.GET)
@@ -74,11 +74,12 @@ public interface UsersApi {
     @Operation(summary = "Change password of specific user", description = "", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User password is updated"),
+            @ApiResponse(responseCode = "200", description = "Password successfully changed!"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+            @ApiResponse(responseCode = "401", description = "Not the authority to change password for user"),
 
-            @ApiResponse(responseCode = "404", description = "User not found with given id")})
+            @ApiResponse(responseCode = "404", description = "No user found with provided userid!"),
+            @ApiResponse(responseCode = "406", description = "Input doesnt meet requirements!")})
     @RequestMapping(value = "/users/{userid}/password",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
@@ -89,11 +90,12 @@ public interface UsersApi {
     @Operation(summary = "Change role of specific user", description = "", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User role is updated"),
+            @ApiResponse(responseCode = "200", description = "Role successfully changed!"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+            @ApiResponse(responseCode = "422", description = "No role provided for user!"),
 
-            @ApiResponse(responseCode = "404", description = "User not found with given id")})
+            @ApiResponse(responseCode = "404", description = "No user found with provided userid!")})
     @RequestMapping(value = "/users/{userid}/role",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
@@ -104,11 +106,11 @@ public interface UsersApi {
     @Operation(summary = "Change activation status of specific user", description = "", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User activation is updated"),
+            @ApiResponse(responseCode = "200", description = "Activation successfully changed!"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
 
-            @ApiResponse(responseCode = "404", description = "User not found with given id")})
+            @ApiResponse(responseCode = "404", description = "No user found with provided userid!")})
     @RequestMapping(value = "/users/{userid}/activation",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
@@ -119,11 +121,11 @@ public interface UsersApi {
     @Operation(summary = "Update a specific user", description = "", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User is updated"),
-
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
-
-            @ApiResponse(responseCode = "404", description = "User not found with given id")})
+            @ApiResponse(responseCode = "200", description = "User has been updated!"),
+            @ApiResponse(responseCode = "422", description = "Fields are missing!"),
+            @ApiResponse(responseCode = "406", description = "Email already has been used!"),
+            @ApiResponse(responseCode = "401", description = "Not the authority to update userdetails for requested user"),
+            @ApiResponse(responseCode = "404", description = "No user found with provided userid!")})
     @RequestMapping(value = "/users/{userid}",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
@@ -135,7 +137,7 @@ public interface UsersApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Authentication OK", content = @Content(mediaType = "application/json", schema = @Schema(implementation = InlineResponse200.class))),
 
-            @ApiResponse(responseCode = "401", description = "Authentication failed")})
+            @ApiResponse(responseCode = "401", description = "Invalid user credentials")})
     @RequestMapping(value = "/users/login",
             produces = {"application/json"},
             consumes = {"application/json"},

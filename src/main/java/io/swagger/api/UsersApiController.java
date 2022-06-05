@@ -88,7 +88,7 @@ public class UsersApiController implements UsersApi {
         }
 
         if (!EmailValidator.getInstance().isValid(user.getEmail())) {
-            return new ResponseEntity("Enter a correct email!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("Enter a correct email!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         if (userService.findByEmail(user.getEmail()) != null) {
@@ -215,13 +215,13 @@ public class UsersApiController implements UsersApi {
 
         // check if user request himself or not
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            return new ResponseEntity("Not allowed to get user!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("Not allowed to get user!", HttpStatus.UNAUTHORIZED);
         }
 
         User requestedUser = userService.getOne(userid);
 
         if (requestedUser == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
         }
 
         ModelMapper modelMapper = new ModelMapper();
@@ -241,7 +241,7 @@ public class UsersApiController implements UsersApi {
 
         //check if user want to change himself
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            return new ResponseEntity("Not the authority to change password for user", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("Not the authority to change password for user", HttpStatus.UNAUTHORIZED);
         }
 
         if (body.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || body.getNewPassword().length() < 6) {
@@ -253,10 +253,14 @@ public class UsersApiController implements UsersApi {
             force = true;
         }
 
+        if (user == null) {
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
+        }
+
         try {
             userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
         } catch (AuthenticationException ex) {
-            return new ResponseEntity("Current password is invalid!", HttpStatus.UNPROCESSABLE_ENTITY);
+            return new ResponseEntity("Current password is invalid!", HttpStatus.NOT_ACCEPTABLE);
         }
 
         return new ResponseEntity("Password successfully changed!", HttpStatus.ACCEPTED);
@@ -271,7 +275,7 @@ public class UsersApiController implements UsersApi {
 
         // checks if atleast one rola has been given
         if (body.getRoles().size() == 0 || body.getRoles() == null) {
-            return new ResponseEntity("No role provided for user!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("No role provided for user!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         List<Role> roles = new ArrayList<>();
@@ -283,7 +287,7 @@ public class UsersApiController implements UsersApi {
 
         //checks if user by userid exists
         if (user == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
         }
 
         user.setRoles(roles);
@@ -303,7 +307,7 @@ public class UsersApiController implements UsersApi {
 
         //checks if user by userid exists
         if (user == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
         }
 
         user.setActivated(body.isActivated());
@@ -326,7 +330,7 @@ public class UsersApiController implements UsersApi {
         User user = this.checkTokenAndReturnUser();
 
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            return new ResponseEntity("Not the authority to update userdetails for requested user", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("Not the authority to update userdetails for requested user", HttpStatus.UNAUTHORIZED);
         }
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
@@ -334,12 +338,16 @@ public class UsersApiController implements UsersApi {
             user = userService.getOne(userid);
         }
 
+        if (user == null) {
+            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
+        }
+
         if (newUserDetails.getFirstname().length() < 2 || newUserDetails.getLastname().length() < 2 || newUserDetails.getPhone().length() < 10 || newUserDetails.getPostalCode().length() < 6 || newUserDetails.getCity().length() < 2 || newUserDetails.getAddress().length() < 2) {
             return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
         if (!EmailValidator.getInstance().isValid(newUserDetails.getEmail())) {
-            return new ResponseEntity("Enter a correct email!", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("Enter a correct email!", HttpStatus.UNPROCESSABLE_ENTITY);
         }
 
 
