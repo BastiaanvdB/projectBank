@@ -31,9 +31,6 @@ public class AccountResponseDTO {
     @JsonProperty("user_Id")
     private Integer userId = null;
 
-//  @JsonProperty("employee_Id")
-//  private Integer employeeId = null;
-
     @JsonProperty("balance")
     private BigDecimal balance = null;
 
@@ -126,31 +123,6 @@ public class AccountResponseDTO {
     public void setUserId(Integer userId) {
         this.userId = userId;
     }
-
-//  public AccountResponseDTO employeeId(Integer employeeId) {
-//    this.employeeId = employeeId;
-//    return this;
-//  }
-
-    /**
-     * Get employeeId
-     * @return employeeId
-     **/
-//  @Schema(example = "2", required = true, description = "")
-//      @NotNull
-//
-//    public Integer getEmployeeId() {
-//    return employeeId;
-//  }
-//
-//  public void setEmployeeId(Integer employeeId) {
-//    this.employeeId = employeeId;
-//  }
-//
-//  public AccountResponseDTO balance(BigDecimal balance) {
-//    this.balance = balance;
-//    return this;
-//  }
 
     /**
      * Get balance
@@ -246,7 +218,6 @@ public class AccountResponseDTO {
         sb.append("    type: ").append(toIndentedString(type)).append("\n");
         sb.append("    pin: ").append(toIndentedString(pin)).append("\n");
         sb.append("    userId: ").append(toIndentedString(userId)).append("\n");
-        //sb.append("    employeeId: ").append(toIndentedString(employeeId)).append("\n");
         sb.append("    balance: ").append(toIndentedString(balance)).append("\n");
         sb.append("    absoluteLimit: ").append(toIndentedString(absoluteLimit)).append("\n");
         sb.append("    activated: ").append(toIndentedString(activated)).append("\n");

@@ -81,7 +81,7 @@ public class AccountsApiController implements AccountsApi {
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) {
 
         if (body.getUserId() == null || body.getType() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incomplete data.");
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "User id and/or account type are missing!");
         }
 
         // Map dto body to account class
@@ -127,7 +127,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
         }
 
         // Use mapper to map account to account response data transfer object
@@ -187,12 +187,14 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(accounts.get(0).getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
         }
 
         // Map all accounts to response data transfer objects
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
+
+        responseDTOS.removeIf(dto -> !dto.isActivated());
 
         // Return the repsonse dto's
         return new ResponseEntity<List<AccountResponseDTO>>(responseDTOS, HttpStatus.OK);
@@ -201,6 +203,10 @@ public class AccountsApiController implements AccountsApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) {
+
+        if (body.getAbsoluteLimit() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account limit is missing!");
+        }
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -215,7 +221,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
         }
 
         // Set the limit with value from body and update the account
@@ -232,6 +238,10 @@ public class AccountsApiController implements AccountsApi {
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountPincodeResponseDTO> setAccountPin(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountPincodeDTO body) {
 
+        if (body.getOldPincode() == null || body.getNewPincode() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Old pincode and/or new pincode are missing!");
+        }
+
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
 
@@ -245,7 +255,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
         }
 
         // when pincode is wrong and user performing is not employee, throw exception, also throw exception when pincode is not 4 digits
@@ -269,6 +279,10 @@ public class AccountsApiController implements AccountsApi {
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body) {
+
+        if (body.isActivated() == null) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account status is missing!");
+        }
 
         // Call validation method to validate the iban given as parameter
         isValidIban(iban);
@@ -315,7 +329,7 @@ public class AccountsApiController implements AccountsApi {
             responseDTO.setIsValid(true);
             return new ResponseEntity<PinAuthenticateResponseDTO>(responseDTO, HttpStatus.OK);
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "This pin was inccorect");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "This pin was incorrect");
         }
     }
 
@@ -347,7 +361,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Check if username and email equal eachother to make sure, a normal user cannot perform actions on somebody elses account
         if (!jwtTokenProvider.getUsername(token).equals(email) && !jwtTokenProvider.getAuthentication(token).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Forbidden");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
         }
 
         User user = userService.findByEmail(jwtTokenProvider.getUsername(token));

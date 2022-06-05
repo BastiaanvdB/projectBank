@@ -33,7 +33,11 @@ public interface AccountsApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Newly created account with iban NLxx ABNAxxxxxxxxxxx"),
 
-            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
+            @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
+
+            @ApiResponse(responseCode = "422", description = "User id and/or account type are missing!")})
     @RequestMapping(value = "/accounts",
             consumes = {"application/json"},
             method = RequestMethod.POST)
@@ -44,6 +48,8 @@ public interface AccountsApi {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "One user account", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AccountResponseDTO.class))),
+
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
 
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
 
@@ -60,6 +66,8 @@ public interface AccountsApi {
 
             @ApiResponse(responseCode = "400", description = "User with this id could not be found"),
 
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint")})
     @RequestMapping(value = "/users/{userid}/accounts",
             produces = {"application/json"},
@@ -71,6 +79,8 @@ public interface AccountsApi {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "All user accounts", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccountResponseDTO.class)))),
+
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
 
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
 
@@ -86,6 +96,8 @@ public interface AccountsApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Absolute Limit is updated"),
 
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
 
             @ApiResponse(responseCode = "404", description = "account not found with given iban")})
@@ -100,9 +112,13 @@ public interface AccountsApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "account pincode is updated"),
 
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
 
-            @ApiResponse(responseCode = "404", description = "account not found with given iban")})
+            @ApiResponse(responseCode = "404", description = "account not found with given iban"),
+
+            @ApiResponse(responseCode = "422", description = "Account limit is missing!")})
     @RequestMapping(value = "/accounts/{iban}/pincode",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
@@ -114,9 +130,13 @@ public interface AccountsApi {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Account activation is updated"),
 
+            @ApiResponse(responseCode = "401", description = "Not authorized for this endpoint"),
+
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
 
-            @ApiResponse(responseCode = "404", description = "Account not found with given iban")})
+            @ApiResponse(responseCode = "404", description = "Account not found with given iban"),
+
+            @ApiResponse(responseCode = "422", description = "Old pincode and/or new pincode are missing!")})
     @RequestMapping(value = "/accounts/{iban}/activation",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
@@ -132,7 +152,9 @@ public interface AccountsApi {
 
             @ApiResponse(responseCode = "403", description = "Not authorized for this endpoint"),
 
-            @ApiResponse(responseCode = "404", description = "Account with this iban could not be found")})
+            @ApiResponse(responseCode = "404", description = "Account with this iban could not be found"),
+
+            @ApiResponse(responseCode = "422", description = "Account status is missing!")})
     @RequestMapping(value = "/accounts/authentication",
             produces = {"application/json"},
             method = RequestMethod.POST)
