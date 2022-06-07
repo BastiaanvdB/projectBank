@@ -185,11 +185,11 @@ public class UsersApiController implements UsersApi {
         if (hasAccount != null) {
             for (User s : usersFilteredStatus) {
                 if (hasAccount) {
-                    if (accountService.getAllByUserId(s.getId()) != null) {
+                    if (accountService.getAllByUserId(s.getId()).size() > 0 && accountService.getAllByUserId(s.getId()) != null) {
                         userFilteredHasAccount.add(s);
                     }
                 } else {
-                    if (accountService.getAllByUserId(s.getId()) == null) {
+                    if (accountService.getAllByUserId(s.getId()).size() == 0 && accountService.getAllByUserId(s.getId()) != null) {
                         userFilteredHasAccount.add(s);
                     }
                 }

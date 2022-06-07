@@ -15,32 +15,9 @@ import java.util.Objects;
 
 
 public class AuthorizationResponse {
-    @JsonProperty("id")
-    private Integer id = null;
 
     @JsonProperty("token")
     private String token = null;
-
-    public AuthorizationResponse id(Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    /**
-     * Get id
-     *
-     * @return id
-     **/
-    @Schema(example = "1", required = true, description = "")
-    @NotNull
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public AuthorizationResponse token(String token) {
         this.token = token;
@@ -73,13 +50,12 @@ public class AuthorizationResponse {
             return false;
         }
         AuthorizationResponse authorizationResponse = (AuthorizationResponse) o;
-        return Objects.equals(this.id, authorizationResponse.id) &&
-                Objects.equals(this.token, authorizationResponse.token);
+            return Objects.equals(this.token, authorizationResponse.token);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, token);
+        return Objects.hash(token);
     }
 
     @Override
@@ -87,7 +63,6 @@ public class AuthorizationResponse {
         StringBuilder sb = new StringBuilder();
         sb.append("class AuthorizationResponse {\n");
 
-        sb.append("    id: ").append(toIndentedString(id)).append("\n");
         sb.append("    token: ").append(toIndentedString(token)).append("\n");
         sb.append("}");
         return sb.toString();

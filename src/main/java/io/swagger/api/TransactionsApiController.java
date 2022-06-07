@@ -131,7 +131,7 @@ public class TransactionsApiController implements TransactionsApi {
                         return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
                     }
                 } else {
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have no access to this account");
                 }
             } else {
                 // Do normal transaction
@@ -156,7 +156,7 @@ public class TransactionsApiController implements TransactionsApi {
                 }
             }
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have no access to this account");
         }
     }
 
@@ -182,7 +182,7 @@ public class TransactionsApiController implements TransactionsApi {
         User user = getUserByToken();
         if (user.getRoles().contains(Role.ROLE_USER)) {
             if (!isUserOwner(user, ibANFrom)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have no acces to this account");
             }
         }
         // get ze transactions
@@ -268,7 +268,6 @@ public class TransactionsApiController implements TransactionsApi {
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = all.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
-        //return getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
     }
 
 
