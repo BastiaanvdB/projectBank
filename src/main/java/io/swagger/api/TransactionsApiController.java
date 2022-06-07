@@ -182,7 +182,7 @@ public class TransactionsApiController implements TransactionsApi {
         User user = getUserByToken();
         if (user.getRoles().contains(Role.ROLE_USER)) {
             if (!isUserOwner(user, ibANFrom)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no acces to this account");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have no acces to this account");
             }
         }
         // get ze transactions
