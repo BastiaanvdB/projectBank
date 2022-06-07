@@ -156,7 +156,7 @@ public class TransactionsApiController implements TransactionsApi {
                 }
             }
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have no access to this account");
         }
     }
 
