@@ -321,7 +321,7 @@ public class UsersApiController implements UsersApi {
     public ResponseEntity<InlineResponse200> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) {
 
-        boolean admin = false;
+        boolean adminforce = false;
         ModelMapper modelMapper = new ModelMapper();
         User newUserDetails = modelMapper.map(body, User.class);
 
@@ -334,8 +334,13 @@ public class UsersApiController implements UsersApi {
         }
 
         if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-            admin = true;
+
+            if(userid != user.getId()){
+                adminforce=true;
+            }
+
             user = userService.getOne(userid);
+
         }
 
         if (user == null) {
@@ -373,7 +378,7 @@ public class UsersApiController implements UsersApi {
 
         String token = userService.EditUserAndToken(user);
 
-        if (!admin) {
+        if (!adminforce) {
             InlineResponse200 res = new InlineResponse200();
             res.setToken(token);
             // Return new token with http status 200
