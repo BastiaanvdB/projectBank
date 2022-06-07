@@ -268,7 +268,6 @@ public class TransactionsApiController implements TransactionsApi {
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = all.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
-        //return getAllTransactions(offset, limit, startDate, endDate, iban, ibANTo, balanceOperator, balance);
     }
 
 
