@@ -189,7 +189,7 @@ public class UsersApiController implements UsersApi {
                         userFilteredHasAccount.add(s);
                     }
                 } else {
-                    if (accountService.getAllByUserId(s.getId()) == null) {
+                    if (accountService.getAllByUserId(s.getId()).size() == 0) {
                         userFilteredHasAccount.add(s);
                     }
                 }
