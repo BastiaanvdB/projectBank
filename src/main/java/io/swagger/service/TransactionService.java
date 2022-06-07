@@ -32,7 +32,7 @@ public class TransactionService {
 
     public BigDecimal getAllFromTodaySUM(String iban) {
         BigDecimal var = transactionRepository.getAllFromTodaySUM(iban);
-        if (var.equals(null)) {var = BigDecimal.ZERO;}
+        if (var == null) {var = BigDecimal.ZERO;}
         return var;
     }
 }
