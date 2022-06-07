@@ -187,7 +187,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(accounts.get(0).getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for these accounts!");
         }
 
         // Map all accounts to response data transfer objects
@@ -221,7 +221,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this action!");
         }
 
         // Set the limit with value from body and update the account
@@ -255,7 +255,7 @@ public class AccountsApiController implements AccountsApi {
 
         // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this action!");
         }
 
         // when pincode is wrong and user performing is not employee, throw exception, also throw exception when pincode is not 4 digits
