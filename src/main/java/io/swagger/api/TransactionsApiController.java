@@ -131,7 +131,7 @@ public class TransactionsApiController implements TransactionsApi {
                         return new ResponseEntity<TransactionResponseDTO>(this.doTransaction(transaction, user), HttpStatus.OK);
                     }
                 } else {
-                    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You have no access to this account");
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have no access to this account");
                 }
             } else {
                 // Do normal transaction
