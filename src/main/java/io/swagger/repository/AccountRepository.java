@@ -16,7 +16,7 @@ import java.util.List;
 public interface AccountRepository extends JpaRepository<Account, String> {
 
     // Get by property
-    @Query(value = "SELECT a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED FROM Account a WHERE a.iban = ?1", nativeQuery = true)
+    @Query(value = "SELECT a FROM Account a WHERE a.iban = ?1")
     public Account findAccountByIban(String iban);
 
     @Query(value = "SELECT a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED FROM Account a WHERE a.USER_ID = ?1", nativeQuery = true)
