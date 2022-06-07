@@ -25,9 +25,6 @@ public class AccountResponseDTO {
     @JsonProperty("type")
     private AccountType type = null;
 
-    @JsonProperty("pin")
-    private String pin = null;
-
     @JsonProperty("user_Id")
     private Integer userId = null;
 
@@ -81,31 +78,6 @@ public class AccountResponseDTO {
 
     public void setType(AccountType type) {
         this.type = type;
-    }
-
-    public AccountResponseDTO pin(String pin) {
-        this.pin = pin;
-        return this;
-    }
-
-    /**
-     * Get pin
-     *
-     * @return pin
-     **/
-    @Schema(example = "1234", description = "")
-
-    public String getPin() {
-        return pin;
-    }
-
-    public void setPin(String pin) {
-        this.pin = pin;
-    }
-
-    public AccountResponseDTO userId(Integer userId) {
-        this.userId = userId;
-        return this;
     }
 
     /**
@@ -196,9 +168,7 @@ public class AccountResponseDTO {
         AccountResponseDTO accountResponseDTO = (AccountResponseDTO) o;
         return Objects.equals(this.iban, accountResponseDTO.iban) &&
                 Objects.equals(this.type, accountResponseDTO.type) &&
-                Objects.equals(this.pin, accountResponseDTO.pin) &&
                 Objects.equals(this.userId, accountResponseDTO.userId) &&
-                //Objects.equals(this.employeeId, accountResponseDTO.employeeId) &&
                 Objects.equals(this.balance, accountResponseDTO.balance) &&
                 Objects.equals(this.absoluteLimit, accountResponseDTO.absoluteLimit) &&
                 Objects.equals(this.activated, accountResponseDTO.activated);
@@ -206,7 +176,7 @@ public class AccountResponseDTO {
 
     @Override
     public int hashCode() {
-        return Objects.hash(iban, type, pin, userId, balance, absoluteLimit, activated);
+        return Objects.hash(iban, type, userId, balance, absoluteLimit, activated);
     }
 
     @Override
@@ -216,7 +186,6 @@ public class AccountResponseDTO {
 
         sb.append("    iban: ").append(toIndentedString(iban)).append("\n");
         sb.append("    type: ").append(toIndentedString(type)).append("\n");
-        sb.append("    pin: ").append(toIndentedString(pin)).append("\n");
         sb.append("    userId: ").append(toIndentedString(userId)).append("\n");
         sb.append("    balance: ").append(toIndentedString(balance)).append("\n");
         sb.append("    absoluteLimit: ").append(toIndentedString(absoluteLimit)).append("\n");

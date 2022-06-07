@@ -71,7 +71,6 @@ public class DepositDTO {
         sb.append("class DepositDTO {\n");
 
         sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
-//        sb.append("    location: ").append(toIndentedString(location)).append("\n");
         sb.append("}");
         return sb.toString();
     }
