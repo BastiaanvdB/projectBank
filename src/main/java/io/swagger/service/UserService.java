@@ -1,7 +1,9 @@
 package io.swagger.service;
 
+import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.repository.UserRepository;
 import io.swagger.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -94,11 +94,17 @@ public class UserService {
         return user;
     }
 
-    public User addFromSeeder(User user) {
-
+    public void addFromSeeder(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
-        return user;
+    }
+
+    public void addAccountToUser(User user, Account account) throws UserNotFoundException {
+        if (user == null) {
+            throw new UserNotFoundException("User not found");
+        }
+        user.setAccounts(new HashSet<>(List.of(account)));
+        userRepository.save(user);
     }
 
 
