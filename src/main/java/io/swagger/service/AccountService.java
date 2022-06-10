@@ -27,17 +27,15 @@ public class AccountService {
 
     @Autowired
     private AccountRepository accountRepository;
-
     @Autowired
     PasswordEncoder passwordEncoder;
-
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
 
 
     private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
-    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTELIMIT = new BigDecimal(20);
+    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTE_LIMIT = new BigDecimal(20);
     private static final Boolean DEFAULT_ACCOUNT_ACTIVATION = true;
     private static final String IBAN_BANK = "NL01INHO0000000001";
     private static final String EMAIL_BANK = "bank@live.nl";
@@ -48,6 +46,8 @@ public class AccountService {
 
 
 
+
+    // ** Create an account + underlying sub methods
     public Account createAccount(Account account, User employee) {
         Account finalAccount = setAccountProperties(account, employee);
         return accountRepository.save(finalAccount);
@@ -57,7 +57,7 @@ public class AccountService {
         account.setIban(this.generateIban());
         account.setBalance(DEFAULT_ACCOUNT_BALANCE);
         account.setActivated(DEFAULT_ACCOUNT_ACTIVATION);
-        account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTELIMIT);
+        account.setAbsoluteLimit(DEFAULT_ACCOUNT_ABSOLUTE_LIMIT);
         account.setPin(generatePin());
         account.setEmployeeId(employee.getId());
         return account;
@@ -96,8 +96,7 @@ public class AccountService {
 
 
 
-
-
+    // ** Get one account for iban + underlying sub methods
     public Account getOneByIban(String iban) throws AccountNotFoundException, InvalidIbanException {
         isValidIban(iban);
         Account account = accountRepository.findAccountByIban(iban);
@@ -139,7 +138,7 @@ public class AccountService {
 
 
 
-
+    // ** Get all accounts + underlying sub methods
     public List<Account> getAll(int offset, int limit) {
         return accountRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
@@ -156,8 +155,7 @@ public class AccountService {
 
 
 
-
-
+    // ** Get all accounts for a user
     public List<Account> getAllByUserId(int userId) throws AccountNotFoundException {
         List<Account> accounts = accountRepository.findAllByUserid(userId);
 
@@ -170,8 +168,7 @@ public class AccountService {
 
 
 
-
-
+    // ** Set new limit for account
     public void updateLimit(String iban, BigDecimal limit) throws InvalidIbanException, AccountNotFoundException {
         Account account = getOneByIban(iban);
         account.setAbsoluteLimit(limit);
@@ -181,8 +178,7 @@ public class AccountService {
 
 
 
-
-
+    // ** Set new pin for account + underlying sub methods
     public void updatePin(Account account, String oldPin, String newPin) throws InvalidPincodeException {
         isOldPinValid(account, oldPin);
         isNewPinValid(newPin);
@@ -203,13 +199,17 @@ public class AccountService {
 
 
 
-
-
+    // ** Set new status for account
     public void updateStatus(String iban, Boolean isActivated) throws InvalidIbanException, AccountNotFoundException {
         Account account = getOneByIban(iban);
         account.setActivated(isActivated);
         accountRepository.updateStatus(account.getActivated(), account.getIban());
     }
+
+
+
+
+    // ** Authenticate account
     public Boolean authenticateAccount(String iban, String pin) throws InvalidIbanException, AccountNotFoundException {
         Account account = getOneByIban(iban);
         return passwordEncoder.matches(pin, account.getPin());
@@ -218,11 +218,14 @@ public class AccountService {
 
 
 
-
+    // !!((Van Cees??))!!
     public void updateBalance(Account account) {
         accountRepository.updateLimit(account.getAbsoluteLimit(), account.getIban());
     }
 
+
+
+    // ** HELPER METHODS
     private String getUsernameFromBearer() {
         return jwtTokenProvider.getUsername(getValidatedToken());
     }

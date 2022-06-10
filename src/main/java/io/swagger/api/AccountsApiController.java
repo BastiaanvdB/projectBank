@@ -43,31 +43,20 @@ import java.util.stream.Collectors;
 public class AccountsApiController implements AccountsApi {
 
     private static final Logger log = LoggerFactory.getLogger(AccountsApiController.class);
-
     private final ObjectMapper objectMapper;
-
     private final HttpServletRequest request;
-
     private final ModelMapper modelMapper;
 
-    // constant data of the bank for validation
     private static final String IBAN_BANK = "NL01INHO0000000001";
-    private static final String EMAIL_BANK = "bank@live.nl";
-    private static final String IBAN_COUNTRY_PREFIX = "NL";
-    private static final String IBAN_BANK_PREFIX = "INHO0";
 
     @Autowired
     private AccountService accountService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
     @Autowired
     PasswordEncoder passwordEncoder;
-
     @Autowired
     private TransactionsApiController transactionsApiController;
 
@@ -80,7 +69,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Create account
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) throws UserNotFoundException {
         if (body.getUserId() == null || body.getType() == null) {
@@ -102,6 +91,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
+    // ** Get all accounts for iban
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban) throws AccountNotFoundException, InvalidIbanException {
         Account account = accountService.getOneByIban(iban);
@@ -119,7 +109,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Get all accounts
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
 
@@ -152,7 +142,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Get all accounts for a user
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
     )) @PathVariable("userid") Integer userid) throws AccountNotFoundException {
@@ -172,7 +162,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Set new account limit
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) throws AccountNotFoundException, InvalidIbanException {
         if (body.getAbsoluteLimit() == null) {
@@ -188,7 +178,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Set new account pin
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountPincodeResponseDTO> setAccountPin(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountPincodeDTO body) throws AccountNotFoundException, InvalidIbanException, InvalidPincodeException {
         if (body.getOldPincode() == null || body.getNewPincode() == null) {
@@ -211,7 +201,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Set new account status
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body) throws AccountNotFoundException, InvalidIbanException {
         if (body.isActivated() == null) {
@@ -227,7 +217,7 @@ public class AccountsApiController implements AccountsApi {
 
 
 
-
+    // ** Authenticate account
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount(PinAuthenticateDTO body) throws AccountNotFoundException, InvalidIbanException, InvalidPincodeException {
         PinAuthenticateResponseDTO responseDTO = this.modelMapper.map(body, PinAuthenticateResponseDTO.class);
