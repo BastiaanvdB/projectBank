@@ -57,8 +57,6 @@ public class AccountsApiController implements AccountsApi {
     private JwtTokenProvider jwtTokenProvider;
     @Autowired
     PasswordEncoder passwordEncoder;
-    @Autowired
-    private TransactionsApiController transactionsApiController;
 
     @org.springframework.beans.factory.annotation.Autowired
     public AccountsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
