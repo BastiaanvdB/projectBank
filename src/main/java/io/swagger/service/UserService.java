@@ -31,6 +31,12 @@ public class UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+
+    private static final BigDecimal DEFAULT_DAY_LIMIT = new BigDecimal(200);
+    private static final BigDecimal DEFAULT_TRANSACTION_LIMIT = new BigDecimal(1000);
+    private static final ArrayList<Role> DEFAULT_ROLE = new ArrayList<>(List.of(Role.ROLE_USER));
+
+
     public List<User> getAll(Integer offset, Integer limit) {
         return userRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
@@ -84,9 +90,9 @@ public class UserService {
     public User signup(User user) {
 
 
-        user.setTransactionLimit(new BigDecimal(1000));
-        user.setDayLimit(new BigDecimal(200));
-        user.setRoles(new ArrayList<>(List.of(Role.ROLE_USER)));
+        user.setTransactionLimit(DEFAULT_TRANSACTION_LIMIT);
+        user.setDayLimit(DEFAULT_DAY_LIMIT);
+        user.setRoles(DEFAULT_ROLE);
         user.setActivated(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);

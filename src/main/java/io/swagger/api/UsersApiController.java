@@ -85,14 +85,6 @@ public class UsersApiController implements UsersApi {
         User user = modelMapper.map(body, User.class);
 
 
-        if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
-            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        if (!EmailValidator.getInstance().isValid(user.getEmail())) {
-            return new ResponseEntity("Enter a correct email!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
         if (userService.findByEmail(user.getEmail()) != null) {
             return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
         }
@@ -348,15 +340,6 @@ public class UsersApiController implements UsersApi {
         if (user == null) {
             return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
         }
-
-        if (newUserDetails.getFirstname().length() < 2 || newUserDetails.getLastname().length() < 2 || newUserDetails.getPhone().length() < 10 || newUserDetails.getPostalCode().length() < 6 || newUserDetails.getCity().length() < 2 || newUserDetails.getAddress().length() < 2) {
-            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        if (!EmailValidator.getInstance().isValid(newUserDetails.getEmail())) {
-            return new ResponseEntity("Enter a correct email!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
 
         //check if new email already has been taken
         User checkUser = userService.findByEmail(newUserDetails.getEmail());
