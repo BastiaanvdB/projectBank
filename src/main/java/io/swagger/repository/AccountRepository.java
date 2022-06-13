@@ -6,31 +6,33 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Repository
 public interface AccountRepository extends JpaRepository<Account, String> {
 
     // Get by property
-    @Query(value = "SELECT * FROM Account a WHERE a.iban = ?1", nativeQuery = true)
+    @Query(value = "SELECT a FROM Account a WHERE a.iban = ?1")
     public Account findAccountByIban(String iban);
 
-    @Query(value = "SELECT * FROM Account a WHERE a.USER_ID = ?1", nativeQuery = true)
+    @Query(value = "SELECT a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED FROM Account a WHERE a.USER_ID = ?1", nativeQuery = true)
     public List<Account> findAllByUserid(int userId);
 
-    @Query(value = "SELECT * from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
+    @Query(value = "SELECT a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED from Account a ORDER BY a.iban DESC LIMIT 1", nativeQuery = true)
     public Account findLastAccountEntry();
 
     // Get with join
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}%", nativeQuery = true)
+    @Query(value = "Select a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED from ACCOUNT a LEFT JOIN USER ON a.USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}%", nativeQuery = true)
     List<Account> findAllByFirstname(PageRequest of, @Param("firstname") String firstname);
 
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
+    @Query(value = "Select a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED from ACCOUNT a LEFT JOIN USER ON a.USER_ID=USER.ID WHERE USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
     public List<Account> findAllByLastname(PageRequest of, @Param("lastname") String lastname);
 
-    @Query(value = "Select * from ACCOUNT LEFT JOIN USER ON USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}% OR USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
+    @Query(value = "Select a.IBAN, a.TYPE, a.USER_ID, a.EMPLOYEE_ID, a.BALANCE, a.PIN, a.ABSOLUTE_LIMIT, a.ACTIVATED from ACCOUNT a LEFT JOIN USER ON a.USER_ID=USER.ID WHERE USER.FIRSTNAME LIKE %?#{#firstname}% OR USER.LASTNAME LIKE %?#{#lastname}%", nativeQuery = true)
     public List<Account> findAllByFirstAndLastname(PageRequest of, @Param("firstname") String firstname, @Param("lastname") String lastname);
 
     // Update queries
@@ -38,6 +40,11 @@ public interface AccountRepository extends JpaRepository<Account, String> {
     @Modifying
     @Query(value = "UPDATE Account a SET a.absoluteLimit = ?1 WHERE a.iban = ?2")
     public void updateLimit(BigDecimal limit, String iban);
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE Account a SET a.balance = ?1 WHERE a.iban = ?2")
+    public void updateBalance(BigDecimal limit, String iban);
 
     @Transactional
     @Modifying

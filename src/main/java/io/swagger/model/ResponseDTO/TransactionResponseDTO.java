@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 /**
@@ -31,7 +32,7 @@ public class TransactionResponseDTO {
     private BigDecimal amount = null;
 
     @JsonProperty("iat")
-    private Integer iat = null;
+    private Timestamp iat = null;
 
     public TransactionResponseDTO ibanFrom(String ibanFrom) {
         this.ibanFrom = ibanFrom;
@@ -120,7 +121,7 @@ public class TransactionResponseDTO {
         this.amount = amount;
     }
 
-    public TransactionResponseDTO iat(Integer iat) {
+    public TransactionResponseDTO iat(Timestamp iat) {
         this.iat = iat;
         return this;
     }
@@ -133,11 +134,11 @@ public class TransactionResponseDTO {
     @Schema(example = "1650466380", required = true, description = "")
     @NotNull
 
-    public Integer getIat() {
+    public Timestamp getIat() {
         return iat;
     }
 
-    public void setIat(Integer iat) {
+    public void setIat(Timestamp iat) {
         this.iat = iat;
     }
 

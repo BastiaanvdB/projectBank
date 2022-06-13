@@ -14,12 +14,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 
 @Configuration
@@ -39,7 +33,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
             ".webjars/**",
             "/api-docs/**",
             "/swagger-ui/**",
-//            "/**/**/**"
+            "/**/**/**"
     };
 
     @Override
@@ -62,7 +56,7 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
     }
-    
+
     // Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {

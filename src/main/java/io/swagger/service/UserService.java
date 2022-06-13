@@ -1,7 +1,9 @@
 package io.swagger.service;
 
+import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.repository.UserRepository;
 import io.swagger.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -31,28 +31,34 @@ public class UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+
+    private static final BigDecimal DEFAULT_DAY_LIMIT = new BigDecimal(200);
+    private static final BigDecimal DEFAULT_TRANSACTION_LIMIT = new BigDecimal(1000);
+    private static final ArrayList<Role> DEFAULT_ROLE = new ArrayList<>(List.of(Role.ROLE_USER));
+
+
     public List<User> getAll(Integer offset, Integer limit) {
         return userRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
 
-    public User getOne(int id) {
+    public User getOne(int id) throws UserNotFoundException {
         Optional userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             return (User) userOptional.get();
         } else {
-            return null;
+            throw new UserNotFoundException("User not found");
         }
     }
 
     public String login(String email, String password) {
-        String token = "";
-
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         User user = findByEmail(email);
-        token = jwtTokenProvider.createToken(email, user.getRoles());
-
-        return token;
+        if (user.getActivated()) {
+            return jwtTokenProvider.createToken(email, user.getRoles());
+        } else {
+            return null;
+        }
     }
 
     public String EditUserAndToken(User user) {
@@ -84,9 +90,9 @@ public class UserService {
     public User signup(User user) {
 
 
-        user.setTransactionLimit(new BigDecimal(1000));
-        user.setDayLimit(new BigDecimal(200));
-        user.setRoles(new ArrayList<>(List.of(Role.ROLE_USER)));
+        user.setTransactionLimit(DEFAULT_TRANSACTION_LIMIT);
+        user.setDayLimit(DEFAULT_DAY_LIMIT);
+        user.setRoles(DEFAULT_ROLE);
         user.setActivated(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
@@ -94,11 +100,17 @@ public class UserService {
         return user;
     }
 
-    public User addFromSeeder(User user) {
-
+    public void addFromSeeder(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
-        return user;
+    }
+
+    public void addAccountToUser(User user, Account account) throws UserNotFoundException {
+        if (user == null) {
+            throw new UserNotFoundException("User not found");
+        }
+        user.setAccounts(new HashSet<>(List.of(account)));
+        userRepository.save(user);
     }
 
 

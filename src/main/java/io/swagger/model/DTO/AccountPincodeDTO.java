@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
@@ -16,9 +17,13 @@ import java.util.Objects;
 
 public class AccountPincodeDTO {
     @JsonProperty("oldPincode")
+    @NotNull(message = "Please enter old pincode!")
+    @NotEmpty(message = "Please enter old pincode!")
     private String oldPincode = null;
 
     @JsonProperty("newPincode")
+    @NotNull(message = "Please enter new pincode!")
+    @NotEmpty(message = "Please enter old pincode!")
     private String newPincode = null;
 
     public AccountPincodeDTO oldPincode(String oldPincode) {
