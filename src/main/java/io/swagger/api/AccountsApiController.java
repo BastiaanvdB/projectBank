@@ -72,10 +72,6 @@ public class AccountsApiController implements AccountsApi {
     // ** Create account
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) throws UserNotFoundException {
-        if (body.getUserId() == null || body.getType() == null) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "User id and/or account type are missing!");
-        }
-
         Account account = this.modelMapper.map(body, Account.class);
         User employee = userService.findByEmail(getUsernameFromBearer());
         User user = userService.getOne(body.getUserId());
@@ -96,7 +92,6 @@ public class AccountsApiController implements AccountsApi {
     public ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban) throws AccountNotFoundException, InvalidIbanException {
         Account account = accountService.getOneByIban(iban);
 
-        // Make sure users can only perform on their own account
         if (!canUserPerform(account.getUser().getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this endpoint!");
         }
@@ -164,9 +159,6 @@ public class AccountsApiController implements AccountsApi {
     // ** Set new account limit
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) throws AccountNotFoundException, InvalidIbanException {
-        if (body.getAbsoluteLimit() == null) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account limit is missing!");
-        }
         accountService.updateLimit(iban, body.getAbsoluteLimit());
         AccountAbsoluteLimitResponseDTO responseDTO = this.modelMapper.map(body, AccountAbsoluteLimitResponseDTO.class);
         return new ResponseEntity<AccountAbsoluteLimitResponseDTO>(responseDTO, HttpStatus.OK);
@@ -180,10 +172,6 @@ public class AccountsApiController implements AccountsApi {
     // ** Set new account pin
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<AccountPincodeResponseDTO> setAccountPin(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountPincodeDTO body) throws AccountNotFoundException, InvalidIbanException, InvalidPincodeException {
-        if (body.getOldPincode() == null || body.getNewPincode() == null) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Old pincode and/or new pincode are missing!");
-        }
-
         Account account = accountService.getOneByIban(iban);
         if (!canUserPerform(account.getUser().getEmail())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not authorized for this action!");
@@ -203,9 +191,6 @@ public class AccountsApiController implements AccountsApi {
     // ** Set new account status
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body) throws AccountNotFoundException, InvalidIbanException {
-        if (body.isActivated() == null) {
-            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Account status is missing!");
-        }
         accountService.updateStatus(iban, body.isActivated());
         AccountActivationResponseDTO responseDTO = this.modelMapper.map(body, AccountActivationResponseDTO.class);
         return new ResponseEntity<AccountActivationResponseDTO>(responseDTO, HttpStatus.OK);
