@@ -35,12 +35,12 @@ public class UserService {
         return userRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
 
-    public User getOne(int id) {
+    public User getOne(int id) throws UserNotFoundException {
         Optional userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             return (User) userOptional.get();
         } else {
-            return null;
+            throw new UserNotFoundException("User not found");
         }
     }
 

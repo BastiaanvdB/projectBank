@@ -22,6 +22,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 
+import static io.swagger.configuration.BankConstants.*;
+
 @Service
 public class AccountService {
 
@@ -31,17 +33,6 @@ public class AccountService {
     PasswordEncoder passwordEncoder;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
-
-
-    private static final BigDecimal DEFAULT_ACCOUNT_BALANCE = new BigDecimal(0);
-    private static final BigDecimal DEFAULT_ACCOUNT_ABSOLUTE_LIMIT = new BigDecimal(20);
-    private static final Boolean DEFAULT_ACCOUNT_ACTIVATION = true;
-    private static final String IBAN_BANK = "NL01INHO0000000001";
-    private static final String EMAIL_BANK = "bank@live.nl";
-    private static final String IBAN_COUNTRY_PREFIX = "NL";
-    private static final String IBAN_BANK_PREFIX = "INHO0";
-    private static final String REGEX_NUMBERS_ONLY = "[0-9]+";
     private final Random random = new Random();
 
 
@@ -162,6 +153,7 @@ public class AccountService {
         if (accounts.isEmpty()) {
             throw new AccountNotFoundException("No accounts found with provided user");
         }
+        accounts.removeIf(account -> !account.getActivated());
         return accountRepository.findAllByUserid(userId);
     }
 
