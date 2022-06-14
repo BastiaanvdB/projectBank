@@ -14,6 +14,8 @@ import io.swagger.model.entity.Transaction;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
 import io.swagger.model.enumeration.Role;
+import io.swagger.model.exception.AccountNotFoundException;
+import io.swagger.model.exception.InvalidIbanException;
 import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.TransactionService;
@@ -72,7 +74,7 @@ public class TransactionsApiController implements TransactionsApi {
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(
             @Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid
-            @RequestBody TransactionDTO body) {
+            @RequestBody TransactionDTO body) throws AccountNotFoundException, InvalidIbanException {
         // Convert request to a Transaction
         Transaction transaction = this.modelMapper.map(body, Transaction.class);
 
@@ -177,7 +179,7 @@ public class TransactionsApiController implements TransactionsApi {
             @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String
                     balanceOperator,
             @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String
-                    balance) {
+                    balance) throws AccountNotFoundException, InvalidIbanException {
 
         User user = getUserByToken();
         if (user.getRoles().contains(Role.ROLE_USER)) {
@@ -198,7 +200,7 @@ public class TransactionsApiController implements TransactionsApi {
     public ResponseEntity<DepositResponseDTO> createDeposit
     (@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String
              IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO
-             body) {
+             body) throws AccountNotFoundException, InvalidIbanException {
         // map the DTO to transaction
         Transaction deposit = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -219,7 +221,7 @@ public class TransactionsApiController implements TransactionsApi {
     public ResponseEntity<WithdrawResponseDTO> createWithdraw
     (@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String
              IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO
-             body) {
+             body) throws AccountNotFoundException, InvalidIbanException {
         // map the DTO to transaction
         Transaction withdraw = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right posistion
@@ -300,7 +302,7 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // executes the transaction
-    private TransactionResponseDTO doTransaction(Transaction transaction, User user) {
+    private TransactionResponseDTO doTransaction(Transaction transaction, User user) throws AccountNotFoundException, InvalidIbanException {
         // Do Transaction and map it to a response DTO
         transaction.setIssuedBy(user.getId());
         Transaction model = transactionService.createTransaction(transaction);
@@ -341,7 +343,7 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // Checks if the user is the owner of the account
-    private boolean isUserOwner(User user, String iban) {
+    private boolean isUserOwner(User user, String iban) throws AccountNotFoundException, InvalidIbanException {
         Account acc = accountService.getOneByIban(iban);
         if (acc.getUser() != user) {
             return false;
@@ -349,7 +351,7 @@ public class TransactionsApiController implements TransactionsApi {
     }
 
     // Check if the account can do this transaction
-    private boolean checkBalanceForTransaction(String iban, BigDecimal amount) {
+    private boolean checkBalanceForTransaction(String iban, BigDecimal amount) throws AccountNotFoundException, InvalidIbanException {
         Account acc = accountService.getOneByIban(iban);
         if ((acc.getBalance().subtract(amount)).compareTo(acc.getAbsoluteLimit()) < 0) {
             return false;

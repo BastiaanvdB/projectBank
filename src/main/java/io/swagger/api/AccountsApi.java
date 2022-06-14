@@ -7,6 +7,10 @@ package io.swagger.api;
 
 import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.*;
+import io.swagger.model.exception.AccountNotFoundException;
+import io.swagger.model.exception.InvalidIbanException;
+import io.swagger.model.exception.InvalidPincodeException;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -41,7 +45,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts",
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body);
+    ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) throws UserNotFoundException;
 
 
     @Operation(summary = "Get one specific account", description = "Get one account with a specific iban given as parameter", security = {
@@ -57,7 +61,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban);
+    ResponseEntity<AccountResponseDTO> getAccountByIban(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban) throws AccountNotFoundException, InvalidIbanException;
 
     @Operation(summary = "Get all accounts of specific user", description = "Get all the accounts of the user with the id given as parameter", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
@@ -73,7 +77,7 @@ public interface AccountsApi {
             produces = {"application/json"},
             method = RequestMethod.GET)
     ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid);
+    )) @PathVariable("userid") Integer userid) throws AccountNotFoundException;
 
     @Operation(summary = "Get all available accounts", description = "This endpoint will provide all available accounts when logged as an employee, otherwise it will return only the logged customer data.", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
@@ -104,7 +108,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
-    ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body);
+    ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) throws AccountNotFoundException, InvalidIbanException;
 
 
     @Operation(summary = "Update pincode of specific account", description = "", security = {
@@ -122,7 +126,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}/pincode",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
-    ResponseEntity<AccountPincodeResponseDTO> setAccountPin(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountPincodeDTO body);
+    ResponseEntity<AccountPincodeResponseDTO> setAccountPin(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the pincode of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountPincodeDTO body) throws AccountNotFoundException, InvalidIbanException, InvalidPincodeException;
 
 
     @Operation(summary = "Update activation of specific account", description = "", security = {
@@ -140,7 +144,7 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/{iban}/activation",
             consumes = {"application/json"},
             method = RequestMethod.PUT)
-    ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body);
+    ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body) throws AccountNotFoundException, InvalidIbanException;
 
 
     @Operation(summary = "Check pincode", description = "Check the pincode and the account of the iban", security = {
@@ -158,6 +162,6 @@ public interface AccountsApi {
     @RequestMapping(value = "/accounts/authentication",
             produces = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount(@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody PinAuthenticateDTO body);
+    ResponseEntity<PinAuthenticateResponseDTO> authenticateAcount(@Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody PinAuthenticateDTO body) throws AccountNotFoundException, InvalidIbanException, InvalidPincodeException;
 }
 

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
@@ -16,9 +18,14 @@ import java.util.Objects;
 
 public class LoginDTO {
     @JsonProperty("email")
+    @NotEmpty(message = "Please Enter a email")
+    @Email(message = "Please Enter a correct email")
+    @NotNull(message = "Please Enter a email")
     private String email = null;
 
     @JsonProperty("password")
+    @NotEmpty(message = "Please Enter a password")
+    @NotNull(message = "Please Enter a password")
     private String password = null;
 
     public LoginDTO email(String email) {

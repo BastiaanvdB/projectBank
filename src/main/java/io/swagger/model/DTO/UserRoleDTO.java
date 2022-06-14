@@ -3,6 +3,8 @@ package io.swagger.model.DTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,8 @@ import java.util.List;
 
 public class UserRoleDTO {
     @JsonProperty("roles")
+    @NotNull(message = "Please enter a role")
+    @NotEmpty(message = "Please enter a role")
     private List<Integer> roles = new ArrayList<>();
 
 

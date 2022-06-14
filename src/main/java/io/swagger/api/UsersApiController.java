@@ -8,6 +8,8 @@ import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
+import io.swagger.model.exception.AccountNotFoundException;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
@@ -83,14 +85,6 @@ public class UsersApiController implements UsersApi {
         User user = modelMapper.map(body, User.class);
 
 
-        if (user.getFirstname().length() < 2 || user.getLastname().length() < 2 || user.getPhone().length() < 10 || user.getPostalCode().length() < 6 || user.getCity().length() < 2 || user.getAddress().length() < 2) {
-            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        if (!EmailValidator.getInstance().isValid(user.getEmail())) {
-            return new ResponseEntity("Enter a correct email!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
         if (userService.findByEmail(user.getEmail()) != null) {
             return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
         }
@@ -113,7 +107,7 @@ public class UsersApiController implements UsersApi {
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) {
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) throws AccountNotFoundException {
 
         if (offset == null) {
             offset = 0;
@@ -208,7 +202,7 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<UserResponseDTO> getOneUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid) {
+    )) @PathVariable("userid") Integer userid) throws UserNotFoundException {
 
         // gets user throughs jwt that makes the request
         User user = this.checkTokenAndReturnUser();
@@ -232,7 +226,7 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException {
 
         boolean force = false;
 
@@ -268,7 +262,7 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) throws UserNotFoundException {
 
         //check user his token
         checkTokenAndReturnUser();
@@ -298,7 +292,7 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) throws UserNotFoundException {
 
         //check user his token
         checkTokenAndReturnUser();
@@ -319,7 +313,7 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<InlineResponse200> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) throws UserNotFoundException {
 
         boolean adminforce = false;
         ModelMapper modelMapper = new ModelMapper();
@@ -346,15 +340,6 @@ public class UsersApiController implements UsersApi {
         if (user == null) {
             return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
         }
-
-        if (newUserDetails.getFirstname().length() < 2 || newUserDetails.getLastname().length() < 2 || newUserDetails.getPhone().length() < 10 || newUserDetails.getPostalCode().length() < 6 || newUserDetails.getCity().length() < 2 || newUserDetails.getAddress().length() < 2) {
-            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
-        if (!EmailValidator.getInstance().isValid(newUserDetails.getEmail())) {
-            return new ResponseEntity("Enter a correct email!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
 
         //check if new email already has been taken
         User checkUser = userService.findByEmail(newUserDetails.getEmail());
