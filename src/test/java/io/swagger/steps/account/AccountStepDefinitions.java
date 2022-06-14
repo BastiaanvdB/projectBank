@@ -18,7 +18,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-public class AccountStepDefs extends BaseStepDefinitions {
+public class AccountStepDefinitions extends BaseStepDefinitions {
 
     private LoginDTO loginDTO;
     private ResponseEntity<String> response;
