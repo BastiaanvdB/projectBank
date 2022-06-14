@@ -267,10 +267,10 @@ public class UsersApiController implements UsersApi {
         //check user his token
         checkTokenAndReturnUser();
 
-        // checks if atleast one rola has been given
-        if (body.getRoles().size() == 0 || body.getRoles() == null) {
-            return new ResponseEntity("No role provided for user!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
+//        // checks if atleast one rola has been given
+//        if (body.getRoles().size() == 0 || body.getRoles() == null) {
+//            return new ResponseEntity("No role provided for user!", HttpStatus.UNPROCESSABLE_ENTITY);
+//        }
 
         List<Role> roles = new ArrayList<>();
         for (Integer r : body.getRoles()) {
