@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.Objects;
 
 /**
@@ -18,7 +18,6 @@ import java.util.Objects;
 public class UserActivationDTO {
     @JsonProperty("activated")
     @NotNull(message = "Please enter a activation status")
-    @NotEmpty(message = "Please enter a activation status")
     private Boolean activated = null;
 
     public UserActivationDTO activated(Boolean activated) {

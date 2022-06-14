@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
@@ -18,14 +19,15 @@ import java.util.Objects;
 
 public class LoginDTO {
     @JsonProperty("email")
-    @NotEmpty(message = "Please Enter a email")
-    @Email(message = "Please Enter a correct email")
-    @NotNull(message = "Please Enter a email")
+    @NotEmpty(message = "Please enter a email")
+    @Email(message = "Please enter a correct email")
+    @NotNull(message = "Please enter a email")
     private String email = null;
 
     @JsonProperty("password")
-    @NotEmpty(message = "Please Enter a password")
-    @NotNull(message = "Please Enter a password")
+    @NotBlank(message = "Please enter a password")
+    @NotEmpty(message = "Please enter a password")
+    @NotNull(message = "Please enter a password")
     private String password = null;
 
     public LoginDTO email(String email) {
