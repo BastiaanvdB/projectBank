@@ -21,13 +21,14 @@ import io.cucumber.java.en.When;
 public class AccountStepDefs extends BaseStepDefinitions {
 
     private LoginDTO loginDTO;
+    private ResponseEntity<String> response;
     private final TestRestTemplate restTemplate = new TestRestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
-    private ResponseEntity<String> response;
 
     private String getAccountsToken;
+    private ResponseEntity<String> accounts;
+
     private String invalidJwtToken;
-    private ResponseEntity<String> getAccountsResponse;
     private ResponseEntity<String> invalidAccountResponseForbidden;
     private String userId;
 
@@ -71,19 +72,109 @@ public class AccountStepDefs extends BaseStepDefinitions {
     }
 
     @When("I call endpoint to get all accounts")
-    public void iCallEndpointToGetAllUsers() throws JsonProcessingException {
-        getAccountsResponse = callGetHttpHeaders(getAccountsToken, "/accounts");
+    public void iCallEndpointToGetAllAccounts() throws JsonProcessingException {
+        accounts = callGetHttpHeaders(getAccountsToken, "/accounts");
     }
 
-    @Then("I receive a status of success of {int}")
+    @Then("I receive http code {int} ok for all accounts")
     public void iReceiveAStatusOfSuccessOf(int status) {
-        Assertions.assertEquals(status, getAccountsResponse.getStatusCodeValue());
+        Assertions.assertEquals(status, accounts.getStatusCodeValue());
     }
 
-    @And("I get a list of accounts back")
+    @And("I get list with accounts")
     public void iGetAListOfAccountsBack() throws JSONException {
-        JSONObject jsonObject = new JSONObject(getAccountsResponse.getBody());
+        JSONObject jsonObject = new JSONObject(accounts.getBody());
         String accountEntityList = jsonObject.getString("accountEntityList");
         Assertions.assertTrue(accountEntityList.contains("iban"));
+    }
+
+
+
+    @Given("I have valid jwt to create new account")
+    public void iHaveValidJwtToCreateNewAccount() {
+    }
+
+    @When("I call endpoint with post request to create new account")
+    public void iCallEndpointWithPostRequestToCreateNewAccount() {
+    }
+
+    @Then("I receive http code {int} created")
+    public void iReceiveHttpCodeCreated(int status) {
+    }
+
+    @And("I receive newly created account")
+    public void iReceiveNewlyCreatedAccount() {
+    }
+
+
+
+
+    @Given("I have valid jwt to get all accounts for specific user")
+    public void iHaveValidJwtToGetAllAccountsForSpecificUser() {
+    }
+
+    @When("I call endpoint with get request to get all accounts for user")
+    public void iCallEndpointWithGetRequestToGetAllAccountsForUser() {
+    }
+
+    @Then("I receive http code {int} ok for all accounts user")
+    public void iReceiveHttpCodeOkForAllAccountsUser(int status) {
+    }
+
+    @And("I receive list with accounts of user")
+    public void iReceiveListWithAccountsOfUser() {
+    }
+
+
+
+
+    @Given("I have valid jwt to get one account with specific iban")
+    public void iHaveValidJwtToGetOneAccountWithSpecificIban() {
+    }
+
+    @When("I call endpoint with get request to get one account")
+    public void iCallEndpointWithGetRequestToGetOneAccount() {
+    }
+
+    @Then("I receive http code {int} ok for one account")
+    public void iReceiveHttpCodeOkForOneAccount(int status) {
+    }
+
+    @And("I receive one account with the specified iban")
+    public void iReceiveOneAccountWithTheSpecifiedIban() {
+    }
+
+
+
+
+    @Given("I have valid jwt to update status")
+    public void iHaveValidJwtToUpdateStatus() {
+    }
+
+    @When("I call endpoint with put request to update status")
+    public void iCallEndpointWithPutRequestToUpdateStatus() {
+    }
+
+    @Then("I receive http code {int} ok for updated account")
+    public void iReceiveHttpCodeOkForUpdatedAccount(int status) {
+    }
+
+    @Then("I receive the updated account")
+    public void iReceiveTheUpdatedAccount() {
+    }
+
+
+
+
+    @Given("I dont have valid jwt")
+    public void iDontHaveValidJwt() {
+    }
+
+    @When("I call endpoint to get all accounts without valid jwt")
+    public void iCallEndpointToGetAllAccountsWithoutValidJwt() {
+    }
+
+    @Then("I receive http cod {int} unauthorized")
+    public void iReceiveHttpCodUnauthorized(int status) {
     }
 }
