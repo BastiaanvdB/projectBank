@@ -150,7 +150,7 @@
 
         <dependency>
             <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-java8</artifactId>
+            <artifactId>cucumber-java</artifactId>
             <version>${cucumber.version}</version>
             <scope>test</scope>
         </dependency>
@@ -171,6 +171,5 @@
             <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 </project>
