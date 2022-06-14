@@ -25,22 +25,18 @@ public class AccountStepDefs extends BaseStepDefinitions {
     private final TestRestTemplate restTemplate = new TestRestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private String getAccountsToken;
+    private String validToken;
     private ResponseEntity<String> accounts;
-
-    private String invalidJwtToken;
-    private ResponseEntity<String> invalidAccountResponseForbidden;
-    private String userId;
 
     private String getJwt() throws JSONException, JsonProcessingException {
         loginDTO = new LoginDTO();
-        loginDTO.setEmail("employee");
-        loginDTO.setPassword("password");
+        loginDTO.setEmail("mark@bbcbank.nl");
+        loginDTO.setPassword("MarkTest");
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/json");
 
-        HttpEntity<String> request = new HttpEntity<String>(mapper.writeValueAsString(
+        HttpEntity<String> request = new HttpEntity<>(mapper.writeValueAsString(
                 loginDTO),
                 httpHeaders);
         response = restTemplate.postForEntity(getBaseUrl() + "/users/login",
@@ -50,13 +46,13 @@ public class AccountStepDefs extends BaseStepDefinitions {
         return jsonObject.getString("token");
     }
 
-    private ResponseEntity<String> callGetHttpHeaders(String token, String url) throws JsonProcessingException {
+    private ResponseEntity<String> callGetHttpHeaders(String token, String url) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/json");
         httpHeaders.add("Authorization", "Bearer " + token);
 
         return new TestRestTemplate().exchange(
-                getBaseUrl() + url, HttpMethod.GET, new HttpEntity<Object>(httpHeaders),
+                getBaseUrl() + url, HttpMethod.GET, new HttpEntity<>(httpHeaders),
                 String.class);
     }
 
@@ -67,13 +63,13 @@ public class AccountStepDefs extends BaseStepDefinitions {
 
     @Given("I have valid jwt to get all accounts")
     public void iHaveAValidUserObject() throws JSONException, JsonProcessingException {
-        getAccountsToken = getJwt();
+        validToken = getJwt();
         Assertions.assertTrue(getJwt().startsWith("ey"));
     }
 
     @When("I call endpoint to get all accounts")
-    public void iCallEndpointToGetAllAccounts() throws JsonProcessingException {
-        accounts = callGetHttpHeaders(getAccountsToken, "/accounts");
+    public void iCallEndpointToGetAllAccounts() {
+        accounts = callGetHttpHeaders(validToken, "/accounts");
     }
 
     @Then("I receive http code {int} ok for all accounts")
@@ -83,9 +79,9 @@ public class AccountStepDefs extends BaseStepDefinitions {
 
     @And("I get list with accounts")
     public void iGetAListOfAccountsBack() throws JSONException {
-        JSONObject jsonObject = new JSONObject(accounts.getBody());
-        String accountEntityList = jsonObject.getString("accountEntityList");
-        Assertions.assertTrue(accountEntityList.contains("iban"));
+        JSONObject obj = new JSONObject(accounts.getBody());
+        String accountList = obj.getString("accountList");
+        Assertions.assertTrue(accountList.contains("iban"));
     }
 
 
