@@ -70,15 +70,8 @@ public class AccountsApiController implements AccountsApi {
     // ** Create account
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) throws UserNotFoundException {
-        Account account = this.modelMapper.map(body, Account.class);
-        User employee = userService.findByEmail(getUsernameFromBearer());
-        User user = userService.getOne(body.getUserId());
-
-        account = accountService.createAccount(account, employee);
-        userService.addAccountToUser(user, account);
-
+        Account account = accountService.createAccount(body);
         AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
-        responseDTO.setUserId(body.getUserId());
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
 

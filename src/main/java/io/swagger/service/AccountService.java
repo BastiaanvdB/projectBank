@@ -1,13 +1,16 @@
 package io.swagger.service;
 
+import io.swagger.model.DTO.AccountDTO;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
 import io.swagger.model.exception.AccountNotFoundException;
 import io.swagger.model.exception.InvalidIbanException;
 import io.swagger.model.exception.InvalidPincodeException;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.repository.AccountRepository;
 import io.swagger.security.JwtTokenProvider;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -17,6 +20,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.persistence.Table;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,15 +37,26 @@ public class AccountService {
     PasswordEncoder passwordEncoder;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private UserService userService;
     private final Random random = new Random();
+    private final ModelMapper modelMapper;
 
-
+    public AccountService() {
+        this.modelMapper = new ModelMapper();
+    }
 
 
     // ** Create an account + underlying sub methods
-    public Account createAccount(Account account, User employee) {
+    public Account createAccount(AccountDTO body) throws UserNotFoundException {
+        Account account = this.modelMapper.map(body, Account.class);
+        User employee = userService.findByEmail(getUsernameFromBearer());
+        User user = userService.getOne(body.getUserId());
+
         Account finalAccount = setAccountProperties(account, employee);
-        return accountRepository.save(finalAccount);
+        accountRepository.save(finalAccount);
+        userService.addAccountToUser(user, finalAccount);
+        return finalAccount;
     }
 
     private Account setAccountProperties(Account account, User employee) {
