@@ -20,15 +20,8 @@ import io.cucumber.java.en.When;
 
 public class AccountStepDefinitions extends BaseStepDefinitions {
 
-    private LoginDTO loginDTO;
-    private ResponseEntity<String> response;
-    private final TestRestTemplate restTemplate = new TestRestTemplate();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String validTokenEmployee = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJrQGJiY2JhbmsubmwiLCJhdXRoIjpbeyJhdXRob3JpdHkiOiJST0xFX0VNUExPWUVFIn0seyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTY1NTMwNzA1NywiZXhwIjoxNjU2MTcxMDU3fQ.LsJXusVw8ic2nrn_My8pQ8X-iTgEF_pLu2yawquDMxU";
-    private String validTokenUser = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJicmFtQGxpdmUubmwiLCJhdXRoIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTY1NTMwNzA5MCwiZXhwIjoxNjU2MTcxMDkwfQ.RLQ19uw6HYVY0JE99V_jDkLVtwsFnZw7DR54EMgqfBI";
-
-    private ResponseEntity<String> accounts;
+    private final String validTokenEmployee = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJrQGJiY2JhbmsubmwiLCJhdXRoIjpbeyJhdXRob3JpdHkiOiJST0xFX0VNUExPWUVFIn0seyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTY1NTMwNzA1NywiZXhwIjoxNjU2MTcxMDU3fQ.LsJXusVw8ic2nrn_My8pQ8X-iTgEF_pLu2yawquDMxU";
+    private final String validTokenUser = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJicmFtQGxpdmUubmwiLCJhdXRoIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTY1NTMwNzA5MCwiZXhwIjoxNjU2MTcxMDkwfQ.RLQ19uw6HYVY0JE99V_jDkLVtwsFnZw7DR54EMgqfBI";
 
     private ResponseEntity<String> callGetHttpHeaders(String token, String url) {
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -43,7 +36,7 @@ public class AccountStepDefinitions extends BaseStepDefinitions {
 
 
 
-
+    private ResponseEntity<String> accounts;
     @Given("I have valid jwt to get all accounts")
     public void iHaveAValidUserObject() throws JSONException, JsonProcessingException {
         Assertions.assertTrue(validTokenEmployee.startsWith("ey"));
