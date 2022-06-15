@@ -162,14 +162,11 @@ public class AccountService {
 
 
     // ** Get all accounts for a user
-    public List<Account> getAllByUserId(int userId) throws AccountNotFoundException {
+    public List<Account> getAllByUserId(int userId) {
         List<Account> accounts = accountRepository.findAllByUserid(userId);
 
-        if (accounts.isEmpty()) {
-            throw new AccountNotFoundException("No accounts found with provided user");
-        }
         accounts.removeIf(account -> !account.getActivated());
-        return accountRepository.findAllByUserid(userId);
+        return accounts;
     }
 
 
