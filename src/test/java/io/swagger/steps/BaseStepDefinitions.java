@@ -1,5 +1,6 @@
 package io.swagger.steps;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
@@ -9,7 +10,8 @@ public class BaseStepDefinitions {
     @LocalServerPort
     private int port;
 
-    private String base = "http://localhost:";
+    @Value("${io.swagger.api.baseurl}")
+    private String base;
 
     public String getBaseUrl() {
         return base + port;

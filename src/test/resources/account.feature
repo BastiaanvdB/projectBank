@@ -31,7 +31,7 @@ Feature: the account controller works
     Then I receive the updated account
 
   Scenario:  Get request to get all accounts without valid jwt
-    Given I dont have valid jwt
-    When I call endpoint to get all accounts without valid jwt
-    Then I receive http cod 401 unauthorized
+    Given I have valid jwt for user
+    When I call endpoint to get all accounts without employee jwt
+    Then I receive http code 500 bad request
 
