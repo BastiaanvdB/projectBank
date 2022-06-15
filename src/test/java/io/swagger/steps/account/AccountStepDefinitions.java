@@ -25,32 +25,15 @@ public class AccountStepDefinitions extends BaseStepDefinitions {
     private final TestRestTemplate restTemplate = new TestRestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private String validToken;
+    private String validTokenEmployee = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJrQGJiY2JhbmsubmwiLCJhdXRoIjpbeyJhdXRob3JpdHkiOiJST0xFX0VNUExPWUVFIn0seyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTY1NTMwNzA1NywiZXhwIjoxNjU2MTcxMDU3fQ.LsJXusVw8ic2nrn_My8pQ8X-iTgEF_pLu2yawquDMxU";
+    private String validTokenUser = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJicmFtQGxpdmUubmwiLCJhdXRoIjpbeyJhdXRob3JpdHkiOiJST0xFX1VTRVIifV0sImlhdCI6MTY1NTMwNzA5MCwiZXhwIjoxNjU2MTcxMDkwfQ.RLQ19uw6HYVY0JE99V_jDkLVtwsFnZw7DR54EMgqfBI";
+
     private ResponseEntity<String> accounts;
-
-    private String getJwt() throws JSONException, JsonProcessingException {
-        loginDTO = new LoginDTO();
-        loginDTO.setEmail("mark@bbcbank.nl");
-        loginDTO.setPassword("MarkTest");
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Content-Type", "application/json");
-
-        HttpEntity<String> request = new HttpEntity<>(mapper.writeValueAsString(
-                loginDTO),
-                httpHeaders);
-        response = restTemplate.postForEntity(getBaseUrl() + "/users/login",
-                request, String.class);
-
-        JSONObject jsonObject = new JSONObject(response.getBody());
-        return jsonObject.getString("token");
-    }
 
     private ResponseEntity<String> callGetHttpHeaders(String token, String url) {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/json");
         httpHeaders.add("Authorization", "Bearer " + token);
-
         return new TestRestTemplate().exchange(
                 getBaseUrl() + url, HttpMethod.GET, new HttpEntity<>(httpHeaders),
                 String.class);
@@ -63,13 +46,12 @@ public class AccountStepDefinitions extends BaseStepDefinitions {
 
     @Given("I have valid jwt to get all accounts")
     public void iHaveAValidUserObject() throws JSONException, JsonProcessingException {
-        validToken = getJwt();
-        Assertions.assertTrue(getJwt().startsWith("ey"));
+        Assertions.assertTrue(validTokenEmployee.startsWith("ey"));
     }
 
     @When("I call endpoint to get all accounts")
     public void iCallEndpointToGetAllAccounts() {
-        accounts = callGetHttpHeaders(validToken, "/accounts");
+        accounts = callGetHttpHeaders(validTokenEmployee, "/accounts");
     }
 
     @Then("I receive http code {int} ok for all accounts")
