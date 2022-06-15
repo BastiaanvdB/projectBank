@@ -29,7 +29,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,14 +41,12 @@ public class UsersApiController implements UsersApi {
     private static final Logger log = LoggerFactory.getLogger(UsersApiController.class);
 
     private final ObjectMapper objectMapper;
-
+    private final ModelMapper modelMapper;
     private final HttpServletRequest request;
 
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private AccountService accountService;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -58,6 +55,7 @@ public class UsersApiController implements UsersApi {
     public UsersApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
+        this.modelMapper = new ModelMapper();
     }
 
 
@@ -77,35 +75,22 @@ public class UsersApiController implements UsersApi {
     }
 
 
-    public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) {
+    public ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) throws InvalidEmailException, PasswordRequirementsException {
 
         ModelMapper modelMapper = new ModelMapper();
         User user = modelMapper.map(body, User.class);
 
-
-        if (userService.findByEmail(user.getEmail()) != null) {
-            return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
-        }
-
-        if (user.getPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6) {
-            return new ResponseEntity("Password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
-        }
-
-        try {
-
-            user = userService.signup(user);
-
-        } catch (Exception ex) {
-            return new ResponseEntity("Enter all user details!", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-
+        user = userService.signup(user);
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
-
         return new ResponseEntity<UserResponseDTO>(response, HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) throws AccountNotFoundException {
+        ModelMapper modelMapper = new ModelMapper();
+
+        //check user his token
+        checkTokenAndReturnUser();
 
         if (offset == null) {
             offset = 0;
@@ -115,83 +100,101 @@ public class UsersApiController implements UsersApi {
             limit = 10;
         }
 
-        //check user his token
-        checkTokenAndReturnUser();
+        UserFilterDTO userFilterDTO = new UserFilterDTO();
+        userFilterDTO.setLimit(limit);
+        userFilterDTO.setOffset(offset);
+        userFilterDTO.setFirstname(firstname);
+        userFilterDTO.setLastname(lastname);
 
-        // Get all users from service, create model mapper
-        List<User> users = userService.getAll(offset, limit);
+        if(activated != null)
+        {
+            userFilterDTO.setActivatedFilterEnable(true);
+            userFilterDTO.setActivated(activated);
+        }
 
-        ModelMapper modelMapper = new ModelMapper();
-        List<User> usersFilteredNames = new ArrayList<>();
-        List<User> usersFilteredStatus = new ArrayList<>();
-        List<User> userFilteredHasAccount = new ArrayList<>();
-
-        // filters users on firstname, lastname or both
-        for (User s : users) {
-            if (s.getEmail() != "bank@bbcbank.nl") {
-                if (firstname != null && lastname == null) {
-                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase())) {
-                        usersFilteredNames.add(s);
-                    }
-                }
-
-                if (firstname == null && lastname != null) {
-                    if (s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
-                        usersFilteredNames.add(s);
-                    }
-                }
-
-                if (firstname != null && lastname != null) {
-
-                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase()) && s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
-                        usersFilteredNames.add(s);
-                    }
-                }
-
-                if (firstname == null && lastname == null) {
-                    usersFilteredNames.add(s);
-                }
-            }
+        if(hasAccount != null)
+        {
+            userFilterDTO.setAccountFilterEnable(true);
+            userFilterDTO.setHasAccount(hasAccount);
         }
 
 
-        // filters users on activation
-        if (activated != null) {
-            for (User s : usersFilteredNames) {
-                if (activated) {
 
-                    if (s.getActivated()) {
-                        usersFilteredStatus.add(s);
-                    }
-                } else {
-                    if (!s.getActivated()) {
-                        usersFilteredStatus.add(s);
-                    }
-                }
-            }
-        } else {
-            usersFilteredStatus = usersFilteredNames;
-        }
+        List<User> usersFiltered = userService.getAllWithFilter(userFilterDTO);
 
-        // filters users on owning a account or not
-        if (hasAccount != null) {
-            for (User s : usersFilteredStatus) {
-                if (hasAccount) {
-                    if (accountService.getAllByUserId(s.getId()).size() > 0 && accountService.getAllByUserId(s.getId()) != null) {
-                        userFilteredHasAccount.add(s);
-                    }
-                } else {
-                    if (accountService.getAllByUserId(s.getId()).size() == 0 && accountService.getAllByUserId(s.getId()) != null) {
-                        userFilteredHasAccount.add(s);
-                    }
-                }
-            }
-        } else {
-            userFilteredHasAccount = usersFilteredStatus;
-        }
+//
+//        // Get all users from service, create model mapper
+//
+//        List<User> usersFilteredNames = new ArrayList<>();
+//        List<User> usersFilteredStatus = new ArrayList<>();
+//        List<User> userFilteredHasAccount = new ArrayList<>();
+//
+//        // filters users on firstname, lastname or both
+//        for (User s : users) {
+//            if (s.getEmail() != "bank@bbcbank.nl") {
+//                if (firstname != null && lastname == null) {
+//                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase())) {
+//                        usersFilteredNames.add(s);
+//                    }
+//                }
+//
+//                if (firstname == null && lastname != null) {
+//                    if (s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
+//                        usersFilteredNames.add(s);
+//                    }
+//                }
+//
+//                if (firstname != null && lastname != null) {
+//
+//                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase()) && s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
+//                        usersFilteredNames.add(s);
+//                    }
+//                }
+//
+//                if (firstname == null && lastname == null) {
+//                    usersFilteredNames.add(s);
+//                }
+//            }
+//        }
+//
+//
+//        // filters users on activation
+//        if (activated != null) {
+//            for (User s : usersFilteredNames) {
+//                if (activated) {
+//
+//                    if (s.getActivated()) {
+//                        usersFilteredStatus.add(s);
+//                    }
+//                } else {
+//                    if (!s.getActivated()) {
+//                        usersFilteredStatus.add(s);
+//                    }
+//                }
+//            }
+//        } else {
+//            usersFilteredStatus = usersFilteredNames;
+//        }
+//
+//        // filters users on owning a account or not
+//        if (hasAccount != null) {
+//            for (User s : usersFilteredStatus) {
+//                if (hasAccount) {
+//                    if (accountService.getAllByUserId(s.getId()).size() > 0 && accountService.getAllByUserId(s.getId()) != null) {
+//                        userFilteredHasAccount.add(s);
+//                    }
+//                } else {
+//                    if (accountService.getAllByUserId(s.getId()).size() == 0 && accountService.getAllByUserId(s.getId()) != null) {
+//                        userFilteredHasAccount.add(s);
+//                    }
+//                }
+//            }
+//        } else {
+//            userFilteredHasAccount = usersFilteredStatus;
+//        }
 
         // use mapper to map all users to user response data transfer object
-        List<UserResponseDTO> responseDTOS = userFilteredHasAccount.stream().map(user -> modelMapper.map(user, UserResponseDTO.class)).collect(Collectors.toList());
+        List<UserResponseDTO> responseDTOS = usersFiltered.stream().map(user -> modelMapper.map(user, UserResponseDTO.class)).collect(Collectors.toList());
 
 
         // return all response dto's and http 200
@@ -211,10 +214,6 @@ public class UsersApiController implements UsersApi {
         }
 
         User requestedUser = userService.getOne(userid);
-
-        if (requestedUser == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
-        }
 
         ModelMapper modelMapper = new ModelMapper();
         UserResponseDTO response = modelMapper.map(requestedUser, UserResponseDTO.class);
@@ -282,43 +281,6 @@ public class UsersApiController implements UsersApi {
         }
 
         String token = userService.EditUserAndToken(userid, user, body);
-
-
-//        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-//
-//            if (userid != user.getId()) {
-//                adminforce = true;
-//            }
-//
-//            user = userService.getOne(userid);
-//
-//        }
-//
-//        if (user == null) {
-//            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
-//        }
-//
-//        //check if new email already has been taken
-//        User checkUser = userService.findByEmail(newUserDetails.getEmail());
-//
-//        //check if its not the same user
-//        if (checkUser != null) {
-//            if (checkUser.getId() != user.getId()) {
-//                return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
-//            }
-//        }
-//
-//        user.setFirstname(newUserDetails.getFirstname());
-//        user.setLastname(newUserDetails.getLastname());
-//        user.setEmail(newUserDetails.getEmail());
-//        user.setPhone(newUserDetails.getPhone());
-//        user.setAddress(newUserDetails.getAddress());
-//        user.setPostalCode(newUserDetails.getPostalCode());
-//        user.setCity(newUserDetails.getCity());
-//        user.setTransactionLimit(newUserDetails.getTransactionLimit());
-//        user.setDayLimit(newUserDetails.getDayLimit());
-
-//        String token = userService.EditUserAndToken( userid, user, body);
 
         if (!adminforce) {
             InlineResponse200 res = new InlineResponse200();

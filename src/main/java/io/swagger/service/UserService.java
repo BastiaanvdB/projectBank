@@ -1,22 +1,15 @@
 package io.swagger.service;
 
-import io.swagger.model.DTO.UserActivationDTO;
-import io.swagger.model.DTO.UserDTO;
-import io.swagger.model.DTO.UserPasswordDTO;
-import io.swagger.model.DTO.UserRoleDTO;
+import io.swagger.model.DTO.*;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
-import io.swagger.model.exception.InvalidEmailException;
-import io.swagger.model.exception.InvalidRoleException;
-import io.swagger.model.exception.PasswordRequirementsException;
-import io.swagger.model.exception.UserNotFoundException;
+import io.swagger.model.exception.*;
 import io.swagger.repository.UserRepository;
 import io.swagger.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +27,10 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Lazy
+    @Autowired
+    private AccountService accountService;
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -48,6 +45,82 @@ public class UserService {
     private static final BigDecimal DEFAULT_TRANSACTION_LIMIT = new BigDecimal(1000);
     private static final ArrayList<Role> DEFAULT_ROLE = new ArrayList<>(List.of(Role.ROLE_USER));
 
+
+
+
+    public List<User> getAllWithFilter(UserFilterDTO userFilterDTO) throws AccountNotFoundException {
+
+        List<User> usersFilteredNames = new ArrayList<>();
+        List<User> usersFilteredStatus = new ArrayList<>();
+        List<User> userFilteredHasAccount = new ArrayList<>();
+
+        List<User> users = this.getAll(userFilterDTO.getOffset(), userFilterDTO.getLimit());
+
+        // filters users on firstname, lastname or both
+        for (User s : users) {
+            if (s.getEmail() != "bank@bbcbank.nl") {
+                if (userFilterDTO.getFirstname() != null && userFilterDTO.getLastname() == null) {
+                    if (s.getFirstname().toLowerCase().contains(userFilterDTO.getFirstname().toLowerCase())) {
+                        usersFilteredNames.add(s);
+                    }
+                }
+
+                if (userFilterDTO.getFirstname() == null && userFilterDTO.getLastname() != null) {
+                    if (s.getLastname().toLowerCase().contains(userFilterDTO.getLastname().toLowerCase())) {
+                        usersFilteredNames.add(s);
+                    }
+                }
+
+                if (userFilterDTO.getFirstname() != null && userFilterDTO.getLastname() != null) {
+
+                    if (s.getFirstname().toLowerCase().contains(userFilterDTO.getFirstname().toLowerCase()) && s.getLastname().toLowerCase().contains(userFilterDTO.getLastname().toLowerCase())) {
+                        usersFilteredNames.add(s);
+                    }
+                }
+
+                if (userFilterDTO.getFirstname() == null && userFilterDTO.getLastname() == null) {
+                    usersFilteredNames.add(s);
+                }
+            }
+        }
+
+        // filters users on activation
+        if (userFilterDTO.isActivatedFilterEnable()) {
+            for (User s : usersFilteredNames) {
+                if (userFilterDTO.isActivated()) {
+
+                    if (s.getActivated()) {
+                        usersFilteredStatus.add(s);
+                    }
+                } else {
+                    if (!s.getActivated()) {
+                        usersFilteredStatus.add(s);
+                    }
+                }
+            }
+        } else {
+            usersFilteredStatus = usersFilteredNames;
+        }
+
+        // filters users on owning a account or not
+        if (userFilterDTO.isAccountFilterEnable()) {
+            for (User s : usersFilteredStatus) {
+                if (userFilterDTO.isHasAccount()) {
+                    if (!accountService.getAllByUserId(s.getId()).isEmpty() && accountService.getAllByUserId(s.getId()) != null) {
+                        userFilteredHasAccount.add(s);
+                    }
+                } else {
+                    if (accountService.getAllByUserId(s.getId()).isEmpty() && accountService.getAllByUserId(s.getId()) != null) {
+                        userFilteredHasAccount.add(s);
+                    }
+                }
+            }
+        } else {
+            userFilteredHasAccount = usersFilteredStatus;
+        }
+
+        return userFilteredHasAccount;
+    }
 
     public List<User> getAll(Integer offset, Integer limit) {
         return userRepository.findAll(PageRequest.of(offset, limit)).getContent();
@@ -131,8 +204,15 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public User signup(User user) {
+    public User signup(User user) throws InvalidEmailException, PasswordRequirementsException {
 
+        if (this.findByEmail(user.getEmail()) != null) {
+            throw new InvalidEmailException("Email already has been used!");
+        }
+
+        if (user.getPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6) {
+            throw new PasswordRequirementsException("Password doesnt meet security requirements!");
+        }
 
         user.setTransactionLimit(DEFAULT_TRANSACTION_LIMIT);
         user.setDayLimit(DEFAULT_DAY_LIMIT);

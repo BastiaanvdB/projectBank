@@ -66,14 +66,12 @@ public class UserDTO {
     private String phone = null;
 
     @NotNull(message = "Please enter a day limit")
-    @NotEmpty(message = "Please enter a day limit")
-    @Size(min = 1, message = "Please enter a valid day limit")
+    @DecimalMin(value = "1", message = "Please enter a valid day limit")
     @JsonProperty("day_limit")
     private BigDecimal dayLimit = null;
 
     @NotNull(message = "Please enter a transaction limit")
-    @NotEmpty(message = "Please enter a transaction limit")
-    @Size(min = 1, message = "Please enter a valid transaction limit")
+    @DecimalMin(value = "1", message = "Please enter a valid transaction limit")
     @JsonProperty("transaction_Limit")
     private BigDecimal transactionLimit = null;
 
