@@ -8,15 +8,13 @@ import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
-import io.swagger.model.exception.AccountNotFoundException;
-import io.swagger.model.exception.UserNotFoundException;
+import io.swagger.model.exception.*;
 import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,9 +224,8 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException, PasswordRequirementsException {
 
-        boolean force = false;
 
         // gets user throughs jwt that makes the request
         User user = this.checkTokenAndReturnUser();
@@ -237,56 +234,18 @@ public class UsersApiController implements UsersApi {
         if (userid != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
             return new ResponseEntity("Not the authority to change password for user", HttpStatus.UNAUTHORIZED);
         }
-
-        if (body.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || body.getNewPassword().length() < 6) {
-            return new ResponseEntity("New password doesnt meet security requirements!", HttpStatus.NOT_ACCEPTABLE);
-        }
-
-        if (user.getRoles().contains(Role.ROLE_EMPLOYEE) && user.getId() != userid) {
-            user = userService.getOne(userid);
-            force = true;
-        }
-
-        if (user == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
-        }
-
-        try {
-            userService.changePassword(user, body.getNewPassword(), body.getOldPassword(), force);
-        } catch (AuthenticationException ex) {
-            return new ResponseEntity("Current password is invalid!", HttpStatus.NOT_ACCEPTABLE);
-        }
-
+        userService.changePassword(userid, user, body);
         return new ResponseEntity("Password successfully changed!", HttpStatus.ACCEPTED);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) throws UserNotFoundException {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) throws UserNotFoundException, InvalidRoleException {
 
         //check user his token
         checkTokenAndReturnUser();
 
-//        // checks if atleast one rola has been given
-//        if (body.getRoles().size() == 0 || body.getRoles() == null) {
-//            return new ResponseEntity("No role provided for user!", HttpStatus.UNPROCESSABLE_ENTITY);
-//        }
-
-        List<Role> roles = new ArrayList<>();
-        for (Integer r : body.getRoles()) {
-            roles.add(Role.values()[r]);
-        }
-
-        User user = userService.getOne(userid);
-
-        //checks if user by userid exists
-        if (user == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
-        }
-
-        user.setRoles(roles);
-        userService.put(user);
-
+        userService.changeUserRoles(userid, body);
         return new ResponseEntity("Role successfully changed!", HttpStatus.ACCEPTED);
     }
 
@@ -297,23 +256,14 @@ public class UsersApiController implements UsersApi {
         //check user his token
         checkTokenAndReturnUser();
 
-        User user = userService.getOne(userid);
-
-        //checks if user by userid exists
-        if (user == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
-        }
-
-        user.setActivated(body.isActivated());
-
-        userService.put(user);
+        userService.changeUserStatus(userid, body);
 
         return new ResponseEntity("Activation successfully changed!", HttpStatus.ACCEPTED);
     }
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<InlineResponse200> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) throws UserNotFoundException {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) throws UserNotFoundException, InvalidEmailException {
 
         boolean adminforce = false;
         ModelMapper modelMapper = new ModelMapper();
@@ -327,41 +277,48 @@ public class UsersApiController implements UsersApi {
             return new ResponseEntity("Not the authority to update userdetails for requested user", HttpStatus.UNAUTHORIZED);
         }
 
-        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
-
-            if(userid != user.getId()){
-                adminforce=true;
-            }
-
-            user = userService.getOne(userid);
-
+        if (user.getRoles().contains(Role.ROLE_EMPLOYEE) && userid != user.getId()) {
+            adminforce = true;
         }
 
-        if (user == null) {
-            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
-        }
+        String token = userService.EditUserAndToken(userid, user, body);
 
-        //check if new email already has been taken
-        User checkUser = userService.findByEmail(newUserDetails.getEmail());
 
-        //check if its not the same user
-        if (checkUser != null) {
-            if (checkUser.getId() != user.getId()) {
-                return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
-            }
-        }
+//        if (user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+//
+//            if (userid != user.getId()) {
+//                adminforce = true;
+//            }
+//
+//            user = userService.getOne(userid);
+//
+//        }
+//
+//        if (user == null) {
+//            return new ResponseEntity("No user found with provided userid!", HttpStatus.NOT_FOUND);
+//        }
+//
+//        //check if new email already has been taken
+//        User checkUser = userService.findByEmail(newUserDetails.getEmail());
+//
+//        //check if its not the same user
+//        if (checkUser != null) {
+//            if (checkUser.getId() != user.getId()) {
+//                return new ResponseEntity("Email already has been used!", HttpStatus.NOT_ACCEPTABLE);
+//            }
+//        }
+//
+//        user.setFirstname(newUserDetails.getFirstname());
+//        user.setLastname(newUserDetails.getLastname());
+//        user.setEmail(newUserDetails.getEmail());
+//        user.setPhone(newUserDetails.getPhone());
+//        user.setAddress(newUserDetails.getAddress());
+//        user.setPostalCode(newUserDetails.getPostalCode());
+//        user.setCity(newUserDetails.getCity());
+//        user.setTransactionLimit(newUserDetails.getTransactionLimit());
+//        user.setDayLimit(newUserDetails.getDayLimit());
 
-        user.setFirstname(newUserDetails.getFirstname());
-        user.setLastname(newUserDetails.getLastname());
-        user.setEmail(newUserDetails.getEmail());
-        user.setPhone(newUserDetails.getPhone());
-        user.setAddress(newUserDetails.getAddress());
-        user.setPostalCode(newUserDetails.getPostalCode());
-        user.setCity(newUserDetails.getCity());
-        user.setTransactionLimit(newUserDetails.getTransactionLimit());
-        user.setDayLimit(newUserDetails.getDayLimit());
-
-        String token = userService.EditUserAndToken(user);
+//        String token = userService.EditUserAndToken( userid, user, body);
 
         if (!adminforce) {
             InlineResponse200 res = new InlineResponse200();
