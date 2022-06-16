@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 public class UserFilterDTO {
 
@@ -17,10 +17,12 @@ public class UserFilterDTO {
     private String firstname;
     private String lastname;
 
-    private boolean AccountFilterEnable;
+    private boolean accountFilterEnable;
     private boolean activatedFilterEnable;
 
     private boolean hasAccount;
     private boolean activated;
+
+
 
 }

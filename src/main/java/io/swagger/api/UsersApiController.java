@@ -102,21 +102,22 @@ public class UsersApiController implements UsersApi {
             limit = 10;
         }
 
-        UserFilterDTO userFilterDTO = new UserFilterDTO();
-        userFilterDTO.setLimit(limit);
-        userFilterDTO.setOffset(offset);
-        userFilterDTO.setFirstname(firstname);
-        userFilterDTO.setLastname(lastname);
+        boolean activatedFilterEnable = false;
+        boolean accountFilterEnable = false;
 
         if (activated != null) {
-            userFilterDTO.setActivatedFilterEnable(true);
-            userFilterDTO.setActivated(activated);
+            activatedFilterEnable = true;
+        }else {
+            activated = false;
         }
 
         if (hasAccount != null) {
-            userFilterDTO.setAccountFilterEnable(true);
-            userFilterDTO.setHasAccount(hasAccount);
+            accountFilterEnable = true;
+        }else {
+            hasAccount = false;
         }
+
+        UserFilterDTO userFilterDTO = new UserFilterDTO(offset, limit, firstname, lastname, accountFilterEnable, activatedFilterEnable, hasAccount, activated);
 
         // Get all users from service
         List<User> usersFiltered = userService.getAllWithFilter(userFilterDTO);
