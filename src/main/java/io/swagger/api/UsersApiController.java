@@ -8,9 +8,11 @@ import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
-import io.swagger.model.exception.*;
+import io.swagger.model.exception.InvalidEmailException;
+import io.swagger.model.exception.InvalidRoleException;
+import io.swagger.model.exception.PasswordRequirementsException;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.security.JwtTokenProvider;
-import io.swagger.service.AccountService;
 import io.swagger.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -86,7 +88,7 @@ public class UsersApiController implements UsersApi {
     }
 
     @PreAuthorize("hasRole('EMPLOYEE')")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) throws AccountNotFoundException {
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) {
         ModelMapper modelMapper = new ModelMapper();
 
         //check user his token
@@ -106,96 +108,21 @@ public class UsersApiController implements UsersApi {
         userFilterDTO.setFirstname(firstname);
         userFilterDTO.setLastname(lastname);
 
-        if(activated != null)
-        {
+        if (activated != null) {
             userFilterDTO.setActivatedFilterEnable(true);
             userFilterDTO.setActivated(activated);
         }
 
-        if(hasAccount != null)
-        {
+        if (hasAccount != null) {
             userFilterDTO.setAccountFilterEnable(true);
             userFilterDTO.setHasAccount(hasAccount);
         }
 
-
-
+        // Get all users from service
         List<User> usersFiltered = userService.getAllWithFilter(userFilterDTO);
-
-//
-//        // Get all users from service, create model mapper
-//
-//        List<User> usersFilteredNames = new ArrayList<>();
-//        List<User> usersFilteredStatus = new ArrayList<>();
-//        List<User> userFilteredHasAccount = new ArrayList<>();
-//
-//        // filters users on firstname, lastname or both
-//        for (User s : users) {
-//            if (s.getEmail() != "bank@bbcbank.nl") {
-//                if (firstname != null && lastname == null) {
-//                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase())) {
-//                        usersFilteredNames.add(s);
-//                    }
-//                }
-//
-//                if (firstname == null && lastname != null) {
-//                    if (s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
-//                        usersFilteredNames.add(s);
-//                    }
-//                }
-//
-//                if (firstname != null && lastname != null) {
-//
-//                    if (s.getFirstname().toLowerCase().contains(firstname.toLowerCase()) && s.getLastname().toLowerCase().contains(lastname.toLowerCase())) {
-//                        usersFilteredNames.add(s);
-//                    }
-//                }
-//
-//                if (firstname == null && lastname == null) {
-//                    usersFilteredNames.add(s);
-//                }
-//            }
-//        }
-//
-//
-//        // filters users on activation
-//        if (activated != null) {
-//            for (User s : usersFilteredNames) {
-//                if (activated) {
-//
-//                    if (s.getActivated()) {
-//                        usersFilteredStatus.add(s);
-//                    }
-//                } else {
-//                    if (!s.getActivated()) {
-//                        usersFilteredStatus.add(s);
-//                    }
-//                }
-//            }
-//        } else {
-//            usersFilteredStatus = usersFilteredNames;
-//        }
-//
-//        // filters users on owning a account or not
-//        if (hasAccount != null) {
-//            for (User s : usersFilteredStatus) {
-//                if (hasAccount) {
-//                    if (accountService.getAllByUserId(s.getId()).size() > 0 && accountService.getAllByUserId(s.getId()) != null) {
-//                        userFilteredHasAccount.add(s);
-//                    }
-//                } else {
-//                    if (accountService.getAllByUserId(s.getId()).size() == 0 && accountService.getAllByUserId(s.getId()) != null) {
-//                        userFilteredHasAccount.add(s);
-//                    }
-//                }
-//            }
-//        } else {
-//            userFilteredHasAccount = usersFilteredStatus;
-//        }
 
         // use mapper to map all users to user response data transfer object
         List<UserResponseDTO> responseDTOS = usersFiltered.stream().map(user -> modelMapper.map(user, UserResponseDTO.class)).collect(Collectors.toList());
-
 
         // return all response dto's and http 200
         return new ResponseEntity<List<UserResponseDTO>>(responseDTOS, HttpStatus.OK);
