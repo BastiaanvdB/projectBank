@@ -2,7 +2,6 @@ package io.swagger.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
@@ -22,7 +21,6 @@ public class UserFilterDTO {
 
     private boolean hasAccount;
     private boolean activated;
-
 
 
 }

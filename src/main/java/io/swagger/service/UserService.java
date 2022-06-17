@@ -4,10 +4,7 @@ import io.swagger.model.DTO.*;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
-import io.swagger.model.exception.InvalidEmailException;
-import io.swagger.model.exception.InvalidRoleException;
-import io.swagger.model.exception.PasswordRequirementsException;
-import io.swagger.model.exception.UserNotFoundException;
+import io.swagger.model.exception.*;
 import io.swagger.repository.UserRepository;
 import io.swagger.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -117,15 +115,19 @@ public class UserService {
         }
     }
 
-    public String login(String email, String password) {
-
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-        User user = findByEmail(email);
-        if (user.getActivated()) {
-            return jwtTokenProvider.createToken(email, user.getRoles());
-        } else {
-            return null;
+    public String login(LoginDTO loginDTO) throws InvalidAuthenticationException {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
+        } catch (AuthenticationException e) {
+            throw new InvalidAuthenticationException("Invalid user credentials!");
         }
+        User user = findByEmail(loginDTO.getEmail());
+
+        if (!user.getActivated()) {
+            throw new InvalidAuthenticationException("Invalid user credentials!");
+        }
+
+        return jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     }
 
     public String EditUserAndToken(int userid, User user, UserDTO newUserDetails) throws UserNotFoundException, InvalidEmailException {
