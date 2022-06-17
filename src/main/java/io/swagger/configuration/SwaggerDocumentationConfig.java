@@ -24,14 +24,15 @@ public class SwaggerDocumentationConfig {
     private ApiKey apiKey() {
         return new ApiKey("Authorization", "Authorization", "header");
     }
+
     private SecurityContext securityContext() {
         return SecurityContext.builder().securityReferences(defaultAuth()).build();
     }
 
     private List<SecurityReference> defaultAuth() {
         AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
-        return Arrays.asList(new SecurityReference("Authorization", new AuthorizationScope[] {
-                authorizationScope }));
+        return Arrays.asList(new SecurityReference("Authorization", new AuthorizationScope[]{
+                authorizationScope}));
     }
 
     @Bean

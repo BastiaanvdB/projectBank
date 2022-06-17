@@ -50,7 +50,7 @@ public class AuthorizationResponse {
             return false;
         }
         AuthorizationResponse authorizationResponse = (AuthorizationResponse) o;
-            return Objects.equals(this.token, authorizationResponse.token);
+        return Objects.equals(this.token, authorizationResponse.token);
     }
 
     @Override

@@ -68,6 +68,18 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
+    @ExceptionHandler(value = {InvalidAuthenticationException.class})
+    protected ResponseEntity<Object> handleInvalidAuthenticationException(InvalidAuthenticationException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.UNAUTHORIZED, request);
+    }
+
+    @ExceptionHandler(value = {UnauthorizedException.class})
+    protected ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.UNAUTHORIZED, request);
+    }
+
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         ExceptionResponseDTO dto = new ExceptionResponseDTO("Data transfer not succeeded");
@@ -79,7 +91,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {
 
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) ->{
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
 
             String fieldName = ((FieldError) error).getField();
             String message = error.getDefaultMessage();

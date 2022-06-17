@@ -66,7 +66,6 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-
     // ** Create account
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountDTO body) throws UserNotFoundException {
@@ -74,8 +73,6 @@ public class AccountsApiController implements AccountsApi {
         AccountResponseDTO responseDTO = this.modelMapper.map(account, AccountResponseDTO.class);
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.CREATED);
     }
-
-
 
 
     // ** Get all accounts for iban
@@ -91,8 +88,6 @@ public class AccountsApiController implements AccountsApi {
         responseDTO.setUserId(account.getUser().getId());
         return new ResponseEntity<AccountResponseDTO>(responseDTO, HttpStatus.OK);
     }
-
-
 
 
     // ** Get all accounts
@@ -125,9 +120,6 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-
-
-
     // ** Get all accounts for a user
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccountsByUserId(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
@@ -143,10 +135,6 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-
-
-
-
     // ** Set new account limit
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountAbsoluteLimitResponseDTO> setAccountLimit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the Absolute Limit of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountAbsoluteLimitDTO body) throws AccountNotFoundException, InvalidIbanException {
@@ -154,10 +142,6 @@ public class AccountsApiController implements AccountsApi {
         AccountAbsoluteLimitResponseDTO responseDTO = this.modelMapper.map(body, AccountAbsoluteLimitResponseDTO.class);
         return new ResponseEntity<AccountAbsoluteLimitResponseDTO>(responseDTO, HttpStatus.OK);
     }
-
-
-
-
 
 
     // ** Set new account pin
@@ -174,11 +158,6 @@ public class AccountsApiController implements AccountsApi {
     }
 
 
-
-
-
-
-
     // ** Set new account status
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<AccountActivationResponseDTO> setAccountStatus(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing account with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody AccountActivationDTO body) throws AccountNotFoundException, InvalidIbanException {
@@ -186,10 +165,6 @@ public class AccountsApiController implements AccountsApi {
         AccountActivationResponseDTO responseDTO = this.modelMapper.map(body, AccountActivationResponseDTO.class);
         return new ResponseEntity<AccountActivationResponseDTO>(responseDTO, HttpStatus.OK);
     }
-
-
-
-
 
 
     // ** Authenticate account
@@ -203,10 +178,6 @@ public class AccountsApiController implements AccountsApi {
             throw new InvalidPincodeException("This pin was incorrect");
         }
     }
-
-
-
-
 
 
     // **** HELPER METHODS

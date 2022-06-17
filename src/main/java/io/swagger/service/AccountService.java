@@ -20,7 +20,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.persistence.Table;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.List;
@@ -100,8 +99,6 @@ public class AccountService {
     }
 
 
-
-
     // ** Get one account for iban + underlying sub methods
     public Account getOneByIban(String iban) throws AccountNotFoundException, InvalidIbanException {
         isValidIban(iban);
@@ -124,41 +121,44 @@ public class AccountService {
         if (iban.equals(IBAN_BANK) && !EMAIL_BANK.equals(this.getUsernameFromBearer()))
             throw new InvalidIbanException("No access to this account.");
     }
+
     private void isIbanLengthValid(String iban) throws InvalidIbanException {
         if (iban.length() != 18)
             throw new InvalidIbanException("Iban must be 18 characters long.");
     }
+
     private void isIbanCountryValid(String iban) throws InvalidIbanException {
         if (!iban.startsWith(IBAN_COUNTRY_PREFIX))
             throw new InvalidIbanException("Wrong country prefix, only NL is accepted.");
     }
+
     private void isIbanPrefixValid(String iban) throws InvalidIbanException {
         if (!iban.substring(2, 4).matches(REGEX_NUMBERS_ONLY) || !iban.substring(10, 18).matches(REGEX_NUMBERS_ONLY))
             throw new InvalidIbanException("Iban identifiers can only contain numbers.");
     }
+
     private void isIbanIdentifiersValid(String iban) throws InvalidIbanException {
         if (!iban.startsWith(IBAN_BANK_PREFIX, 4))
             throw new InvalidIbanException("Wrong bank prefix, only INHO0 is accepted.");
     }
 
 
-
-
     // ** Get all accounts + underlying sub methods
     public List<Account> getAll(int offset, int limit) {
         return accountRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
+
     public List<Account> getAllByFirstname(String firstname, int offset, int limit) {
         return accountRepository.findAllByFirstname(PageRequest.of(offset, limit), firstname);
     }
+
     public List<Account> getAllByLastname(String lastname, int offset, int limit) {
         return accountRepository.findAllByLastname(PageRequest.of(offset, limit), lastname);
     }
+
     public List<Account> getAllByFirstAndLastname(String firstname, String lastname, int offset, int limit) {
         return accountRepository.findAllByFirstAndLastname(PageRequest.of(offset, limit), firstname, lastname);
     }
-
-
 
 
     // ** Get all accounts for a user
@@ -170,16 +170,12 @@ public class AccountService {
     }
 
 
-
-
     // ** Set new limit for account
     public void updateLimit(String iban, BigDecimal limit) throws InvalidIbanException, AccountNotFoundException {
         Account account = getOneByIban(iban);
         account.setAbsoluteLimit(limit);
         accountRepository.updateLimit(account.getAbsoluteLimit(), account.getIban());
     }
-
-
 
 
     // ** Set new pin for account + underlying sub methods
@@ -189,18 +185,18 @@ public class AccountService {
         account.setPin(passwordEncoder.encode(newPin));
         accountRepository.updatePin(account.getPin(), account.getIban());
     }
+
     private void isOldPinValid(Account account, String oldPin) throws InvalidPincodeException {
         if (!passwordEncoder.matches(oldPin, account.getPin()) && !jwtTokenProvider.getAuthentication(getValidatedToken()).getAuthorities().contains(Role.ROLE_EMPLOYEE)) {
             throw new InvalidPincodeException("Wrong pincode");
         }
     }
+
     private void isNewPinValid(String newPin) throws InvalidPincodeException {
         if (!newPin.matches(REGEX_NUMBERS_ONLY) || newPin.length() != 4) {
             throw new InvalidPincodeException("Pincode must only contain 4 digits");
         }
     }
-
-
 
 
     // ** Set new status for account
@@ -211,8 +207,6 @@ public class AccountService {
     }
 
 
-
-
     // ** Authenticate account
     public Boolean authenticateAccount(String iban, String pin) throws InvalidIbanException, AccountNotFoundException {
         Account account = getOneByIban(iban);
@@ -220,13 +214,10 @@ public class AccountService {
     }
 
 
-
-
     // !!((Van Cees??))!!
     public void updateBalance(Account account) {
         accountRepository.updateLimit(account.getAbsoluteLimit(), account.getIban());
     }
-
 
 
     // ** HELPER METHODS

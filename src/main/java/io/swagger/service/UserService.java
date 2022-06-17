@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -46,9 +47,7 @@ public class UserService {
     private static final ArrayList<Role> DEFAULT_ROLE = new ArrayList<>(List.of(Role.ROLE_USER));
 
 
-
-
-    public List<User> getAllWithFilter(UserFilterDTO userFilterDTO) throws AccountNotFoundException {
+    public List<User> getAllWithFilter(UserFilterDTO userFilterDTO) {
 
         List<User> usersFilteredNames = new ArrayList<>();
         List<User> usersFilteredStatus = new ArrayList<>();
@@ -58,27 +57,21 @@ public class UserService {
 
         // filters users on firstname, lastname or both
         for (User s : users) {
-            if (s.getEmail() != "bank@bbcbank.nl") {
+            if (!s.getEmail().equals("bank@bbcbank.nl")) {
                 if (userFilterDTO.getFirstname() != null && userFilterDTO.getLastname() == null) {
                     if (s.getFirstname().toLowerCase().contains(userFilterDTO.getFirstname().toLowerCase())) {
                         usersFilteredNames.add(s);
                     }
-                }
-
-                if (userFilterDTO.getFirstname() == null && userFilterDTO.getLastname() != null) {
+                } else if (userFilterDTO.getFirstname() == null && userFilterDTO.getLastname() != null) {
                     if (s.getLastname().toLowerCase().contains(userFilterDTO.getLastname().toLowerCase())) {
                         usersFilteredNames.add(s);
                     }
-                }
-
-                if (userFilterDTO.getFirstname() != null && userFilterDTO.getLastname() != null) {
+                } else if (userFilterDTO.getFirstname() != null && userFilterDTO.getLastname() != null) {
 
                     if (s.getFirstname().toLowerCase().contains(userFilterDTO.getFirstname().toLowerCase()) && s.getLastname().toLowerCase().contains(userFilterDTO.getLastname().toLowerCase())) {
                         usersFilteredNames.add(s);
                     }
-                }
-
-                if (userFilterDTO.getFirstname() == null && userFilterDTO.getLastname() == null) {
+                } else {
                     usersFilteredNames.add(s);
                 }
             }
@@ -87,15 +80,8 @@ public class UserService {
         // filters users on activation
         if (userFilterDTO.isActivatedFilterEnable()) {
             for (User s : usersFilteredNames) {
-                if (userFilterDTO.isActivated()) {
-
-                    if (s.getActivated()) {
-                        usersFilteredStatus.add(s);
-                    }
-                } else {
-                    if (!s.getActivated()) {
-                        usersFilteredStatus.add(s);
-                    }
+                if (userFilterDTO.isActivated() && Boolean.TRUE.equals(s.getActivated()) || !userFilterDTO.isActivated() && Boolean.FALSE.equals(s.getActivated())) {
+                    usersFilteredStatus.add(s);
                 }
             }
         } else {
@@ -105,14 +91,8 @@ public class UserService {
         // filters users on owning a account or not
         if (userFilterDTO.isAccountFilterEnable()) {
             for (User s : usersFilteredStatus) {
-                if (userFilterDTO.isHasAccount()) {
-                    if (!accountService.getAllByUserId(s.getId()).isEmpty() && accountService.getAllByUserId(s.getId()) != null) {
-                        userFilteredHasAccount.add(s);
-                    }
-                } else {
-                    if (accountService.getAllByUserId(s.getId()).isEmpty() && accountService.getAllByUserId(s.getId()) != null) {
-                        userFilteredHasAccount.add(s);
-                    }
+                if (userFilterDTO.isHasAccount() && !accountService.getAllByUserId(s.getId()).isEmpty() && accountService.getAllByUserId(s.getId()) != null || !userFilterDTO.isHasAccount() && accountService.getAllByUserId(s.getId()).isEmpty() && accountService.getAllByUserId(s.getId()) != null) {
+                    userFilteredHasAccount.add(s);
                 }
             }
         } else {
@@ -135,15 +115,19 @@ public class UserService {
         }
     }
 
-    public String login(String email, String password) {
-
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-        User user = findByEmail(email);
-        if (user.getActivated()) {
-            return jwtTokenProvider.createToken(email, user.getRoles());
-        } else {
-            return null;
+    public String login(LoginDTO loginDTO) throws InvalidAuthenticationException {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
+        } catch (AuthenticationException e) {
+            throw new InvalidAuthenticationException("Invalid user credentials!");
         }
+        User user = findByEmail(loginDTO.getEmail());
+
+        if (!user.getActivated()) {
+            throw new InvalidAuthenticationException("Invalid user credentials!");
+        }
+
+        return jwtTokenProvider.createToken(user.getEmail(), user.getRoles());
     }
 
     public String EditUserAndToken(int userid, User user, UserDTO newUserDetails) throws UserNotFoundException, InvalidEmailException {
@@ -156,7 +140,7 @@ public class UserService {
         User checkUser = this.findByEmail(newUserDetails.getEmail());
 
         //check if its not the same user
-        if (checkUser != null && checkUser.getId() != user.getId()) {
+        if (checkUser != null && !checkUser.getId().equals(user.getId())) {
             throw new InvalidEmailException("Email already has been used!");
         }
 
@@ -186,7 +170,7 @@ public class UserService {
     public void changePassword(int userid, User user, UserPasswordDTO passwordDTO) throws PasswordRequirementsException, UserNotFoundException {
         boolean force = false;
 
-        if (passwordDTO.getNewPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || passwordDTO.getNewPassword().length() < 6) {
+        if (passwordDTO.getNewPassword().chars().filter(Character::isUpperCase).count() < 2 || passwordDTO.getNewPassword().length() < 6) {
             throw new PasswordRequirementsException("New password doesnt meet security requirements!");
         }
 
@@ -210,7 +194,7 @@ public class UserService {
             throw new InvalidEmailException("Email already has been used!");
         }
 
-        if (user.getPassword().chars().filter((s) -> Character.isUpperCase(s)).count() < 2 || user.getPassword().length() < 6) {
+        if (user.getPassword().chars().filter(Character::isUpperCase).count() < 2 || user.getPassword().length() < 6) {
             throw new PasswordRequirementsException("Password doesnt meet security requirements!");
         }
 
