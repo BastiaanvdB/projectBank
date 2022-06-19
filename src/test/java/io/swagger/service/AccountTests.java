@@ -3,25 +3,39 @@ package io.swagger.service;
 import io.swagger.Swagger2SpringBoot;
 import io.swagger.model.DTO.AccountDTO;
 import io.swagger.model.entity.Account;
+import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
+import io.swagger.model.enumeration.Role;
 import io.swagger.model.exception.AccountNotFoundException;
 import io.swagger.model.exception.InvalidIbanException;
+import io.swagger.model.exception.InvalidPincodeException;
+import io.swagger.model.exception.UserNotFoundException;
 import io.swagger.repository.AccountRepository;
+import io.swagger.security.JwtTokenProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {Swagger2SpringBoot.class, AccountService.class}, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -30,10 +44,14 @@ public class AccountTests {
     @Mock
     private AccountRepository accountRepository;
 
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+
     @InjectMocks
     private AccountService accountService;
     private Account generatedAccount;
     private AccountDTO requestGenerateAccount;
+    private Authentication auth;
 
     @Before
     public void setupMock() {
@@ -57,6 +75,12 @@ public class AccountTests {
         assertNotNull(account);
     }
 
+    @Test
+    public void getOneAccountNotFoundShouldThrowAccountNotFoundException() {
+        Assertions.assertThrows(AccountNotFoundException.class, () -> {
+           accountService.getOneByIban("NL01INHO0000000009");
+        });
+    }
     @Test
     public void canGetAccountByIbanWithShortIbanShouldReturnInvalidIbanException() {
         Assertions.assertThrows(InvalidIbanException.class, () -> {
@@ -86,10 +110,16 @@ public class AccountTests {
 
 
     @Test
-    public void canGetAllAccountsShouldReturnListOfAccounts() {
-//        given(accountRepository.findAll(PageRequest.of(0, 10)).getContent()).willReturn(Arrays.asList(generatedAccount, generatedAccount));
-//        List<Account> accounts = accountService.getAll(0, 10);
-//        assertNotNull(accounts);
+    public void canGetAllAccountsByFirstnameShouldReturnListOfAccounts() {
+        given(accountRepository.findAllByFirstname(PageRequest.of(0, 10), "Bram")).willReturn(Arrays.asList(generatedAccount, generatedAccount));
+        List<Account> accounts = accountService.getAllByFirstname("Bram", 0, 10);
+        assertNotNull(accounts);
+    }
+    @Test
+    public void canGetAllAccountsByFirstnameAndLastnameShouldReturnListOfAccounts() {
+        given(accountRepository.findAllByFirstAndLastname(PageRequest.of(0, 10), "Bram", "Terlouw")).willReturn(Arrays.asList(generatedAccount, generatedAccount));
+        List<Account> accounts = accountService.getAllByFirstAndLastname("Bram", "Terlouw", 0, 10);
+        assertNotNull(accounts);
     }
 
     @Test
