@@ -199,4 +199,25 @@ public class AccountStepDefinitions extends BaseStepDefinitions {
     public void iReceiveHttpCodUnauthorized(int status) {
         Assertions.assertEquals(status, accounts.getStatusCodeValue());
     }
+
+
+
+    private ResponseEntity<String> pincodeResponse;
+    @Given("I have valid jwt to update status with wrong pin")
+    public void iHaveValidJwtToUpdateStatusWithWrongPin() {
+        Assertions.assertTrue(validTokenUser.startsWith("ey"));
+    }
+
+    @When("I call endpoint with put request to update pincode with invalid pincode")
+    public void iCallEndpointWithPutRequestToUpdatePincodeWithInvalidPincode() throws JSONException {
+        JSONObject body = new JSONObject();
+        body.put("newPincode", "1111");
+        body.put("oldPincode", "9999");
+        pincodeResponse = callPutHttpHeaders(validTokenUser, "/Groep1BankApi/bank/1.0.0/accounts/NL01INHO0000000002/pincode", String.valueOf(body));
+    }
+
+    @Then("i receive http code {int} bad request")
+    public void iReceiveHttpCodeBadRequest(int status) {
+        Assertions.assertEquals(status, pincodeResponse.getStatusCodeValue());
+    }
 }
