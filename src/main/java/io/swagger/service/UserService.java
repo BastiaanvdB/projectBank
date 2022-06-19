@@ -106,10 +106,14 @@ public class UserService {
         return userRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
 
-    public User getOne(int id) throws UserNotFoundException {
-        Optional userOptional = userRepository.findById(id);
+    public List<User> getAlltest() {
+        return userRepository.findAll();
+    }
+
+    public User getOne(Integer id) throws UserNotFoundException {
+        Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
-            return (User) userOptional.get();
+            return userOptional.get();
         } else {
             throw new UserNotFoundException("User not found");
         }
