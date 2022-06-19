@@ -1,6 +1,7 @@
 package io.swagger.model.entity;
 
 import io.swagger.model.enumeration.Role;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,7 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-
+@AllArgsConstructor
 public class User {
 
     @Id

@@ -68,13 +68,13 @@ public class AccountTests {
         assertNotNull(savedAccount);
     }
 
-
     @Test
     public void canGetAccountByIbanShouldReturnOneAccount() throws InvalidIbanException, AccountNotFoundException {
         given(accountRepository.findAccountByIban(generatedAccount.getIban())).willReturn(generatedAccount);
         Account account = accountService.getOneByIban(generatedAccount.getIban());
         assertNotNull(account);
     }
+
     @Test
     public void getOneAccountNotFoundShouldThrowAccountNotFoundException() {
         Assertions.assertThrows(AccountNotFoundException.class, () -> {
@@ -87,12 +87,14 @@ public class AccountTests {
             accountService.getOneByIban("NL01INHO000000000");
         });
     }
+
     @Test
     public void canGetAccountByIbanWithWrongCountryShouldReturnInvalidIbanException(){
         Assertions.assertThrows(InvalidIbanException.class, () -> {
             accountService.getOneByIban("NR01INHO0000000003");
         });
     }
+
     @Test
     public void canGetAccountByIbanWithLetterInIdentifierShouldReturnInvalidIbanException() {
         Assertions.assertThrows(InvalidIbanException.class, () -> {
