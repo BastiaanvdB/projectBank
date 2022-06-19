@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -84,6 +85,12 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         ExceptionResponseDTO dto = new ExceptionResponseDTO("Data transfer not succeeded");
         return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler({org.springframework.security.access.AccessDeniedException.class})
+    protected ResponseEntity<Object> handleAccessDeniedException(org.springframework.security.access.AccessDeniedException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        ExceptionResponseDTO dt0 = new ExceptionResponseDTO("test");
+        return handleExceptionInternal(ex, dt0, new HttpHeaders(), HttpStatus.UNAUTHORIZED, request);
     }
 
     @Override

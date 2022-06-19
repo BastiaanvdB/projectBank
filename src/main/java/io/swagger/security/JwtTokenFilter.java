@@ -33,7 +33,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         } catch (ResponseStatusException ex) {
             // Or clear and send error
             SecurityContextHolder.clearContext();
-            httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
+            httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "gr");
             return;
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
