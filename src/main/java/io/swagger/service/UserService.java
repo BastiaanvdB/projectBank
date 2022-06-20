@@ -203,9 +203,8 @@ public class UserService {
         user.setRoles(DEFAULT_ROLE);
         user.setActivated(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
 
-        return user;
+        return userRepository.save(user);
     }
 
     public void addFromSeeder(User user) {
