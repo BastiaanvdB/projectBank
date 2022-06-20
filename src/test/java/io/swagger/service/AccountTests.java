@@ -28,14 +28,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {Swagger2SpringBoot.class, AccountService.class}, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -44,14 +41,10 @@ public class AccountTests {
     @Mock
     private AccountRepository accountRepository;
 
-    @Mock
-    private JwtTokenProvider jwtTokenProvider;
-
     @InjectMocks
     private AccountService accountService;
     private Account generatedAccount;
     private AccountDTO requestGenerateAccount;
-    private Authentication auth;
 
     @Before
     public void setupMock() {
@@ -66,6 +59,13 @@ public class AccountTests {
         given(accountRepository.save(generatedAccount)).willReturn(generatedAccount);
         Account savedAccount = accountRepository.save(generatedAccount);
         assertNotNull(savedAccount);
+    }
+
+    @Test
+    public void generateIbanShouldReturnNewValidIban() {
+        given(accountService.getLastAccount()).willReturn(generatedAccount);
+        String iban = accountService.generateIban();
+        Assertions.assertEquals("NL01INHO0000000004", iban);
     }
 
     @Test
