@@ -127,5 +127,11 @@ public class UsersTest {
         assertNotNull(user);
     }
 
-
+    // TODO
+    // add account to user
+    // change role
+    // change user status
+    // find by email
+    // edit user and return token
+    // login
 }
