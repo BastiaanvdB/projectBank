@@ -1,6 +1,7 @@
 package io.swagger.service;
 
 import io.swagger.model.DTO.AccountDTO;
+import io.swagger.model.DTO.AccountFilterDTO;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
@@ -68,7 +69,7 @@ public class AccountService {
         return account;
     }
 
-    private String generateIban() {
+    public String generateIban() {
         String lastIban = this.getLastAccount().getIban();
         return generatePrefix(lastIban.substring(0, 9), lastIban.substring(9)) + generateIdentifier(lastIban.substring(9));
     }
@@ -144,18 +145,27 @@ public class AccountService {
 
 
     // ** Get all accounts + underlying sub methods
-    public List<Account> getAll(int offset, int limit) {
-        return accountRepository.findAll(PageRequest.of(offset, limit)).getContent();
+    public List<Account> getAll(AccountFilterDTO filter) {
+        if (filter.hasBothFilters()) {
+            return getAllByFirstAndLastname(filter.getFirstname(), filter.getLastname(), filter.getOffset(), filter.getLimit());
+        } else if (filter.hasFirstnameFilter()) {
+            return getAllByFirstname(filter.getFirstname(), filter.getOffset(), filter.getLimit());
+        } else if (filter.hasLastnameFilter()) {
+            return getAllByLastname(filter.getLastname(), filter.getOffset(), filter.getLimit());
+        } else {
+            return getAllWithoutFilter(filter.getOffset(), filter.getLimit());
+        }
     }
 
+    public List<Account> getAllWithoutFilter(int offset, int limit) {
+        return accountRepository.findAll(PageRequest.of(offset, limit)).getContent();
+    }
     public List<Account> getAllByFirstname(String firstname, int offset, int limit) {
         return accountRepository.findAllByFirstname(PageRequest.of(offset, limit), firstname);
     }
-
     public List<Account> getAllByLastname(String lastname, int offset, int limit) {
         return accountRepository.findAllByLastname(PageRequest.of(offset, limit), lastname);
     }
-
     public List<Account> getAllByFirstAndLastname(String firstname, String lastname, int offset, int limit) {
         return accountRepository.findAllByFirstAndLastname(PageRequest.of(offset, limit), firstname, lastname);
     }

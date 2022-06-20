@@ -93,25 +93,14 @@ public class AccountsApiController implements AccountsApi {
     // ** Get all accounts
     @PreAuthorize("hasRole('EMPLOYEE')")
     public ResponseEntity<List<AccountResponseDTO>> getAllAccounts(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "status", required = false) String status) {
-
-        List<Account> accounts = null;
-        List<Account> filteredAccounts = null;
-        if (offset == null) {
+        List<Account> accounts;
+        if (offset == null)
             offset = 0;
-        }
-        if (limit == null) {
+        if (limit == null)
             limit = 10;
-        }
 
-        if (firstname != null && firstname.length() > 0 && lastname != null && lastname.length() > 0) {
-            accounts = accountService.getAllByFirstAndLastname(firstname, lastname, offset, limit);
-        } else if (firstname != null && firstname.length() > 0) {
-            accounts = accountService.getAllByFirstname(firstname, offset, limit);
-        } else if (lastname != null && lastname.length() > 0) {
-            accounts = accountService.getAllByLastname(lastname, offset, limit);
-        } else {
-            accounts = accountService.getAll(offset, limit);
-        }
+        AccountFilterDTO filter = new AccountFilterDTO(offset, limit, firstname, lastname);
+        accounts = accountService.getAll(filter);
 
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
