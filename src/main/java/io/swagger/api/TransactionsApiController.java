@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.threeten.bp.LocalDate;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
@@ -99,7 +100,7 @@ public class TransactionsApiController implements TransactionsApi {
         return new ResponseEntity<SpendResponseDTO>(this.transactionService.getAllFromTodaySUM(IBAN, getToken()), HttpStatus.OK);
     }
 
-    private String getToken(){
+    private String getToken() {
         return tokenProvider.resolveToken(request);
     }
 }

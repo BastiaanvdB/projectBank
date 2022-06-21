@@ -160,12 +160,15 @@ public class AccountService {
     public List<Account> getAllWithoutFilter(int offset, int limit) {
         return accountRepository.findAll(PageRequest.of(offset, limit)).getContent();
     }
+
     public List<Account> getAllByFirstname(String firstname, int offset, int limit) {
         return accountRepository.findAllByFirstname(PageRequest.of(offset, limit), firstname);
     }
+
     public List<Account> getAllByLastname(String lastname, int offset, int limit) {
         return accountRepository.findAllByLastname(PageRequest.of(offset, limit), lastname);
     }
+
     public List<Account> getAllByFirstAndLastname(String firstname, String lastname, int offset, int limit) {
         return accountRepository.findAllByFirstAndLastname(PageRequest.of(offset, limit), firstname, lastname);
     }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.validation.annotation.Validated;
+
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -47,7 +48,7 @@ public class TransactionDTO {
     private BigDecimal amount = null;
 
     public void setIbanFrom(String ibanFrom) throws SameAccountException {
-        if (this.ibanTo == ibanFrom){
+        if (this.ibanTo == ibanFrom) {
             throw new SameAccountException("Sorry the account is the same, we can't perform this action!");
         } else {
             this.ibanFrom = ibanFrom;
@@ -55,7 +56,7 @@ public class TransactionDTO {
     }
 
     public void setIbanTo(String ibanTo) throws SameAccountException {
-        if (this.ibanFrom == ibanTo){
+        if (this.ibanFrom == ibanTo) {
             throw new SameAccountException("Sorry the account is the same, we can't perform this action!");
         } else {
             this.ibanTo = ibanTo;

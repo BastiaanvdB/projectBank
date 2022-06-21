@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.threeten.bp.LocalDate;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -68,7 +67,12 @@ public class TransactionService {
             }
         }
 
-        if (offset == null) {offset = 0;} if (limit == null){limit =50;}
+        if (offset == null) {
+            offset = 0;
+        }
+        if (limit == null) {
+            limit = 50;
+        }
 
         List<Transaction> all = this.getAll(startDate, endDate, ibanFrom, ibanTo, balanceOperator, balance, offset, limit);
         all.addAll(this.getAll(startDate, endDate, ibanTo, ibanFrom, balanceOperator, balance, offset, limit));
@@ -96,7 +100,7 @@ public class TransactionService {
             if (accFrom.getType() == AccountType.SAVINGS || accTo.getType() == AccountType.SAVINGS) {
                 if (accFrom.getUser() == accTo.getUser() || accTo.getUser() == accFrom.getUser()) {
                     savingsTransaction(transaction, user);
-                }else {
+                } else {
                     throw new UnauthorizedException("This account does not belong to U");
                 }
             } else {
@@ -166,7 +170,6 @@ public class TransactionService {
         }
 
     }
-
 
 
     // Private Functions
