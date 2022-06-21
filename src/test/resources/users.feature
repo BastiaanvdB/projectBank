@@ -38,14 +38,13 @@ Feature: the user controller works
     When I call endpoint to update user
     Then I receive http code 200 for updating user
 
-  Scenario: Post request to login
+  Scenario: Post request to login success
     Given I have valid credentials to log in
     When I call endpoint to log into the system
     Then I receive http code 200 for loggin into the system
     And I receive valid jwt token
 
-  Scenario: Get request to get current user
-    Given I have valid jwt to get current user
-    When I call endpoint to get current user
-    Then I receive http code 200 get get current user
-    And I receive valid jwt token
+  Scenario: Post request to login unsuccessful
+    Given I have invalid credentials to log in
+    When I call endpoint to log into the system with invalid credentials
+    Then I receive http code 401 not authorized to log in
