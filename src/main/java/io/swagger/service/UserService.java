@@ -1,5 +1,6 @@
 package io.swagger.service;
 
+import io.swagger.configuration.BankConstants;
 import io.swagger.model.DTO.*;
 import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
@@ -16,7 +17,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,12 +40,6 @@ public class UserService {
 
     @Autowired
     PasswordEncoder passwordEncoder;
-
-
-    private static final BigDecimal DEFAULT_DAY_LIMIT = new BigDecimal(200);
-    private static final BigDecimal DEFAULT_TRANSACTION_LIMIT = new BigDecimal(1000);
-    private static final ArrayList<Role> DEFAULT_ROLE = new ArrayList<>(List.of(Role.ROLE_USER));
-
 
     public List<User> getAllWithFilter(UserFilterDTO userFilterDTO) {
 
@@ -197,9 +191,9 @@ public class UserService {
             throw new PasswordRequirementsException("Password doesnt meet security requirements!");
         }
 
-        user.setTransactionLimit(DEFAULT_TRANSACTION_LIMIT);
-        user.setDayLimit(DEFAULT_DAY_LIMIT);
-        user.setRoles(DEFAULT_ROLE);
+        user.setTransactionLimit(BankConstants.DEFAULT_TRANSACTION_LIMIT);
+        user.setDayLimit(BankConstants.DEFAULT_DAY_LIMIT);
+        user.setRoles(BankConstants.DEFAULT_ROLE);
         user.setActivated(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 

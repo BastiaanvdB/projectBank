@@ -1,7 +1,6 @@
 package io.swagger.model;
 
 import io.swagger.model.DTO.LoginDTO;
-import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
