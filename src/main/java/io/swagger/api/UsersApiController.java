@@ -142,7 +142,7 @@ public class UsersApiController implements UsersApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException, PasswordRequirementsException, InvalidAuthenticationException, UnauthorizedException {
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException, PasswordRequirementsException, InvalidAuthenticationException, UnauthorizedException, InvalidOldPasswordException {
 
 
         // gets user throughs jwt that makes the request
