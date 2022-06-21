@@ -81,6 +81,30 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.UNAUTHORIZED, request);
     }
 
+    @ExceptionHandler(value = {ExcceedsLimitExeption.class})
+    protected ResponseEntity<Object> handleUnauthorizedException(ExcceedsLimitExeption ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {InsufficientFundsException.class})
+    protected ResponseEntity<Object> handleUnauthorizedException(InsufficientFundsException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {SameAccountException.class})
+    protected ResponseEntity<Object> handleUnauthorizedException(SameAccountException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.FORBIDDEN, request);
+    }
+
+    @ExceptionHandler(value = {ZeroNegativeException.class})
+    protected ResponseEntity<Object> handleUnauthorizedException(ZeroNegativeException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.NOT_ACCEPTABLE, request);
+    }
+
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         ExceptionResponseDTO dto = new ExceptionResponseDTO("Data transfer not succeeded");
@@ -92,6 +116,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         ExceptionResponseDTO dt0 = new ExceptionResponseDTO("test");
         return handleExceptionInternal(ex, dt0, new HttpHeaders(), HttpStatus.UNAUTHORIZED, request);
     }
+
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
