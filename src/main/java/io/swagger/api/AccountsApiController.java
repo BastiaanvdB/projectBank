@@ -99,9 +99,7 @@ public class AccountsApiController implements AccountsApi {
         if (limit == null)
             limit = 10;
 
-        AccountFilterDTO filter = new AccountFilterDTO(offset, limit, firstname, lastname);
-        accounts = accountService.getAll(filter);
-
+        accounts = accountService.getAll(new AccountFilterDTO(offset, limit, firstname, lastname));
         List<AccountResponseDTO> responseDTOS = accounts.stream().map(account -> this.modelMapper.map(account, AccountResponseDTO.class))
                 .collect(Collectors.toList());
         responseDTOS.removeIf(dto -> dto.getIban().equals(IBAN_BANK));
