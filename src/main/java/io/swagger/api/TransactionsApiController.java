@@ -11,6 +11,7 @@ import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
 import io.swagger.model.entity.Transaction;
 import io.swagger.model.exception.*;
+import io.swagger.security.JwtTokenProvider;
 import io.swagger.service.TransactionService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -41,6 +42,8 @@ public class TransactionsApiController implements TransactionsApi {
     private ModelMapper modelMapper;
     @Autowired
     private TransactionService transactionService;
+    @Autowired
+    private JwtTokenProvider tokenProvider;
 
     public TransactionsApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
@@ -50,14 +53,14 @@ public class TransactionsApiController implements TransactionsApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, ZeroNegativeException, ExcceedsLimitExeption, UnauthorizedException, SameAccountException, InsufficientFundsException, InvalidRoleException, InvalidPincodeException {
-        return new ResponseEntity<TransactionResponseDTO>(this.modelMapper.map(this.transactionService.createTransaction(body, this.request), TransactionResponseDTO.class), HttpStatus.OK);
+        return new ResponseEntity<TransactionResponseDTO>(this.modelMapper.map(this.transactionService.createTransaction(body, getToken()), TransactionResponseDTO.class), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException {
 
         // get ze transactions
-        List<Transaction> transactions = this.transactionService.getAll(startDate, endDate, ibANFrom, ibANTo, balanceOperator, balance, offset, limit, this.request);
+        List<Transaction> transactions = this.transactionService.getAll(startDate, endDate, ibANFrom, ibANTo, balanceOperator, balance, offset, limit, getToken());
 
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = transactions.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
@@ -68,7 +71,7 @@ public class TransactionsApiController implements TransactionsApi {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<DepositResponseDTO> createDeposit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException {
 
-        DepositResponseDTO response = this.modelMapper.map(this.transactionService.deposit(body, IBAN, this.request), DepositResponseDTO.class);
+        DepositResponseDTO response = this.modelMapper.map(this.transactionService.deposit(body, IBAN, getToken()), DepositResponseDTO.class);
         return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
     }
 
@@ -76,14 +79,14 @@ public class TransactionsApiController implements TransactionsApi {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException {
 
-        WithdrawResponseDTO response = this.modelMapper.map(this.transactionService.withdraw(IBAN, body, this.request), WithdrawResponseDTO.class);
+        WithdrawResponseDTO response = this.modelMapper.map(this.transactionService.withdraw(IBAN, body, getToken()), WithdrawResponseDTO.class);
         return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.OK);
     }
 
     // route to other public get transactions
     public ResponseEntity<List<TransactionResponseDTO>> getAllTransactionsFromAccount(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("iban") String iban, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
 
-        List<Transaction> all = this.transactionService.getAllFromAccount(startDate, endDate, iban, ibANTo, balanceOperator, balance, offset, limit);
+        List<Transaction> all = this.transactionService.getAllFromAccount(startDate, endDate, iban, ibANTo, balanceOperator, balance, offset, limit, getToken());
         // map the transactions to responseDTO
         List<TransactionResponseDTO> responseDTOS = all.stream().map(transaction -> this.modelMapper.map(transaction, TransactionResponseDTO.class)).collect(Collectors.toList());
         return new ResponseEntity<List<TransactionResponseDTO>>(responseDTOS, HttpStatus.OK);
@@ -92,7 +95,11 @@ public class TransactionsApiController implements TransactionsApi {
 
     // get the day spendings of the provided iban
     @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
-    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN) {
-        return new ResponseEntity<SpendResponseDTO>(this.transactionService.getAllFromTodaySUM(IBAN), HttpStatus.OK);
+    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
+        return new ResponseEntity<SpendResponseDTO>(this.transactionService.getAllFromTodaySUM(IBAN, getToken()), HttpStatus.OK);
+    }
+
+    private String getToken(){
+        return tokenProvider.resolveToken(request);
     }
 }

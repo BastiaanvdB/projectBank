@@ -1,15 +1,14 @@
 package io.swagger.service;
 
 import io.swagger.Swagger2SpringBoot;
-import io.swagger.model.DTO.UserFilterDTO;
-import io.swagger.model.DTO.UserPasswordDTO;
+import io.swagger.model.DTO.*;
+import io.swagger.model.entity.Account;
 import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.Role;
-import io.swagger.model.exception.InvalidEmailException;
-import io.swagger.model.exception.InvalidIbanException;
-import io.swagger.model.exception.PasswordRequirementsException;
-import io.swagger.model.exception.UserNotFoundException;
+import io.swagger.model.exception.*;
+import io.swagger.repository.AccountRepository;
 import io.swagger.repository.UserRepository;
+import io.swagger.security.JwtTokenProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -20,9 +19,11 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.BDDMockito.given;
 
 @RunWith(SpringRunner.class)
@@ -41,10 +43,23 @@ public class UsersTest {
     private UserRepository userRepository;
 
     @Mock
+    private AccountRepository accountRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
 
     @InjectMocks
     private UserService userService;
+
+    @InjectMocks
+    private AccountService accountService;
+
     private User generatedEmployee;
     private User generatedUser;
 //    private UserDTO requestGenerateUser;
@@ -127,5 +142,65 @@ public class UsersTest {
         assertNotNull(user);
     }
 
+    @Test
+    public void canAddAccountToUserWithWrongUseridShouldReturnUserNotFoundException(){
+        Assertions.assertThrows(UserNotFoundException.class, () -> {
+            userService.addAccountToUser(generatedUser, new Account());
+        });
+    }
 
+    @Test
+    public void canChangeUserRolesWithWrongRoleShouldReturnInvalidRoleException(){
+        Assertions.assertThrows(InvalidRoleException.class, () -> {
+            userService.changeUserRoles(2, new UserRoleDTO(new ArrayList<>(Arrays.asList(5, 7))));
+        });
+    }
+
+    @Test
+    public void canChangeUserRolesWithWrongUseridShouldReturnInvalidUserNotFoundException(){
+        Assertions.assertThrows(UserNotFoundException.class, () -> {
+            userService.changeUserRoles(2, new UserRoleDTO(new ArrayList<>(Arrays.asList(0, 1))));
+        });
+    }
+
+    @Test
+    public void canChangeUserStatusWithWrongUseridShouldReturnInvalidUserNotFoundException(){
+        Assertions.assertThrows(UserNotFoundException.class, () -> {
+            userService.changeUserStatus(2, new UserActivationDTO());
+        });
+    }
+
+    @Test
+    public void canFindUserByEmailShouldReturnOneUser(){
+        given(userRepository.findByEmail(generatedUser.getEmail())).willReturn(generatedUser);
+        User user = userService.findByEmail(generatedUser.getEmail());
+        assertNotNull(user);
+    }
+
+    @Test
+    public void canFindUserByWrongEmailShouldReturnNull(){
+        User user = userService.findByEmail(generatedUser.getEmail());
+        assertNull(user);
+    }
+
+    @Test
+    public void canEditUserShouldReturnToken() throws UserNotFoundException, InvalidEmailException {
+        String token = userService.EditUserAndToken(2, generatedUser, new UserDTO("Bastiaan", "van der Bijl", "Driehuizerkerkweg 100", "Driehuis", "1985HC", "bas@live.nl", "0682557510", new BigDecimal(500), new BigDecimal(500)));
+        assertNotEquals("", token);
+    }
+
+    @Test
+    public void canEditUserWithAlreadyUsedEmailShouldReturnInvalidEmailException(){
+        given(userRepository.findByEmail(generatedEmployee.getEmail())).willReturn(generatedEmployee);
+        Assertions.assertThrows(InvalidEmailException.class, () -> {
+            userService.EditUserAndToken(2, generatedUser, new UserDTO("Bastiaan", "van der Bijl", "Driehuizerkerkweg 100", "Driehuis", "1985HC", generatedEmployee.getEmail(), "0682557510", new BigDecimal(500), new BigDecimal(500)));
+        });
+    }
+
+    @Test
+    public void canLoginShouldReturnToken() throws InvalidAuthenticationException {
+        given(userRepository.findByEmail("bram@live.nl")).willReturn(generatedUser);
+        String token = userService.login(new LoginDTO("bram@live.nl", "BramTest"));
+        assertNotEquals("", token);
+    }
 }

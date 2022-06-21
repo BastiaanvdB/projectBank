@@ -10,6 +10,7 @@ import io.swagger.model.entity.User;
 import io.swagger.model.enumeration.AccountType;
 import io.swagger.model.enumeration.Role;
 import io.swagger.model.exception.*;
+import io.swagger.repository.AccountRepository;
 import io.swagger.repository.TransactionRepository;
 import io.swagger.repository.TransactionRepositoryImpl;
 import io.swagger.security.JwtTokenProvider;
@@ -43,6 +44,8 @@ public class TransactionService {
     private AccountService accountService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private AccountRepository accountRepository;
 
     public TransactionService() {
         this.modelMapper = new ModelMapper();
@@ -57,7 +60,16 @@ public class TransactionService {
         return transactionRepoImpl.findAllCustom(startDate, endDate, ibanFrom, ibanTo, balanceOperator, balance, offset, limit);
     }
 
-    public List<Transaction> getAllFromAccount(LocalDate startDate, LocalDate endDate, String ibanFrom, String ibanTo, String balanceOperator, String balance, Integer offset, Integer limit) {
+    public List<Transaction> getAllFromAccount(LocalDate startDate, LocalDate endDate, String ibanFrom, String ibanTo, String balanceOperator, String balance, Integer offset, Integer limit, String request) throws InvalidIbanException, AccountNotFoundException, UnauthorizedException, UserNotFoundException {
+        User user = getUserFromToken(request);
+        if (user.getRoles().contains(Role.ROLE_USER)) {
+            if (!isUserOwner(user, ibanFrom)) {
+                throw new UnauthorizedException("You have no acces to this account");
+            }
+        }
+
+        if (offset == null) {offset = 0;} if (limit == null){limit =50;}
+
         List<Transaction> all = this.getAll(startDate, endDate, ibanFrom, ibanTo, balanceOperator, balance, offset, limit);
         all.addAll(this.getAll(startDate, endDate, ibanTo, ibanFrom, balanceOperator, balance, offset, limit));
         // sort the complete list desc. so that the last transaction is first
@@ -66,7 +78,7 @@ public class TransactionService {
         return all;
     }
 
-    public Transaction createTransaction(TransactionDTO body, HttpServletRequest request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException, InvalidRoleException, InsufficientFundsException, ExcceedsLimitExeption, InvalidPincodeException {
+    public Transaction createTransaction(TransactionDTO body, String request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException, InvalidRoleException, InsufficientFundsException, ExcceedsLimitExeption, InvalidPincodeException {
         Transaction transaction = this.modelMapper.map(body, Transaction.class);
 
         // get accounts for checks
@@ -84,6 +96,8 @@ public class TransactionService {
             if (accFrom.getType() == AccountType.SAVINGS || accTo.getType() == AccountType.SAVINGS) {
                 if (accFrom.getUser() == accTo.getUser() || accTo.getUser() == accFrom.getUser()) {
                     savingsTransaction(transaction, user);
+                }else {
+                    throw new UnauthorizedException("This account does not belong to U");
                 }
             } else {
                 return normalTransaction(transaction, accFrom, user);
@@ -95,7 +109,7 @@ public class TransactionService {
         return transaction;
     }
 
-    public Transaction deposit(DepositDTO body, String IBAN, HttpServletRequest request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
+    public Transaction deposit(DepositDTO body, String IBAN, String request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
 
         Transaction deposit = this.modelMapper.map(body, Transaction.class);
 
@@ -108,7 +122,7 @@ public class TransactionService {
         return this.doTransaction(deposit, user);
     }
 
-    public Transaction withdraw(String IBAN, WithdrawDTO body, HttpServletRequest request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
+    public Transaction withdraw(String IBAN, WithdrawDTO body, String request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
 
         Transaction withdraw = this.modelMapper.map(body, Transaction.class);
         // set the iban of the bank on the right position
@@ -127,7 +141,7 @@ public class TransactionService {
     }
 
 
-    public List<Transaction> getAll(LocalDate startDate, LocalDate endDate, String ibanFrom, String ibanTo, String balanceOperator, String balance, Integer offset, Integer limit, HttpServletRequest request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
+    public List<Transaction> getAll(LocalDate startDate, LocalDate endDate, String ibanFrom, String ibanTo, String balanceOperator, String balance, Integer offset, Integer limit, String request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
         // Check if offset and limit is not empty otherwise give default readings
         if (offset == null) {
             offset = 0;
@@ -154,13 +168,23 @@ public class TransactionService {
     }
 
 
+
     // Private Functions
-    public SpendResponseDTO getAllFromTodaySUM(String iban) {
+    public SpendResponseDTO getAllFromTodaySUM(String iban, String request) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException {
+        User user = getUserFromToken(request);
+        User account = getUserFromIban(iban);
+        if (account.getId() != user.getId() && !user.getRoles().contains(Role.ROLE_EMPLOYEE)) {
+            throw new UnauthorizedException("Not allowed to get spending of this account!");
+        }
         BigDecimal var = transactionRepository.getAllFromTodaySUM(iban);
         if (var == null) {
             var = BigDecimal.ZERO;
         }
         return new SpendResponseDTO(var);
+    }
+
+    private User getUserFromIban(String iban) throws InvalidIbanException, AccountNotFoundException {
+        return this.accountService.getOneByIban(iban).getUser();
     }
 
     private void isPinCorrect(String pin, Account accFrom) throws InvalidPincodeException {
@@ -170,8 +194,7 @@ public class TransactionService {
         }
     }
 
-    private User getUserFromToken(HttpServletRequest request) throws UnauthorizedException, UserNotFoundException {
-        String token = tokenProvider.resolveToken(request);
+    private User getUserFromToken(String token) throws UnauthorizedException, UserNotFoundException {
         if (token == null || !tokenProvider.validateToken(token)) {
             throw new UnauthorizedException("Token invalid or expired");
         }
@@ -198,8 +221,8 @@ public class TransactionService {
         transaction.setIssuedBy(user.getId());
         Transaction model = this.saveTransaction(transaction);
 
-        Account from = accountService.getOneByIban(transaction.getIbanFrom());
-        Account to = accountService.getOneByIban(transaction.getIbanTo());
+        Account from = accountRepository.findAccountByIban(transaction.getIbanFrom());
+        Account to = accountRepository.findAccountByIban(transaction.getIbanTo());
         // When an account is null, no account was found with specified iban
         if (from == null || to == null) {
             throw new AccountNotFoundException("We have no account with this iban");

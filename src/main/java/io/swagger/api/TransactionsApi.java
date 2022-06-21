@@ -48,7 +48,7 @@ public interface TransactionsApi {
     @RequestMapping(value = "/accounts/{IBAN}/spend",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN);
+    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException;
 
     @Operation(summary = "Create new transaction", description = "This endpoint will create a new transaction and will perform the transaction", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
