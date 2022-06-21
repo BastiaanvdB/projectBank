@@ -85,7 +85,7 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.PUT)
     ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException, PasswordRequirementsException, InvalidAuthenticationException, UnauthorizedException;
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException, PasswordRequirementsException, InvalidAuthenticationException, UnauthorizedException, InvalidOldPasswordException;
 
 
     @Operation(summary = "Change role of specific user", description = "", security = {

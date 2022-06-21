@@ -50,10 +50,16 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
+    @ExceptionHandler(value = {InvalidOldPasswordException.class})
+    protected ResponseEntity<Object> handleInvalidOldPasswordException(InvalidOldPasswordException ex, WebRequest request) {
+        ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.NOT_ACCEPTABLE, request);
+    }
+
     @ExceptionHandler(value = {PasswordRequirementsException.class})
     protected ResponseEntity<Object> handlePasswordRequirementsException(PasswordRequirementsException ex, WebRequest request) {
         ExceptionResponseDTO dto = new ExceptionResponseDTO(ex.getMessage());
-        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, dto, new HttpHeaders(), HttpStatus.NOT_ACCEPTABLE, request);
     }
 
     @ExceptionHandler(value = {InvalidRoleException.class})

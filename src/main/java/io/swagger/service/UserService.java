@@ -160,7 +160,7 @@ public class UserService {
         }
     }
 
-    public void changePassword(int userid, User user, UserPasswordDTO passwordDTO) throws PasswordRequirementsException, UserNotFoundException {
+    public void changePassword(int userid, User user, UserPasswordDTO passwordDTO) throws PasswordRequirementsException, UserNotFoundException, InvalidOldPasswordException {
         boolean force = false;
 
         if (passwordDTO.getNewPassword().chars().filter(Character::isUpperCase).count() < 2 || passwordDTO.getNewPassword().length() < 6) {
@@ -174,7 +174,11 @@ public class UserService {
 
         // bypasses if admin wants to change password from different user
         if (!force) {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), passwordDTO.getOldPassword()));
+            try {
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), passwordDTO.getOldPassword()));
+            }catch (AuthenticationException e){
+                throw new InvalidOldPasswordException("Invalid old password!");
+            }
         }
 
         user.setPassword(passwordEncoder.encode(passwordDTO.getNewPassword()));
