@@ -166,7 +166,6 @@ public class UserService {
         }
     }
 
-
     public void changePassword(int userid, User user, UserPasswordDTO passwordDTO) throws PasswordRequirementsException, UserNotFoundException {
         boolean force = false;
 
@@ -212,12 +211,12 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void addAccountToUser(User user, Account account) throws UserNotFoundException {
-        if (user == null) {
+    public User addAccountToUser(User user, Account account) throws UserNotFoundException {
+        if (userRepository.findById(user.getId()).isEmpty()) {
             throw new UserNotFoundException("User not found");
         }
         user.setAccounts(new HashSet<>(List.of(account)));
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
     public void changeUserRoles(int userid, UserRoleDTO newRoles) throws UserNotFoundException, InvalidRoleException {

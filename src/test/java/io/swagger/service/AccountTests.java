@@ -128,4 +128,5 @@ public class AccountTests {
         List<Account> accounts = accountService.getAllByUserId(2);
         assertNotNull(accounts);
     }
+
 }
