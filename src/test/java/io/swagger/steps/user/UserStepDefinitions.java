@@ -242,9 +242,7 @@ public class UserStepDefinitions extends BaseStepDefinitions {
     private UsersLoginBody invalidBody;
     @Given("I have invalid credentials to log in")
     public void iHaveInvalidCredentialsToLogIn() {
-        invalidBody = new UsersLoginBody();
-        invalidBody.setEmail("mark@bbcbank.nl");
-        invalidBody.setPassword("invalidPassword");
+        invalidBody = new UsersLoginBody("mark@bbcbank.nl", "invalidPassword");
     }
 
     @When("I call endpoint to log into the system with invalid credentials")
@@ -262,9 +260,7 @@ public class UserStepDefinitions extends BaseStepDefinitions {
 
     @Given("I have valid credentials to log in")
     public void iHaveValidCredentialsToLogIn() {
-        validBody = new UsersLoginBody();
-        validBody.setEmail("mark@bbcbank.nl");
-        validBody.setPassword("MarkTest");
+        validBody = new UsersLoginBody("mark@bbcbank.nl", "MarkTest");
     }
 
     @When("I call endpoint to log into the system")
