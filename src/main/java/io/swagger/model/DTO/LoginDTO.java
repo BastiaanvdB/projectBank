@@ -2,8 +2,12 @@ package io.swagger.model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
@@ -13,12 +17,18 @@ import java.util.Objects;
 @Validated
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 
-
+@AllArgsConstructor
 public class LoginDTO {
     @JsonProperty("email")
+    @NotEmpty(message = "Please enter a email")
+    @Email(message = "Please enter a correct email")
+    @NotNull(message = "Please enter a email")
     private String email = null;
 
     @JsonProperty("password")
+    @NotBlank(message = "Please enter a password")
+    @NotEmpty(message = "Please enter a password")
+    @NotNull(message = "Please enter a password")
     private String password = null;
 
     public LoginDTO email(String email) {

@@ -3,6 +3,10 @@ package io.swagger.model;
 import io.swagger.model.DTO.LoginDTO;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
@@ -13,6 +17,10 @@ import java.util.Objects;
 
 
 public class UsersLoginBody extends LoginDTO {
+
+    public UsersLoginBody(@NotEmpty(message = "Please enter a email") @Email(message = "Please enter a correct email") @NotNull(message = "Please enter a email") String email, @NotBlank(message = "Please enter a password") @NotEmpty(message = "Please enter a password") @NotNull(message = "Please enter a password") String password) {
+        super(email, password);
+    }
 
     @Override
     public boolean equals(java.lang.Object o) {

@@ -18,6 +18,7 @@ import java.util.Objects;
 
 public class AccountAbsoluteLimitDTO {
     @JsonProperty("absolute_Limit")
+    @NotNull(message = "Please enter account limit!")
     private BigDecimal absoluteLimit = null;
 
     public AccountAbsoluteLimitDTO absoluteLimit(BigDecimal absoluteLimit) {

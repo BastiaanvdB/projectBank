@@ -18,9 +18,11 @@ import java.util.Objects;
 public class AccountDTO {
 
     @JsonProperty("type")
+    @NotNull(message = "Please enter type!")
     private AccountType type = null;
 
     @JsonProperty("user_Id")
+    @NotNull(message = "Please enter user id!")
     private Integer userId = null;
 
     public AccountDTO type(AccountType type) {

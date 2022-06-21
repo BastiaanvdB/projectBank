@@ -1,12 +1,13 @@
 package io.swagger.model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.model.exception.SameAccountException;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -14,97 +15,53 @@ import java.util.Objects;
  * TransactionDTO
  */
 @Validated
+@Getter
+@Setter
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 
 
 public class TransactionDTO {
     @JsonProperty("ibanFrom")
+    @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
+    @Size(min = 18, max = 18, message = "Please enter a valid 18 character iban!")
+    @NotBlank(message = "Please enter iban from!")
+    @NotEmpty(message = "Please enter iban from!")
+    @NotNull(message = "Please enter iban from!")
     private String ibanFrom = null;
 
     @JsonProperty("ibanTo")
+    @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
+    @Size(min = 18, max = 18, message = "Please enter a valid 18 character iban!")
+    @NotBlank(message = "Please enter iban to!")
+    @NotEmpty(message = "Please enter iban to!")
+    @NotNull(message = "Please enter iban to!")
     private String ibanTo = null;
 
     @JsonProperty("pin")
+    @NotBlank(message = "Please enter pin!")
+    @NotEmpty(message = "Please enter pin!")
+    @NotNull(message = "Please enter pin!")
     private String pin = null;
 
     @JsonProperty("amount")
+    @DecimalMin(value = "0.01", message = "Please enter a valid transaction amount!")
     private BigDecimal amount = null;
 
-    public TransactionDTO ibanFrom(String ibanFrom) {
-        this.ibanFrom = ibanFrom;
-        return this;
+    public void setIbanFrom(String ibanFrom) throws SameAccountException {
+        if (this.ibanTo == ibanFrom) {
+            throw new SameAccountException("Sorry the account is the same, we can't perform this action!");
+        } else {
+            this.ibanFrom = ibanFrom;
+        }
     }
 
-
-    public String getPin() {
-        return pin;
+    public void setIbanTo(String ibanTo) throws SameAccountException {
+        if (this.ibanFrom == ibanTo) {
+            throw new SameAccountException("Sorry the account is the same, we can't perform this action!");
+        } else {
+            this.ibanTo = ibanTo;
+        }
     }
-
-    public void setPin(String pin) {
-        this.pin = pin;
-    }
-
-    /**
-     * Get ibanFrom
-     *
-     * @return ibanFrom
-     **/
-    @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
-    @NotNull
-
-    @Size(min = 18, max = 18)
-    public String getIbanFrom() {
-        return ibanFrom;
-    }
-
-    public void setIbanFrom(String ibanFrom) {
-        this.ibanFrom = ibanFrom;
-    }
-
-    public TransactionDTO ibanTo(String ibanTo) {
-        this.ibanTo = ibanTo;
-        return this;
-    }
-
-    /**
-     * Get ibanTo
-     *
-     * @return ibanTo
-     **/
-    @Schema(example = "NLxxINHO0xxxxxxxxx", required = true, description = "")
-    @NotNull
-
-    @Size(min = 18, max = 18)
-    public String getIbanTo() {
-        return ibanTo;
-    }
-
-    public void setIbanTo(String ibanTo) {
-        this.ibanTo = ibanTo;
-    }
-
-    public TransactionDTO amount(BigDecimal amount) {
-        this.amount = amount;
-        return this;
-    }
-
-    /**
-     * Get amount
-     *
-     * @return amount
-     **/
-    @Schema(required = true, description = "")
-    @NotNull
-
-    @Valid
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
 
     @Override
     public boolean equals(java.lang.Object o) {

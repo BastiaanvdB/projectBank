@@ -91,11 +91,11 @@ public class MyApplicationRunner implements ApplicationRunner {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Enter all user details!");
         }
 
-        transactionService.createTransaction(trans);
-        transactionService.createTransaction(trans2);
-        transactionService.createTransaction(trans3);
-        transactionService.createTransaction(trans4);
-        transactionService.createTransaction(trans5);
-        transactionService.createTransaction(trans6);
+        transactionService.saveTransaction(trans);
+        transactionService.saveTransaction(trans2);
+        transactionService.saveTransaction(trans3);
+        transactionService.saveTransaction(trans4);
+        transactionService.saveTransaction(trans5);
+        transactionService.saveTransaction(trans6);
     }
 }

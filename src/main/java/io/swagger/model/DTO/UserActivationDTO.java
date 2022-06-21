@@ -16,6 +16,7 @@ import java.util.Objects;
 
 public class UserActivationDTO {
     @JsonProperty("activated")
+    @NotNull(message = "Please enter a activation status")
     private Boolean activated = null;
 
     public UserActivationDTO activated(Boolean activated) {

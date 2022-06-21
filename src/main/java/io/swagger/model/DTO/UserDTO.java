@@ -2,9 +2,10 @@ package io.swagger.model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -14,32 +15,64 @@ import java.util.Objects;
 @Validated
 @javax.annotation.Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-05-17T11:45:05.257Z[GMT]")
 
-
+@AllArgsConstructor
 public class UserDTO {
     @JsonProperty("firstname")
+    @NotBlank(message = "Please enter a firstname")
+    @NotNull(message = "Please enter a firstname")
+    @NotEmpty(message = "Please enter a firstname")
+    @Size(min = 2, message = "Please enter a valid firstname")
     private String firstname = null;
 
+    @NotBlank(message = "Please enter a lastname")
+    @NotNull(message = "Please enter a lastname")
+    @NotEmpty(message = "Please enter a lastname")
+    @Size(min = 2, message = "Please enter a valid lastname")
     @JsonProperty("lastname")
     private String lastname = null;
 
+    @NotBlank(message = "Please enter a address")
+    @NotNull(message = "Please enter a address")
+    @NotEmpty(message = "Please enter a address")
+    @Size(min = 2, message = "Please enter a valid address")
     @JsonProperty("address")
     private String address = null;
 
+    @NotBlank(message = "Please enter a city")
+    @NotNull(message = "Please enter a city")
+    @NotEmpty(message = "Please enter a city")
+    @Size(min = 2, message = "Please enter a valid city")
     @JsonProperty("city")
     private String city = null;
 
+    @NotBlank(message = "Please enter a postalcode")
+    @NotNull(message = "Please enter a postalcode")
+    @NotEmpty(message = "Please enter a postalcode")
+    @Size(min = 6, message = "Please enter a valid postalcode")
     @JsonProperty("postalCode")
     private String postalCode = null;
 
+
+    @NotNull(message = "Please enter a email")
+    @NotEmpty(message = "Please enter a email")
+    @Email(message = "Please enter a email")
     @JsonProperty("email")
     private String email = null;
 
+    @NotBlank(message = "Please enter a phone number")
+    @NotNull(message = "Please enter a phone number")
+    @NotEmpty(message = "Please enter a phone number")
+    @Size(min = 10, message = "Please enter a valid phone number")
     @JsonProperty("phone")
     private String phone = null;
 
+    @NotNull(message = "Please enter a day limit")
+    @DecimalMin(value = "1", message = "Please enter a valid day limit")
     @JsonProperty("day_limit")
     private BigDecimal dayLimit = null;
 
+    @NotNull(message = "Please enter a transaction limit")
+    @DecimalMin(value = "1", message = "Please enter a valid transaction limit")
     @JsonProperty("transaction_Limit")
     private BigDecimal transactionLimit = null;
 

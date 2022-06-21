@@ -9,6 +9,7 @@ import io.swagger.model.DTO.*;
 import io.swagger.model.ResponseDTO.InlineResponse200;
 import io.swagger.model.ResponseDTO.UserResponseDTO;
 import io.swagger.model.UsersLoginBody;
+import io.swagger.model.exception.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -41,7 +42,7 @@ public interface UsersApi {
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body);
+    ResponseEntity<UserResponseDTO> createUser(@Parameter(in = ParameterIn.DEFAULT, description = "Create a new user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserCreateDTO body) throws InvalidEmailException, PasswordRequirementsException;
 
 
     @Operation(summary = "Get all users", description = "This endpoint will provide all available users", security = {
@@ -53,7 +54,7 @@ public interface UsersApi {
     @RequestMapping(value = "/users",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount);
+    ResponseEntity<List<UserResponseDTO>> getAllUsers(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "firstname", required = false) String firstname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "lastname", required = false) String lastname, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "activated", required = false) Boolean activated, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "hasaccount", required = false) Boolean hasAccount) throws AccountNotFoundException, InvalidAuthenticationException;
 
 
     @Operation(summary = "Get one specific user", description = "Get one user with the given id as parameter", security = {
@@ -68,7 +69,7 @@ public interface UsersApi {
             produces = {"application/json"},
             method = RequestMethod.GET)
     ResponseEntity<UserResponseDTO> getOneUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid);
+    )) @PathVariable("userid") Integer userid) throws UserNotFoundException, InvalidAuthenticationException, UnauthorizedException;
 
 
     @Operation(summary = "Change password of specific user", description = "", security = {
@@ -84,7 +85,7 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.PUT)
     ResponseEntity<Void> setUserPassword(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body);
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the password of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserPasswordDTO body) throws UserNotFoundException, PasswordRequirementsException, InvalidAuthenticationException, UnauthorizedException;
 
 
     @Operation(summary = "Change role of specific user", description = "", security = {
@@ -100,7 +101,7 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.PUT)
     ResponseEntity<Void> setUserRole(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body);
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the role of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserRoleDTO body) throws UserNotFoundException, InvalidRoleException, InvalidAuthenticationException;
 
 
     @Operation(summary = "Change activation status of specific user", description = "", security = {
@@ -115,7 +116,7 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.PUT)
     ResponseEntity<Void> setUserStatus(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body);
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Change the activation of a existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserActivationDTO body) throws UserNotFoundException, InvalidAuthenticationException;
 
 
     @Operation(summary = "Update a specific user", description = "", security = {
@@ -130,7 +131,7 @@ public interface UsersApi {
             consumes = {"application/json"},
             method = RequestMethod.PUT)
     ResponseEntity<InlineResponse200> updateUser(@Min(1) @Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema(allowableValues = {}, minimum = "1"
-    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body);
+    )) @PathVariable("userid") Integer userid, @Parameter(in = ParameterIn.DEFAULT, description = "Update an existing user with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody UserDTO body) throws UserNotFoundException, InvalidEmailException, InvalidAuthenticationException, UnauthorizedException;
 
 
     @Operation(summary = "Authenticate user", description = "This call returns a JWT token.", tags = {"Authorization"})
@@ -142,7 +143,7 @@ public interface UsersApi {
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body);
+    ResponseEntity<InlineResponse200> usersLoginPost(@Parameter(in = ParameterIn.DEFAULT, description = "", schema = @Schema()) @Valid @RequestBody UsersLoginBody body) throws InvalidAuthenticationException;
 
     @Operation(summary = "get current user", description = "This call returns current logged in user.", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Users"})
@@ -153,7 +154,7 @@ public interface UsersApi {
     @RequestMapping(value = "/users/current",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    ResponseEntity<UserResponseDTO> usersCurrentGet();
+    ResponseEntity<UserResponseDTO> getCurrentUser() throws InvalidAuthenticationException;
 
 }
 

@@ -12,6 +12,7 @@ import io.swagger.model.ResponseDTO.DepositResponseDTO;
 import io.swagger.model.ResponseDTO.SpendResponseDTO;
 import io.swagger.model.ResponseDTO.TransactionResponseDTO;
 import io.swagger.model.ResponseDTO.WithdrawResponseDTO;
+import io.swagger.model.exception.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -47,7 +48,7 @@ public interface TransactionsApi {
     @RequestMapping(value = "/accounts/{IBAN}/spend",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN);
+    public ResponseEntity<SpendResponseDTO> getDaySpendings(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException;
 
     @Operation(summary = "Create new transaction", description = "This endpoint will create a new transaction and will perform the transaction", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
@@ -64,7 +65,7 @@ public interface TransactionsApi {
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body);
+    ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, ZeroNegativeException, ExcceedsLimitExeption, UnauthorizedException, SameAccountException, InsufficientFundsException, InvalidRoleException, InvalidPincodeException;
 
 
     @Operation(summary = "Get all transactions", description = "Only the employee gets all transactions of every account", security = {
@@ -81,7 +82,7 @@ public interface TransactionsApi {
     @RequestMapping(value = "/transactions",
             produces = {"application/json"},
             method = RequestMethod.GET)
-    ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance);
+    ResponseEntity<List<TransactionResponseDTO>> getAllTransactions(@Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit, @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate, @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN From", required = false) String ibANFrom, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "IBAN To", required = false) String ibANTo, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "balance operator", required = false) String balanceOperator, @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "Balance", required = false) String balance) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException;
 
     @Operation(summary = "Do a deposit on account", description = "", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Accounts"})
@@ -93,7 +94,7 @@ public interface TransactionsApi {
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<DepositResponseDTO> createDeposit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body);
+    ResponseEntity<DepositResponseDTO> createDeposit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException;
 
 
     @Operation(summary = "Do a withdraw of account", description = "", security = {
@@ -106,7 +107,7 @@ public interface TransactionsApi {
             produces = {"application/json"},
             consumes = {"application/json"},
             method = RequestMethod.POST)
-    ResponseEntity<WithdrawResponseDTO> createWithdraw(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body);
+    ResponseEntity<WithdrawResponseDTO> createWithdraw(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException;
 
     @Operation(summary = "Get all from account", description = "Get all the transactions from a account with given parameter", security = {
             @SecurityRequirement(name = "bearerAuth")}, tags = {"Transactions"})
@@ -127,7 +128,7 @@ public interface TransactionsApi {
             @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "offset", required = false) Integer offset,
             @Parameter(in = ParameterIn.QUERY, description = "", schema = @Schema()) @Valid @RequestParam(value = "limit", required = false) Integer limit,
             @Parameter(in = ParameterIn.QUERY, description = "The start date for the report. Must be used together with `end_date`. ", schema = @Schema()) @Valid @RequestParam(value = "start_date", required = false) LocalDate startDate,
-            @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate);
+            @Parameter(in = ParameterIn.QUERY, description = "The end date for the report. Must be used together with `start_date`. ", schema = @Schema()) @Valid @RequestParam(value = "end_date", required = false) LocalDate endDate) throws UserNotFoundException, UnauthorizedException, InvalidIbanException, AccountNotFoundException;
 
 }
 
