@@ -43,9 +43,6 @@ public class TransactionDTO {
     private String pin = null;
 
     @JsonProperty("amount")
-    @NotBlank(message = "Please enter transaction amount!")
-    @NotEmpty(message = "Please enter transaction amount!")
-    @NotNull(message = "Please enter transaction amount!")
     @DecimalMin(value = "0.01", message = "Please enter a valid transaction amount!")
     private BigDecimal amount = null;
 
