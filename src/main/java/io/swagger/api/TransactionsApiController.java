@@ -54,7 +54,7 @@ public class TransactionsApiController implements TransactionsApi {
 
     @PreAuthorize("hasRole('USER') || hasRole('EMPLOYEE')")
     public ResponseEntity<TransactionResponseDTO> createTransaction(@Parameter(in = ParameterIn.DEFAULT, description = "Post a new tranaction with this endpoint", required = true, schema = @Schema()) @Valid @RequestBody TransactionDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, ZeroNegativeException, ExcceedsLimitExeption, UnauthorizedException, SameAccountException, InsufficientFundsException, InvalidRoleException, InvalidPincodeException {
-        return new ResponseEntity<TransactionResponseDTO>(this.modelMapper.map(this.transactionService.createTransaction(body, getToken()), TransactionResponseDTO.class), HttpStatus.OK);
+        return new ResponseEntity<TransactionResponseDTO>(this.modelMapper.map(this.transactionService.createTransaction(body, getToken()), TransactionResponseDTO.class), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('EMPLOYEE') || hasRole('USER')")
@@ -73,7 +73,7 @@ public class TransactionsApiController implements TransactionsApi {
     public ResponseEntity<DepositResponseDTO> createDeposit(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a deposit to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody DepositDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException {
 
         DepositResponseDTO response = this.modelMapper.map(this.transactionService.deposit(body, IBAN, getToken()), DepositResponseDTO.class);
-        return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.OK);
+        return new ResponseEntity<DepositResponseDTO>(response, HttpStatus.CREATED);
     }
 
     // from user to bank
@@ -81,7 +81,7 @@ public class TransactionsApiController implements TransactionsApi {
     public ResponseEntity<WithdrawResponseDTO> createWithdraw(@Parameter(in = ParameterIn.PATH, description = "", required = true, schema = @Schema()) @PathVariable("IBAN") String IBAN, @Parameter(in = ParameterIn.DEFAULT, description = "Post a withdraw to this endpoint", required = true, schema = @Schema()) @Valid @RequestBody WithdrawDTO body) throws AccountNotFoundException, InvalidIbanException, UserNotFoundException, UnauthorizedException {
 
         WithdrawResponseDTO response = this.modelMapper.map(this.transactionService.withdraw(IBAN, body, getToken()), WithdrawResponseDTO.class);
-        return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.OK);
+        return new ResponseEntity<WithdrawResponseDTO>(response, HttpStatus.CREATED);
     }
 
     // route to other public get transactions
